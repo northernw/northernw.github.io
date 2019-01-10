@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: NORTHERN
-subtitle:
+title: Northern
+subtitle: 眼到，口到，心到，手到。
 description:
-author: LINJINGYU
-language:
+author: Linjingyu
+language: zh-CN
 timezone: UTC
 
 # URL
@@ -72,11 +72,32 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: BlueLake
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
   repo: git@github.com:northernw/northernw.github.io.git
-  branch: gh-pages
+  branch: master
+
+
+# json
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: true
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: false
+    tags: true
