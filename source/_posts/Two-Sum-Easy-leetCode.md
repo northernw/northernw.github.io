@@ -76,3 +76,6 @@ class Solution {
     }
 }
 ```
+
+## Note
+擅于利用map搜索
