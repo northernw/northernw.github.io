@@ -6,7 +6,9 @@ tags:
 
 ## Q&A
 1. 为什么for中不能remove，而iterator时可以？
+见{% post_link foreach中不宜进行remove-add等操作 %}
 2. 迭代是怎么实现的？
+见{% post_link Java-foreach原理 %}
 
 ## 关联知识
 1. forEach(Consumer<? super E> action) action.accept(elementData[i]) 了解下Consumer，lambda
