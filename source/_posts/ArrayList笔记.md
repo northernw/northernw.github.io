@@ -11,11 +11,78 @@ tags:
 见{% post_link Java-foreach原理 %}
 
 ## 关联知识
+0. 本质是数组 Object[]
 1. forEach(Consumer<? super E> action) action.accept(elementData[i]) 了解下Consumer，lambda
 2. removeIf(Predicate<? super E> filter) if (filter.test(element))
 
 
 ## 要点
+
+## 扩容
+```
+    /**
+     * Default initial capacity. 默认容量
+     */
+    private static final int DEFAULT_CAPACITY = 10;
+
+    /**
+     * Shared empty array instance used for empty instances. 指定容量为0时用到
+     */
+    private static final Object[] EMPTY_ELEMENTDATA = {};
+
+    /**
+     * Shared empty array instance used for default sized empty instances. We
+     * distinguish this from EMPTY_ELEMENTDATA to know how much to inflate when
+     * first element is added. 默认构造函数用到，容量为10
+     */
+    private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
+
+	/**
+     * The maximum size of array to allocate.
+     * Some VMs reserve some header words in an array.
+     * Attempts to allocate larger arrays may result in
+     * OutOfMemoryError: Requested array size exceeds VM limit 受VM影响
+     */
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+	
+    /**
+     * Increases the capacity to ensure that it can hold at least the
+     * number of elements specified by the minimum capacity argument.
+     *
+     * @param minCapacity the desired minimum capacity
+     */
+    private void grow(int minCapacity) {
+        // overflow-conscious code
+        int oldCapacity = elementData.length;
+        int newCapacity = oldCapacity + (oldCapacity >> 1); // 右移，增加原容量两倍
+        if (newCapacity - minCapacity < 0) // 还是比所需小，选所需
+            newCapacity = minCapacity;
+        if (newCapacity - MAX_ARRAY_SIZE > 0) // 如果超过array最大值，尝试Intager最大值，不一定成功
+            newCapacity = hugeCapacity(minCapacity);
+        // minCapacity is usually close to size, so this is a win:
+        elementData = Arrays.copyOf(elementData, newCapacity);
+    }
+	
+    private void ensureExplicitCapacity(int minCapacity) {
+        modCount++;
+
+        // overflow-conscious code
+        if (minCapacity - elementData.length > 0)
+            grow(minCapacity);
+    }
+	
+	 private static int calculateCapacity(Object[] elementData, int minCapacity) {
+        if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+            return Math.max(DEFAULT_CAPACITY, minCapacity);
+        }
+        return minCapacity;
+    }
+
+    // minCapacity为size + 1
+    private void ensureCapacityInternal(int minCapacity) {
+        ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));
+    }
+```
 
 ### 增
 还有add(int,E),addAll(collection<>)等
