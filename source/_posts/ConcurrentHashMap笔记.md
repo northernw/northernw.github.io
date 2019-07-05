@@ -20,6 +20,7 @@ tags:
 2. 如果对应下标节点为空，cas插入，跳出
 3. 如果发现表正在迁移，帮助迁移，继续
 4. 执行put操作。如果链表长度超过阈值，转为树。如果为更新，直接返回，否则跳出
+
 循环退出后，计数+1
 ```java
     public V put(K key, V value) {
@@ -191,7 +192,7 @@ tags:
             Node<K, V>[] tab, nt;
             int n, sc;
             // 如果节点个数大于阈值，0.75n，类似于加载因子
-            // 并且table不为空 && table长度未超过上线
+            // 并且table不为空 && table长度未超过上限
             while (s >= (long) (sc = sizeCtl) && (tab = table) != null &&
                     (n = tab.length) < MAXIMUM_CAPACITY) {
                 // 获取表长度的一个标识值
@@ -454,6 +455,38 @@ resizeStamp的结果作为扩容&迁移时sizeCtl的高16位信息
     }
 ```
 
+## get
+
+```java
+    public V get(Object key) {
+        Node<K, V>[] tab;
+        Node<K, V> e, p;
+        int n, eh;
+        K ek;
+        int h = spread(key.hashCode());
+        // 表不为空，且hash取模所在桶不为空
+        if ((tab = table) != null && (n = tab.length) > 0 &&
+                (e = tabAt(tab, (n - 1) & h)) != null) {
+            // 桶的头结点为要找的节点
+            if ((eh = e.hash) == h) {
+                if ((ek = e.key) == key || (ek != null && key.equals(ek)))
+                    return e.val;
+            } 
+            // 头结点hash<0，说明为树或者迁移节点，调用find查找
+            else if (eh < 0)
+                // ForwardingNode -1; treeBin -2
+                return (p = e.find(h, key)) != null ? p.val : null;
+            // 否则为链表格式，遍历查找
+            while ((e = e.next) != null) {
+                if (e.hash == h &&
+                        ((ek = e.key) == key || (ek != null && key.equals(ek))))
+                    return e.val;
+            }
+        }
+        return null;
+    }
+```
+
 
 
 ## 作者说
@@ -474,3 +507,45 @@ resizeStamp的结果作为扩容&迁移时sizeCtl的高16位信息
      * traversal.  This is arranged in part by proceeding from the
      * last bin (table.length - 1) up towards the first.  
 ```
+
+## 引用一段并发分析
+
+[Java 8 中 ConcurrentHashMap工作原理的要点分析](https://www.bbsmax.com/A/ZOJPOX7xzv/)
+
+> 6.1初化的同步问题
+
+> 表长度的分配并不是在构造函数中进行的，而是在put方法中进行的，也就是说这实际上是个懒汉模式。但是如果多个线程同时进行表长度的空间分配，显然是非线程安全的。所以只能有一个线程来进行创建表，其它线程会等待创建完成。ConcurrentHashMap类中设定一个volatile变量sizeCtl
+
+    private transient volatile int sizeCtl;
+> 然后通过CAS方法去修改它，如果有其它线程发现sieCtl为-1
+
+
+    U.compareAndSwapInt(this, SIZECTL, sc, -1)
+> 就表示已经有线程正在创建表了，那么当前线程就会放弃CPU使用权（调用Thread.yield()方法），等待分初始化完成后继续进行put操作。否则当前线程尝试将siezeCtl修改为-1,若成功，就由当前线程来创建表。
+
+> 6.2 put方法和remove方法之间的同步问题
+
+> 在表的同一个槽上，一个线程调用put方法和另一个线程调用put方法是互斥的；在表的同一个槽上，一个线程调用remove方法和另一个线程调用remove方法也是互斥的；在表的同一个槽上，一个线程调用remove方法和另一个线程调用put方法也是互斥的。这些互斥操作在代码中都是通过锁来保证的。
+
+> 6.3 put(或remove)方法和get方法的同步问题
+
+
+> 实际上是不需要同步，先到先得。这主要由于Node定义中value和next都定义成了volatile类型。一个线程能否get到另一个线程刚刚put（或remove）的值，这主要由两个线程当前访问的结点所处的位置决定的。
+
+> 6.4 get方法和扩容操作的同步问题
+
+> 可以分成两种情况讨论
+
+> 1）该位置的头结点是Node类型对象，直接get，即使这个桶正在进行迁移，在get方法未完成前，迁移完已成（槽被设置成了ForwordingNode对象），也没关系，并不影响get的结果，因为get线程仍然持有旧链表的引用，可以从当前结点位置访问到所有的后续结点，原因是新表中的节点是通过复制旧表中的结点得到的，所以新表的结点的next不会影响旧表中对应结点的next值。当get方法结束后，旧链表就不可达了，会被垃圾回收线程回收。
+
+> 2）该位置的头结点是ForwordingNode类型对象（头结点的hash值 == -1），头结点是ForwordingNode类型的对象，调用该对象的find方法，在新表中查找。
+
+> 所以无论哪种情况，都能get到正确的值。
+
+> 6.5 put(或remove)方法和扩容操作的同步问题
+
+> 同样可以分为两种情况讨论：
+
+> 1）该位置的头结点是Node类型对象，put操作就走正常路线，先将Node对象放入到旧表中，然后调用addCount方法，判断是否需要帮助扩容。
+
+> 2）该位置的头结点是ForwordingNode类型对象，那就会先帮助扩容，然后在新表中进行put操作。
