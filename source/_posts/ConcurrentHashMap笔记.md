@@ -2,6 +2,9 @@
 title: ConcurrentHashMap笔记
 date: 2019-06-27 11:09:41
 tags:
+  - ConcurrentHashMap
+categories:
+  - 源码解析
 ---
 ## spread
 假设table的长度为n=2^k，取模操作hash%n等价于hash&(n-1)，n-1为mask(二进制的k-1个1)

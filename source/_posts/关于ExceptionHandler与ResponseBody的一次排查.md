@@ -48,7 +48,7 @@ date: 2019-07-11 14:41:49
 差别在于，异常处理与正常返回用到的RequestResponseBodyMethodProcessor不是同一个实例，异常的是在ExceptionHandlerExceptionResolver中的，正常的是在RequestMappingHandlerAdapter.
 前者比之后者，缺少springmvc-config.xml中自定义的MessageConverter，例如MappingJackson2HttpMessageConverter。
 
-```
+```java
 		<bean
 			class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
 			<property name="supportedMediaTypes">
@@ -64,7 +64,7 @@ date: 2019-07-11 14:41:49
 ```
 在writeWithMessageConverters方法中，异常resolver返回的b有7个，排序后最前的是`application/xml`，正常resolver返回9个，排序最前是上面自定义的`application/json;charset=UTF-8`，因此，最终返回结果有格式上的差异。
 AbstractMessageConverterMethodProcessor#writeWithMessageConverters
-```
+```java
 		HttpServletRequest request = inputMessage.getServletRequest();
 		// 根据request的accept得到请求支持的返回格式 a
 		List<MediaType> requestedMediaTypes = getAcceptableMediaTypes(request);
@@ -153,7 +153,7 @@ AbstractMessageConverterMethodProcessor#writeWithMessageConverters
 
 跟踪不到setMessageConverters的直接调用，两个类的setMessageConverters都分别调用了2次，一次7个，一次9个，AnnotationDrivenBeanDefinitionParser#parse也分别执行了两次，一次7，一次9，可以推测是这个类触发了eher和rmhq的实例化.
 
-```
+```java
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		this.messageConverters = messageConverters;
 	}
