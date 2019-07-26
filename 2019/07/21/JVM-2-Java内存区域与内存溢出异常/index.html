@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>JVM-2.Java内存区域与内存溢出异常 | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">JVM-2.Java内存区域与内存溢出异常</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">JVM-2.Java内存区域与内存溢出异常</h1><div class="post-meta"><a href="/2019/07/21/JVM-2-Java内存区域与内存溢出异常/#comments" class="comment-count"></a><p><span class="date">Jul 21, 2019</span><span><a href="/categories/读书笔记/" class="category">读书笔记</a></span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><h2 id="运行时数据区域"><a href="#运行时数据区域" class="headerlink" title="运行时数据区域"></a>运行时数据区域</h2><ul>
+<li>程序计数器(线程私有)</li>
+<li>Java虚拟机栈(线程私有)</li>
+<li>本地方法栈(线程私有，执行本地方法)</li>
+<li>Java堆：所有的对象实例及数组都在堆上分配。基本采用分代回收，新生代（Eden/From Survivor/To Survivor），老年代。</li>
+<li>方法区：存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。Non-Heap非堆。HotSpot称之为永久代(也有回收，主要针对常量和对类的卸载。但效果一般，因为回收条件苛刻。)</li>
+<li>运行时常量池：本是方法区的一部分，已经独立移出。用于存放编译期生成的各种字面量和符号引用。</li>
+<li>直接内存：不是虚拟机运行时数据区的一部分，也不是虚拟机规范中定义的内存区域。JDK1.4 NIO 使用Native函数库直接分配堆外内存。</li>
+</ul>
+<h2 id="对象探秘"><a href="#对象探秘" class="headerlink" title="对象探秘"></a>对象探秘</h2><ol>
+<li><p>对象创建</p>
+<ul>
+<li>为新生对象分配内存，有两种方式可用。受到不同收集器的影响。<ul>
+<li>指针碰撞(Bump the pointer)。堆中内存规整，用指针划分使用过的和未使用的两块空间，分配内存就是指针向未使用空间移动。</li>
+<li>空闲列表(Free List)。虚拟机需要维护一个列表，记录哪些内存块是可用的，分配空间时从列表中找到一块足够大的空间划分给新对象，同时更新列表。</li>
+<li>Serial、ParNew带等Compact过程：指针碰撞；CMS等基于Mark-Sweep：空闲列表。</li>
+</ul>
+</li>
+<li>并发情况下争用同一地址创建对象，如何解决？<ul>
+<li>虚拟机采用CAS+失败重试来保证更新操作的原子性。</li>
+<li>方案二：本地线程分配缓冲(Thread local allocation buffer, TLAB). 每个线程预先在堆中拿出一小块私有，缓冲区分配满了，再同步锁定，分配新TLAB. 通过-XX:+/-UseTLAB设定。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>对象的内存布局</p>
+<ul>
+<li>对象头(Header，Mark Word)<ul>
+<li>存储对象自身的运行时数据，如哈希码，GC份代年龄，锁状态标志，线程持有的锁，偏向线程ID，偏向时间戳等。</li>
+<li>有一部分虚拟机实现，会在对象头中存储类型指针。与对象的访问定位有关。</li>
+</ul>
+</li>
+<li>实例数据(Instance data)<ul>
+<li>父类+子类的各种类型的字段内容。存储顺序受到VM分配策略和字段在源码中定义顺序影响。</li>
+</ul>
+</li>
+<li>对其填充(Padding)<ul>
+<li>HotSpot虚拟机要求对象起始地址必须是8字节的整数倍。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对象的访问定位<ul>
+<li>句柄访问：包含了对象实例数据和类型数据各自的具体地址信息。</li>
+<li>直接指针访问：实例对象中存储类型数据指针。</li>
+</ul>
+</li>
+</ol>
+<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><ul>
+<li>OutOfMemoryError<ul>
+<li>堆溢出</li>
+<li>虚拟机栈和本地方法栈溢出</li>
+<li>方法区和运行时常量池溢出</li>
+<li>本机直接内存溢出</li>
+</ul>
+</li>
+</ul>
+</div><div class="tags"><a href="/tags/深入理解Java虚拟机/">深入理解Java虚拟机</a></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2019/07/22/JVM-3-垃圾收集器与内存分配策略/" class="pre">JVM-3.垃圾收集器与内存分配策略</a><a href="/2019/07/19/Gson源码解析和设计模式/" class="next">Gson源码解析和设计模式</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#运行时数据区域"><span class="toc-text">运行时数据区域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对象探秘"><span class="toc-text">对象探秘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异常"><span class="toc-text">异常</span></a></li></ol></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2019/07/26/hello-world/">Hello World</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/22/JVM-3-垃圾收集器与内存分配策略/">JVM-3.垃圾收集器与内存分配策略</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/21/JVM-2-Java内存区域与内存溢出异常/">JVM-2.Java内存区域与内存溢出异常</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/19/Gson源码解析和设计模式/">Gson源码解析和设计模式</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/17/OKHttp源码解析和设计模式/">OKHttp源码解析和设计模式</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/15/剑指offer-面试需要的基本知识/">剑指offer-面试需要的基本知识</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/15/剑指offer-基础知识/">剑指offer-基础知识</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/12/Spring-Framework-Reference-Documentation/">Spring Framework Reference Documentation</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/11/关于ExceptionHandler与ResponseBody的一次排查/">关于ExceptionHandler与ResponseBody的一次排查</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/07/10/剑指offer-关于面试/">剑指offer-关于面试</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">3</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>
