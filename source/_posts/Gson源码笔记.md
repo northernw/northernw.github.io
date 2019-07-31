@@ -1,5 +1,5 @@
 ---
-title: Gson源码解析和设计模式
+title: Gson源码笔记
 tags:
   - Gson
 categories:
@@ -20,6 +20,7 @@ date: 2019-07-18 20:00:15
 - 抽象类TypeAdapter，委托模式，处理json字符串和特定类型对象之间的相互转换。抽象方法read和write在具体的TypeAdapter有各自的实现，比较复杂的包括集合类型的CollectionTypeAdapterFactory.Adapter（比如read时，要实例化集合，再循环处理集合内元素）、自定义对象类型的ReflectiveTypeAdapterFactory.Adapter（比如需要循环处理类内field的read和write）。
 - 接口TypeAdapterFactory，抽象工厂模式，创建给定类型的TypeAdapter。基础类型已经预先创建typeAdapter（调用factory.create时，如果是给定的类型，返回预定义的adapter），Collection、自定义类型等包含泛型的，在运行时create（因为会有不同的要素，比如constructor、elementType、boundFields等）。
 - 序列化时，泛型类型通过TypeAdapterRuntimeTypeWrapper进行处理。会判断使用rawType带过来的类型还是运行时真实value的类型进行后续处理。
+- 责任链模式（？待确认）。在对顶层类型getAdapter过程中，会递归对下层类型进行getAdapter，并保存在上层adapter中；在顶层adapter.write过程中，也递归调用到子类型的adapter.write。ps在基本类型adapter中，才调用JsonReader/Writer读写。
 
 
 ## 设计模式
@@ -38,9 +39,7 @@ public interface TypeAdapterFactory {
 
 ```
 
-## 不同adapter
-
-## 不同factory
+## factory和adapter
 
 ### Gson内置factory
 
@@ -103,6 +102,13 @@ public interface TypeAdapterFactory {
 
 ```
 
+## TypeToken
+匿名内部类有两种语法格式
+- new 接口(){}
+- new 父类构造器(参数列表){}
+TypeToken为第二种
+`new TypeToken<List<TwoGeneric<Integer,User>>>(){};`得到的是`TypeToken<List<TwoGeneric<Integer,User>>>`的匿名子类。
+
 ## todo
 - map 复杂key的序列化
 - map peek == JsonToken.BEGIN_ARRAY
@@ -110,4 +116,4 @@ public interface TypeAdapterFactory {
 - toJson时候，type里带实例的runtime type? [done. TypeAdapterRuntimeTypeWrapper处理]
 - JsonAdapterAnnotationTypeAdapterFactory [almost done. 获取filed上注解的TypeAdapter进行后续处理]
 - $Gson$Types.resolve [done]
-- JsonWriter和JsonReader的读写
+- JsonWriter和JsonReader的读写 [almost done. 写比较简单，不同类型输出；读在fillBuffer时先读到缓存中，不同类型在缓存中操作。]
