@@ -25,13 +25,45 @@ date: 2019-09-16 15:17:01
 
 `@EnableSwagger2`注解引入了swagger的各类plugin，在spring容器finish之后，开始这些plugin的工作。在swagger中就是`DocumentationPluginsBootstrapper`。
 
-接下去以Documentation-ApiListing(method)-ApiModel(parameter/OperationModel)等维度，生成文档数据。
+接下去以Documentation-ApiListing(controller)-ApiDescription(method)/Model等维度，生成文档数据。
 
-主要看了model的生成，ApiDescription及Operation的组织形式没有关注，下次可在启动完成后，看下根documentation的内部结构。
+
 
 Ps:一个docket看做一个文档，可设置是否启用，group分组，默认分组为default。
 
 ![image-20190916203934721](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190916203934721.png)
+
+
+
+
+
+
+
+### 解析结果
+
+ApiListing：一个controller
+
+从description=user controller可以看出
+
+![image-20190917120935095](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190917120935095.png)
+
+
+
+ApiDescription：接口
+
+Model：实体，模型
+
+示例中有2个接口（/list和/list/no/type），3个模型（一个入参，2个出参）
+
+![image-20190917121050713](/Users/wangyuanqing1/Library/Application Support/typora-user-images/image-20190917121050713.png)
+
+
+
+ApiDescription（method的维度）-Operation中，出入参对model的引用
+
+response有4个，200status里有所需model
+
+![image-20190917115442171](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190917115442171.png)
 
 
 
@@ -43,7 +75,7 @@ Ps:一个docket看做一个文档，可设置是否启用，group分组，默认
 
 
 
-包括这些依赖
+解析依赖
 
 ```java
 DefaultModelDependencyProvider.java
@@ -188,3 +220,18 @@ public class UserController {
 
 
 ![image-20190916154320343](/Users/wangyuanqing1/github/northernw.github.io/image/swagger-generic-type.png)
+
+
+
+## 最后
+
+和自己之前实验的一样，不指定泛型，是得不到想要的泛型数据的。
+
+之后看下jackson的序列化实现，与Gson对比。
+
+
+
+ps 总结是相对有目的性的结论，其他部分是看代码时候的一些记录，没有逻辑性。
+
+带着疑问看源码吧，还要带着目的性，比如看源码是为了得到哪些结论，学习哪些技巧，等。
+
