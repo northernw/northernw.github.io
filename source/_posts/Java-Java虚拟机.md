@@ -10,7 +10,7 @@ date: 2019-09-17 11:28:38
 
 ## 运行时数据区域
 
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190917200125910.png" alt="image-20190917200125910" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190917200125910.png" alt="image-20190917200125910" style="zoom:50%;" />
 
 1. 程序计数器：
 
@@ -151,7 +151,7 @@ Object obj = new Object();
 
 #### 4. 虚引用类型
 
-又称为幽灵引用或者幻影引用，一个对象是否有虚引用的存在，不会对其生存时间造成影响，也无法通过虚	引用得到一个对象。 为一个对象设置虚引用的唯一目的是能在这个对象被回收时收到一个系统通知。 
+又称为幽灵引用或者幻影引用，一个对象是否有虚引用的存在，不会对其生存时间造成影响，也无法通过虚引用得到一个对象。 为一个对象设置虚引用的唯一目的是能在这个对象被回收时收到一个系统通知。 
 
 使用 PhantomReference 来创建虚引用。 
 
@@ -204,7 +204,7 @@ Object obj = new Object();
 
 ### 垃圾收集器
 
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918173939889.png" alt="image-20190918173939889" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918173939889.png" alt="image-20190918173939889" style="zoom:50%;" />
 
 
 
@@ -229,22 +229,17 @@ Safepoint：并非所有地方都能停顿下来开始GC，只有在到达安全
 - 单线程与多线程:单线程指的是垃圾收集器只使用一个线程，而多线程使用多个线程;
 - 串行与并行:串行指的是垃圾收集器与用户程序交替执行，这意味着在执行垃圾收集的时候需要停顿用户程序;并行指的是垃圾收集器和用户程序同时执行。除了 CMS 和 G1 之外，其它垃圾收集器都是以串行的方式执行。
 
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918195708514.png" alt="image-20190918195708514" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918195708514.png" alt="image-20190918195708514" style="zoom:50%;" />
 <center>Serial 和 Serial old</center>
-
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918200259494.png" alt="image-20190918200259494" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918200259494.png" alt="image-20190918200259494" style="zoom:50%;" />
 
 <center>ParNew 和 Serial Old</center>
-
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918200445576.png" alt="image-20190918200445576" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918200445576.png" alt="image-20190918200445576" style="zoom:50%;" />
 
 <center>Parallel Scavenge 和 Parallel Old</center>
-
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918200628015.png" alt="image-20190918200628015" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918200628015.png" alt="image-20190918200628015" style="zoom:50%;" />
 
 <center>CMS</center>
-
-
 #### 1. Serial
 
 单线程，复制，新生代，简单高效，需要暂停用户线程，client端可接受
@@ -292,7 +287,7 @@ CMS(Concurrent Mark Sweep)，Mark Sweep 指的是标记 - 清除算法。
 
 #### 7. G1
 
-意欲替换 CMS 收集器
+意在替换 CMS 收集器
 
 G1 把堆划分成多个大小相等的独立区域(Region)，新生代和老年代不再物理隔离。
 
@@ -330,9 +325,9 @@ FullGC 老年代收集，JDK1.8不提供。
 
 
 
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918201137363.png" alt="image-20190918201137363" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918201137363.png" alt="image-20190918201137363" style="zoom:50%;" />
 
-<img src="/Users/wangyuanqing1/github/northernw.github.io/image/image-20190918201055001.png" alt="image-20190918201055001" style="zoom:50%;" />
+<img src="/github/northernw.github.io/image/image-20190918201055001.png" alt="image-20190918201055001" style="zoom:50%;" />
 
 
 
@@ -342,23 +337,95 @@ FullGC 老年代收集，JDK1.8不提供。
 
 ### MinorGC与FullGC
 
+minorGC: 回收新生代对象。
+
+fullGC: 回收新生代与老年代对象。
+
 ### 内存分配策略
 
+1. 新对象优先分配在Eden。
+2. 大对象直接进入老年代。
+3. 超过一定年龄的对象进入老年代。（长期存活的对象）
+4. 动态对象年龄判定。（某个年龄对象的总和超过survivor容量的一半）
+5. 空间分配担保。（会触发fullGC，参数HandlePromotionFailure设置是否允许担保失败。）
+
+### MinorGC的触发条件
+
+Eden区空间不足
+
 ### FullGC的触发条件
+
+1. System.gc() 并未真正执行full gc
+2. 老年代空间不足
+3. 空间分配担保失败
+4. jdk1.7以前的永久代空间不足
+5. Concurrent Mode Failure, CMS gc过程中，有对象进入老年代
 
 ## 类加载机制
 
 ### 类的生命周期
 
+加载-验证-准备-解析-初始化-使用-卸载
+
 ### 类加载过程
 
+加载-验证-准备-解析-初始化
+
 ### 类初始化时机
+
+1. new/getstatic/putstatic/invokestatic 指令
+2. reflect包反射调用时，若类未初始化，则初始化
+3. 初始化一个类时，若类的父类未初始化，则先初始化父类
+4. 虚拟机启动时，初始化主类
+5. Jdk1.7动态语言，遇到方法句柄REF_putstatic/REF_getstatic/REF_invokestatic（方法句柄所对应的类没有进行过初始 化，则需要先触发其初始化）
 
 ### 类与类加载器
 
 ### 类加载器分类
 
+虚拟机层面，分两类：
+
+1. 启动类加载器，cpp实现，Bootstrap ClassLoader
+2. Java程序里的加载器，Java实现
+   1. BootstrapLoader
+   2. ExtClassLoader
+   3. AppClassLoader
+
+
+
+![屏幕快照 2019-09-21 下午4.25.49](/github/northernw.github.io/image/屏幕快照 2019-09-21 下午4.25.49.png)
+
 ### 双亲委派模型
+
+模型要求除了顶层的启 动类加载器外，其它的类加载器都要有自己的父类加载器。这里的父子关系一般通过组合关系(Composition)来实 现，而不是继承关系(Inheritance)。
+
+
+
+工作原理：
+
+一个类加载器首先将类加载请求转发到父类加载器，只有当父类加载器无法完成时才尝试自己加载。
+
+好处：
+
+使得基础类得到统一
+
+
+
+<img src="/github/northernw.github.io/image/image-20190921163056457.png" alt="image-20190921163056457" style="zoom:50%;" />
+
+### 为什么有三个加载器？
+
+1. 保证唯一性
+   1. 通过双亲委派模型，保证同一个类只会被一个加载器加载，保证类的唯一性。
+
+2. 保证安全性
+   1. 自定义的同名类不会覆盖基础类，保证JVM的安全性
+
+
+
+[为什么java里面会用三种classloader，这样设计目的是什么？](https://segmentfault.com/q/1010000015149054)
+
+![image-20190921224824233](/github/northernw.github.io/image/image-20190921224824233.png)
 
 ### 自定义类加载器实现
 
