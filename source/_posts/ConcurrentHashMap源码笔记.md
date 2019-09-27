@@ -9,6 +9,7 @@ categories:
 ## spread
 假设table的长度为n=2^k，取模操作hash%n等价于hash&(n-1)，n-1为mask(二进制的k-1个1)
 即，hash的低k位决定了桶的位置，k位以上的高位不起作用，如果不同hash的低k位相同，就会产生碰撞
+
 ```java
     static final int spread(int h) {
         // 将高16位与低16位异或，增加hash的分散度，降低碰撞概率
@@ -230,7 +231,8 @@ categories:
 ```
 sizeCtl的注释说明，当sizeCtl为负数时，-1标识表初始化，-(sizeCtl-1)标识活动的扩容线程数
 为什么在具体实现里，是sizeCtl的低16位，且需减去1的值，标识扩容线程数呢？
-(rs << RESIZE_STAMP_SHIFT) + 2)这里留个疑问，为什么是+2？不能是+1么？
+((rs << RESIZE_STAMP_SHIFT) + 2)这里有个疑问，为什么是+2？不能是+1么？
+
 ```
     /**
      * Table initialization and resizing control.  When negative, the
@@ -341,7 +343,7 @@ resizeStamp的结果作为扩容&迁移时sizeCtl的高16位信息
                     bound = nextBound;
                     // 上界i为之前的transferIndex减1
                     i = nextIndex - 1;
-                    // 标识停止推进
+                    // 标识停止分配范围
                     advance = false;
                 }
             }
@@ -399,7 +401,7 @@ resizeStamp的结果作为扩容&迁移时sizeCtl的高16位信息
                                 hn = lastRun;
                                 ln = null;
                             }
-                            // 重新遍历链表，链接出0组合1组节点，lastRun已链接上某个组，无需再遍历
+                            // 重新遍历链表，链接出0组和1组节点，lastRun已链接上某个组，无需再遍历
                             for (Node<K, V> p = f; p != lastRun; p = p.next) {
                                 int ph = p.hash;
                                 K pk = p.key;
@@ -539,7 +541,7 @@ resizeStamp的结果作为扩容&迁移时sizeCtl的高16位信息
 
 > 可以分成两种情况讨论
 
-> 1）该位置的头结点是Node类型对象，直接get，即使这个桶正在进行迁移，在get方法未完成前，迁移完已成（槽被设置成了ForwordingNode对象），也没关系，并不影响get的结果，因为get线程仍然持有旧链表的引用，可以从当前结点位置访问到所有的后续结点，原因是新表中的节点是通过复制旧表中的结点得到的，所以新表的结点的next不会影响旧表中对应结点的next值。当get方法结束后，旧链表就不可达了，会被垃圾回收线程回收。
+> 1）该位置的头结点是Node类型对象，直接get，即使这个桶正在进行迁移，在get方法未完成前，迁移已完成（槽被设置成了ForwordingNode对象），也没关系，并不影响get的结果，因为get线程仍然持有旧链表的引用，可以从当前结点位置访问到所有的后续结点，原因是新表中的节点是通过复制旧表中的结点得到的，所以新表的结点的next不会影响旧表中对应结点的next值。当get方法结束后，旧链表就不可达了，会被垃圾回收线程回收。
 
 > 2）该位置的头结点是ForwordingNode类型对象（头结点的hash值 == -1），头结点是ForwordingNode类型的对象，调用该对象的find方法，在新表中查找。
 
