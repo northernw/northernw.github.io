@@ -19,6 +19,8 @@ date: 2019-10-19 15:20:42
 
 2. spring aop或者其他的aop，有多个before、around、after时，需要定义先后顺序吗？如何实现？
 
+   order或者实现Order接口，定义顺序数值。值越小越先执行（越在同心圆外圈）。
+
 3. spring的aspectJ，是spring aop代理？用的动态代理，还是cglib？
 
    用的动态代理。
@@ -310,4 +312,86 @@ public final class $Proxy0 extends Proxy implements Subject {
     }
 }	
 ```
+
+
+
+
+
+# 补充
+
+## spring aop代理每个bean的流程小结
+
+1. 每个advisor是一个bean，连接了一个advice和一个pattern
+2. 在DefaultAdvisorAutoProxyCreator这个BeanPostProcessor中，warpIfNessary
+   1. 在容器中查询出所有advisor，常用的是基于正则的advisor`RegexpMethodPointcutAdvisor`（还会对不同类型的advisor做一些处理，比如用`DefaultPointcutAdvisor`封装`MethodInterceptor`类型的advisor）
+   2. 将bean与advisors放入proxyFactory，创建代理对象
+
+
+
+
+
+## 获得xml配置的advisor
+
+比较古老的通过配置文件定义切面的方式。
+
+可以看出，每个advisor连接了一个advice和一个pattern。advice是方法维度的，例如是一个`MethodBeforeAdvice`。
+
+这里`DefaultAdvisorAutoProxyCreator`是一个`BeanPostProcessor`，在bean实例化后的回调方法中，触发代理的创建。
+
+ps: `DefaultAdvisorAutoProxyCreator`与下面`@Aspect`要用的`AnnotationAwareAspectJAutoProxyCreator`同宗啊。
+
+![image-20191021202150103](/github/northernw.github.io/image/image-20191021202150103.png)
+
+
+
+default方式的查找advisors，是直接通过获取Advisor类型的bean实现的。
+
+从XML配置中可以看到，advisor实现了RegexpMethodPointcutAdvisor接口，是Advisor类型的。
+
+![image-20191021203120982](/github/northernw.github.io/image/image-20191021203120982.png)
+
+
+
+![image-20191021115243986](/github/northernw.github.io/image/image-20191021115243986.png)
+
+
+
+
+
+## 获得`@Aspect`注解的advisor
+
+那通过`@Aspect`注解的切面是怎么组装的呢？
+
+首先，`@Aspect`注解的类需要在xml中配置成bean、或者加`@Component`注解等，能够托管在IOC容器中。
+
+其次，需要开启`@Aspect`注解的自动解析。
+
+`AopNamespaceHandler`会注册一个`AspectJAutoProxyBeanDefinitionParser`。【在什么时候使用到这个parser？】parser在parse方法中，注册了`AnnotationAwareAspectJAutoProxyCreator.class`（是`SmartInstantiationAwareBeanPostProcessor`的一个实现），就是这个类起着寻找并创建advisor的重要作用。从截图的2步骤开始。
+
+```xml
+<!--开启 @AspectJ 配置-->
+<aop:aspectj-autoproxy/>
+```
+
+寻找并创建advisor的流程：
+
+1. 从beanFactory中取出所有的beanNames
+2. 对每一个beanName判断是否为aspect，其中一种判断就是看是否有Aspect注解，如截图步骤4.
+3. 如果是aspect，由`ReflectiveAspectJAdvisorFactory`生成类中的各advisors。
+
+
+
+![image-20191021193759979](/github/northernw.github.io/image/image-20191021193759979.png)
+
+
+
+
+
+## 几种proxyCreator
+
+第四个没见过
+
+beanName，就是在xml文件中直接写出哪些beanName是Advice，同时bean会实现`MethodBeforeAdvice`等接口。可能是比较古老的方式。
+
+![image-20191021204143441](/github/northernw.github.io/image/image-20191021204143441.png)
 
