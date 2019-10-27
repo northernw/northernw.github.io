@@ -40,3 +40,10 @@ date: 2019-10-25 16:55:41
 在反射执行完controller中的方法后，通过`selectHandler`找到匹配的处理返回结果的Processor。例如返回结果是json或xml格式的，都是在这个processor中。和`@ResponseBody`的数据绑定是同一个。
 
 ![image-20191025165729754](/github/northernw.github.io/image/image-20191025165729754.png)
+
+
+
+
+
+![img](https://upload-images.jianshu.io/upload_images/5220087-3c0f59d3c39a12dd.png)
+
