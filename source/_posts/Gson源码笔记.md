@@ -102,12 +102,288 @@ public interface TypeAdapterFactory {
 
 ```
 
+
+
+### newFactory
+
+typeToken.getRawType()
+
+
+
+```java
+  public static <TT> TypeAdapterFactory newFactory(
+      final Class<TT> type, final TypeAdapter<TT> typeAdapter) {
+    return new TypeAdapterFactory() {
+      @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+      @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+        return typeToken.getRawType() == type ? (TypeAdapter<T>) typeAdapter : null;
+      }
+      @Override public String toString() {
+        return "Factory[type=" + type.getName() + ",adapter=" + typeAdapter + "]";
+      }
+    };
+  }
+
+// 装箱+非装箱
+  public static <TT> TypeAdapterFactory newFactory(
+      final Class<TT> unboxed, final Class<TT> boxed, final TypeAdapter<? super TT> typeAdapter) {
+    return new TypeAdapterFactory() {
+      @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+      @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+        Class<? super T> rawType = typeToken.getRawType();
+        return (rawType == unboxed || rawType == boxed) ? (TypeAdapter<T>) typeAdapter : null;
+      }
+      @Override public String toString() {
+        return "Factory[type=" + boxed.getName()
+            + "+" + unboxed.getName() + ",adapter=" + typeAdapter + "]";
+      }
+    };
+  }
+```
+
+
+
+
+
+```java
+  public static final TypeAdapterFactory TIMESTAMP_FACTORY = new TypeAdapterFactory() {
+    @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+    @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+      if (typeToken.getRawType() != Timestamp.class) {
+        return null;
+      }
+// gson.getAdapter(Date.class)的逻辑？
+      final TypeAdapter<Date> dateTypeAdapter = gson.getAdapter(Date.class);
+      return (TypeAdapter<T>) new TypeAdapter<Timestamp>() {
+        @Override public Timestamp read(JsonReader in) throws IOException {
+          Date date = dateTypeAdapter.read(in);
+          return date != null ? new Timestamp(date.getTime()) : null;
+        }
+
+        @Override public void write(JsonWriter out, Timestamp value) throws IOException {
+          dateTypeAdapter.write(out, value);
+        }
+      };
+    }
+  };
+```
+
+
+
+
+
+### CALENDAR和LOCALE的factory、adapter
+
+可以学习
+
+```java
+  public static final TypeAdapter<Calendar> CALENDAR = new TypeAdapter<Calendar>() {
+    private static final String YEAR = "year";
+    private static final String MONTH = "month";
+    private static final String DAY_OF_MONTH = "dayOfMonth";
+    private static final String HOUR_OF_DAY = "hourOfDay";
+    private static final String MINUTE = "minute";
+    private static final String SECOND = "second";
+
+    @Override
+    public Calendar read(JsonReader in) throws IOException {
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return  null;
+      }
+      in.beginObject();
+      int year = 0;
+      int month = 0;
+      int dayOfMonth = 0;
+      int hourOfDay = 0;
+      int minute = 0;
+      int second = 0;
+      while (in.peek() != JsonToken.END_OBJECT) {
+        String name = in.nextName();
+        int value = in.nextInt();
+        if (YEAR.equals(name)) {
+          year = value;
+        } else if (MONTH.equals(name)) {
+          month = value;
+        } else if (DAY_OF_MONTH.equals(name)) {
+          dayOfMonth = value;
+        } else if (HOUR_OF_DAY.equals(name)) {
+          hourOfDay = value;
+        } else if (MINUTE.equals(name)) {
+          minute = value;
+        } else if (SECOND.equals(name)) {
+          second = value;
+        }
+      }
+      in.endObject();
+      return new GregorianCalendar(year, month, dayOfMonth, hourOfDay, minute, second);
+    }
+
+    @Override
+    public void write(JsonWriter out, Calendar value) throws IOException {
+      if (value == null) {
+        out.nullValue();
+        return;
+      }
+      out.beginObject();
+      out.name(YEAR);
+      out.value(value.get(Calendar.YEAR));
+      out.name(MONTH);
+      out.value(value.get(Calendar.MONTH));
+      out.name(DAY_OF_MONTH);
+      out.value(value.get(Calendar.DAY_OF_MONTH));
+      out.name(HOUR_OF_DAY);
+      out.value(value.get(Calendar.HOUR_OF_DAY));
+      out.name(MINUTE);
+      out.value(value.get(Calendar.MINUTE));
+      out.name(SECOND);
+      out.value(value.get(Calendar.SECOND));
+      out.endObject();
+    }
+  };
+
+  public static final TypeAdapterFactory CALENDAR_FACTORY =
+    newFactoryForMultipleTypes(Calendar.class, GregorianCalendar.class, CALENDAR);
+
+  public static final TypeAdapter<Locale> LOCALE = new TypeAdapter<Locale>() {
+    @Override
+    public Locale read(JsonReader in) throws IOException {
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+      String locale = in.nextString();
+      StringTokenizer tokenizer = new StringTokenizer(locale, "_");
+      String language = null;
+      String country = null;
+      String variant = null;
+      if (tokenizer.hasMoreElements()) {
+        language = tokenizer.nextToken();
+      }
+      if (tokenizer.hasMoreElements()) {
+        country = tokenizer.nextToken();
+      }
+      if (tokenizer.hasMoreElements()) {
+        variant = tokenizer.nextToken();
+      }
+      if (country == null && variant == null) {
+        return new Locale(language);
+      } else if (variant == null) {
+        return new Locale(language, country);
+      } else {
+        return new Locale(language, country, variant);
+      }
+    }
+    @Override
+    public void write(JsonWriter out, Locale value) throws IOException {
+      out.value(value == null ? null : value.toString());
+    }
+  };
+
+  public static final TypeAdapterFactory LOCALE_FACTORY = newFactory(Locale.class, LOCALE);
+
+```
+
+
+
+### Enum的泛型实现
+
+可以看下jackson的实现，以后枚举字段可以直接用枚举值，注解使用code来序列化（不过还要注意vo和po的转换，DAO层和数据库是怎么支持枚举的？）
+
+class1.isAssignableFrom(class2)  表示 class1是class2的超类或本身
+
+```java
+  private static final class EnumTypeAdapter<T extends Enum<T>> extends TypeAdapter<T> {
+    // 序列化名称到枚举的映射
+    private final Map<String, T> nameToConstant = new HashMap<String, T>();
+    // 枚举到名称的映射，如果有SerializedName的注解，用注解的名称，否则用枚举自身的名称
+    private final Map<T, String> constantToName = new HashMap<T, String>();
+
+    public EnumTypeAdapter(Class<T> classOfT) {
+      try {
+        // classOfT.getEnumConstants() 获取枚举
+        for (T constant : classOfT.getEnumConstants()) {
+          String name = constant.name();
+          SerializedName annotation = classOfT.getField(name).getAnnotation(SerializedName.class);
+          if (annotation != null) {
+            name = annotation.value();
+            for (String alternate : annotation.alternate()) {
+              nameToConstant.put(alternate, constant);
+            }
+          }
+          nameToConstant.put(name, constant);
+          constantToName.put(constant, name);
+        }
+      } catch (NoSuchFieldException e) {
+        throw new AssertionError(e);
+      }
+    }
+    @Override public T read(JsonReader in) throws IOException {
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+      return nameToConstant.get(in.nextString());
+    }
+
+    @Override public void write(JsonWriter out, T value) throws IOException {
+      out.value(value == null ? null : constantToName.get(value));
+    }
+  }
+
+  public static final TypeAdapterFactory ENUM_FACTORY = new TypeAdapterFactory() {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+      Class<? super T> rawType = typeToken.getRawType();
+      // 判断Enum是rawType的超类
+      if (!Enum.class.isAssignableFrom(rawType) || rawType == Enum.class) {
+        return null;
+      }
+      if (!rawType.isEnum()) {
+        rawType = rawType.getSuperclass(); // handle anonymous subclasses
+      }
+      return (TypeAdapter<T>) new EnumTypeAdapter(rawType);
+    }
+  };
+```
+
+
+
+### InetAdress和JsonElement是用超类Adapter工作的
+
+![image-20200319150955172](/github/northernw.github.io/image/image-20200319150955172.png)
+
+
+
+
+
+### 基本类型的factory和adapter
+
+Long/Float/Double的adapter根据序列化自定义而不同
+
+![image-20200319151507859](/github/northernw.github.io/image/image-20200319151507859.png)
+
+
+
+### 复杂类型的factory和adapter
+
+![image-20200319151622774](/github/northernw.github.io/image/image-20200319151622774.png)
+
+
+
 ## TypeToken
+
 匿名内部类有两种语法格式
 - new 接口(){}
 - new 父类构造器(参数列表){}
 TypeToken为第二种
 `new TypeToken<List<TwoGeneric<Integer,User>>>(){};`得到的是`TypeToken<List<TwoGeneric<Integer,User>>>`的匿名子类。
+
+
+
+
+
+
 
 ## todo
 - map 复杂key的序列化
@@ -117,3 +393,7 @@ TypeToken为第二种
 - JsonAdapterAnnotationTypeAdapterFactory [almost done. 获取filed上注解的TypeAdapter进行后续处理]
 - $Gson$Types.resolve [done]
 - JsonWriter和JsonReader的读写 [almost done. 写比较简单，不同类型输出；读在fillBuffer时先读到缓存中，不同类型在缓存中操作。]
+- read之后怎么赋值？
+- 装箱和非装箱，都是用的装箱adapter，返回装箱类型。----那装箱类型赋值给非装箱类型吗？用set还是set方法？
+- TypeToken的rawType是怎么取到的？
+- gson.getAdapter(Date.class)的逻辑？
