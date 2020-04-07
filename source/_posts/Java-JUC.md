@@ -43,3 +43,22 @@ AQS封装了排队（什么时候阻塞、什么时候去获取锁）的逻辑�
 
 `acquire`是AQS提供给Lock的加锁入口。
 
+
+
+
+
+# Condition
+
+AQS-同步队列 sync queue
+
+condition-条件队列
+
+
+
+# CountDownLatch
+
+怎么用？
+
+首先设置一个状态n，latch被countDown1次，状态就自减1。状态为0，表示”栅栏“。
+
+假设多个线程要到同一个状态前再同时开始工作，那么可以调用latch.await()，等latch状态为0，就会被唤醒同时工作。

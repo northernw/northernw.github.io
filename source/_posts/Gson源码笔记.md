@@ -12,7 +12,7 @@ date: 2019-07-18 20:00:15
 	<dependency>
 		<groupId>com.google.code.gson</groupId>
 		<artifactId>gson</artifactId>
-		<version>2.4</version>
+		<version>2.8.6</version>
 	</dependency>
 ```
 
@@ -371,6 +371,30 @@ Long/Float/Double的adapter根据序列化自定义而不同
 
 
 
+### CollectionTypeAdapterFactory 集合类型
+
+
+
+### ReflectiveTypeAdapterFactory 自定义对象
+
+
+
+### TypeAdapterRuntimeTypeWrapper
+
+是对TypeAdapter的封装，用于write运行时判断更准确的类型。
+
+在array/collection/map/自定义类型等adapter中使用。
+
+比如Object a = new String("aaa")，实际上应使用StringTypeAdapter来write。
+
+read时，以什么样的类型赋值给a？
+
+![image-20200322155848761](/github/northernw.github.io/image/image-20200322155848761.png)
+
+
+
+
+
 ## TypeToken
 
 匿名内部类有两种语法格式
@@ -380,6 +404,118 @@ TypeToken为第二种
 `new TypeToken<List<TwoGeneric<Integer,User>>>(){};`得到的是`TypeToken<List<TwoGeneric<Integer,User>>>`的匿名子类。
 
 
+
+## $Gson$Types
+
+```java
+public static Class<?> getRawType(Type type) {
+  if (type instanceof Class<?>) {
+    // type is a normal class.
+    return (Class<?>) type;
+
+  } else if (type instanceof ParameterizedType) {
+    ParameterizedType parameterizedType = (ParameterizedType) type;
+
+    // I'm not exactly sure why getRawType() returns Type instead of Class.
+    // Neal isn't either but suspects some pathological case related
+    // to nested classes exists.
+    Type rawType = parameterizedType.getRawType();
+    checkArgument(rawType instanceof Class);
+    return (Class<?>) rawType;
+
+  } else if (type instanceof GenericArrayType) {
+    Type componentType = ((GenericArrayType)type).getGenericComponentType();
+    return Array.newInstance(getRawType(componentType), 0).getClass();
+
+  } else if (type instanceof TypeVariable) {
+    // we could use the variable's bounds, but that won't work if there are multiple.
+    // having a raw type that's more general than necessary is okay
+    return Object.class;
+
+  } else if (type instanceof WildcardType) {
+    return getRawType(((WildcardType) type).getUpperBounds()[0]);
+
+  } else {
+    String className = type == null ? "null" : type.getClass().getName();
+    throw new IllegalArgumentException("Expected a Class, ParameterizedType, or "
+        + "GenericArrayType, but <" + type + "> is of type " + className);
+  }
+}
+```
+
+
+
+
+
+# 序列化与反序列化结果类型对比
+
+1. wildcard类型，根据上界反序列化。**upperBoundList的上界是TestInnerObject**，?是TestInnerSonObject，反序列化丢失了innerSonId的值。lowerBoundList的上界是Object，反序列化为map
+2. 声明的类型为Object，write正常，read为map
+
+
+
+![image-20200322164050596](/github/northernw.github.io/image/image-20200322164050596.png)
+
+```java
+    @Test
+    public void testGson() {
+        Gson gson = new Gson();
+
+        TestInnerObject testInnerObject = new TestInnerObject();
+        testInnerObject.setInnerId("inner");
+
+        TestInnerParentObject testInnerParentObject = new TestInnerParentObject();
+        testInnerParentObject.setInnerParentId("parent");
+
+        TestInnerSonObject testInnerSonObject = new TestInnerSonObject();
+        testInnerSonObject.setInnerSonId("son");
+
+        TestObject testObject = new TestObject();
+        testObject.setString("mock");
+        testObject.setLongList(Lists.newArrayList(1L, 2L));
+        Map<String, TestInnerObject> map = Maps.newHashMap();
+        map.put("mockKey", testInnerObject);
+        testObject.setMap(map);
+        testObject.setUpperBoundList(Lists.newArrayList(testInnerSonObject));
+        testObject.setLowerBoundList(Lists.newArrayList(testInnerParentObject));
+        testObject.setObject(testInnerSonObject);
+        testObject.setLists(new List[]{Lists.newArrayList(testInnerObject)});
+
+        String json = gson.toJson(testObject);
+        log.info("json = {}", json);
+
+        testObject = gson.fromJson(json, TestObject.class);
+        log.info("testObject = {}", testObject);
+    }
+
+    @Data
+    public class TestObject {
+        private String string;
+        private List<Long> longList;
+        private List<TestInnerObject> testInnerObjectList;
+        private Map<String, TestInnerObject> map;
+        private List<? extends TestInnerObject> upperBoundList;
+        private List<? super TestInnerObject> lowerBoundList;
+        private TestObject[] testObjectArray;
+        private List[] lists;
+        private Object object;
+    }
+
+    @Data
+    public class TestInnerObject extends TestInnerParentObject {
+        private String innerId;
+    }
+
+    @Data
+    public class TestInnerParentObject {
+        private String innerParentId;
+    }
+
+    @Data
+    public class TestInnerSonObject extends TestInnerObject {
+        private String innerSonId;
+    }
+```
 
 
 
