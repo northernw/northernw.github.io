@@ -1,0 +1,10 @@
+docker run  -d --name kafka -p 9092:9092 -e KAFKA_BROKER_ID=0 -e KAFKA_ZOOKEEPER_CONNECT=10.12.221.136:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://10.12.221.136:9092 -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092 -t wurstmeister/kafka
+
+docker run  -d --name kafka1 -p 9093:9093 -e KAFKA_BROKER_ID=1 -e KAFKA_ZOOKEEPER_CONNECT=10.12.221.136:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://10.12.221.136:9093 -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9093 -t wurstmeister/kafka
+
+
+docker run  -d --name kafka2 -p 9094:9094 -e KAFKA_BROKER_ID=2 -e KAFKA_ZOOKEEPER_CONNECT=10.12.221.136:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://10.12.221.136:9094 -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9094 -t wurstmeister/kafka
+
+bin/kafka-topics.sh --create --zookeeper 10.12.221.136:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic
+
+bin/kafka-topics.sh --describe --zookeeper 10.12.221.136:2181 --topic my-replicated-topic
