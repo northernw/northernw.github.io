@@ -67,7 +67,11 @@ categories:
                     if (tabAt(tab, i) == f) {
                         // 链表结构
                         if (fh >= 0) {
-                            // 统计节点个数（非精确）
+                            // 统计节点个数（非精确）-- 统计的是原来链表的长度
+                            // for中break之后，不会再执行++binCount
+                            // f的binCount为1，第二个节点binCount为2
+                          // 假设第k节点key相同，替换新值后break，binCount为k，链表长度未知
+                          // 或者第k节点的next为空，链接上新节点后break，binCount为k，链表长度为k+1
                             binCount = 1;
                             for (Node<K, V> e = f; ; ++binCount) {
                                 K ek;
@@ -160,7 +164,27 @@ categories:
 ```
 
 ## addCount
+
+对于check，从putVal过来的几种情形（这里check=binCount）
+
+1. table中槽为空，直接放入新节点，**check=0**
+2. table中槽里的节点（称为first节点）key和新值一样，被替换，check=1 -- 这种情况在putVal直接return了，不会进到addCount
+3. 非first节点的key和新值一样，或者加入了新节点，**check>1** -- 替换的也return了，只有新节点才进入addCount，这是check=binCount=原链表长度
+4. 槽中是红黑树，**check=2**
+
+总结下，这里check的值有0、k（>1）、2
+
 ```java
+    /**
+     * Adds to count, and if table is too small and not already
+     * resizing, initiates transfer. If already resizing, helps
+     * perform transfer if work is available.  Rechecks occupancy
+     * after a transfer to see if another resize is already needed
+     * because resizings are lagging additions.
+     *
+     * @param x the count to add
+     * @param check if <0, don't check resize, if <= 1 only check if uncontended
+     */    
     private final void addCount(long x, int check) {
         CounterCell[] as;
         long b, s;
@@ -175,13 +199,14 @@ categories:
             boolean uncontended = true;
             // 如果计数表为空
             // 如果计数表长度小于1
-            // 如果如果计数表随机位为null
+            // 如果计数表随机位为null
             // 如果随机位不为空，且cas替换计数失败，说明有竞争
             if (as == null || (m = as.length - 1) < 0 ||
                     (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
                     !(uncontended =
                             U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
-                // 还没看--
+                // 大概作用是加入了一个新的计数cell
+              // 上述if第4个cas失败了，在fullAddCount会重新生成一个随机数，再把统计放入对应计数位
                 fullAddCount(x, uncontended);
                 return;
             }
@@ -232,6 +257,12 @@ categories:
 sizeCtl的注释说明，当sizeCtl为负数时，-1标识表初始化，-(sizeCtl-1)标识活动的扩容线程数
 为什么在具体实现里，是sizeCtl的低16位，且需减去1的值，标识扩容线程数呢？
 ((rs << RESIZE_STAMP_SHIFT) + 2)这里有个疑问，为什么是+2？不能是+1么？
+
+-- 无责任猜测是版本变更了，最初也许没有RESIZE_STAMP_SHIFT、没有高低16位这么复杂
+
+如果是+1，假如表长为0，第一个扩容线程加入，sizeCtl=`[1.....0](16位)+[0....1](16位)`=很负的一个负数，除非sizeCtl溢出了，不然也没发现其他情况下有重复的情况
+
++2的话，sizeCtl=`[1.....0](16位)+[0....10](16位)`=还是很负的一个负数，和+1只有最低位有区别。
 
 ```
     /**
