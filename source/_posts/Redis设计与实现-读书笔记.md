@@ -140,3 +140,32 @@ date: 2020-06-11 17:28:50
 8. 多态
 
    DEL、EXPIRE等命令和LLEN等命令的区别在于，前者是基于类型的多态——一个命令可以同时用于处理多种不同类型的键，而后者是基于编码的多态——一个命令可以同时用于处理多种不同编码（比如说list的ziplist和linkedlist都实现了LLEN）。
+
+
+
+# 多机数据库
+
+## 主从复制
+
+主库读写，从库只读
+
+
+
+# Sentinel 哨兵
+
+由一个或多个Sentinel实例（instance）组成的Sentinel系统（system）可以监视任意多个主服务器，以及这些主服务器属下的所有从服务器，并在被监视的主服务器进入下线状态时，自动将下线主服务器属下的某个从服务器升级为新的主服务器，然后由新的主服务器代替已下线的主服务器继续处理命令请求。
+
+![image-20200612194739938](/github/northernw.github.io/image/image-20200612194739938.png)
+
+![image-20200612194818742](/github/northernw.github.io/image/image-20200612194818742.png)
+
+![image-20200612194838387](/github/northernw.github.io/image/image-20200612194838387.png)
+
+
+
+## 集群
+
+集群通过分片（sharding）来进行数据共享，并提供复制和故障转移功能。
+
+
+
