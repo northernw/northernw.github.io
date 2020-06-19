@@ -94,9 +94,9 @@ PS Old Generation
 
    大部分平台或者加java -client参数
 
-   young generation算法 = serail
+   young generation算法 = serial
 
-   old generation算法 = serail (mark-sweep-compact)
+   old generation算法 = serial (mark-sweep-compact)
 
    缺点：串行，stop-the-world，速度慢，服务器不推荐使用
 
