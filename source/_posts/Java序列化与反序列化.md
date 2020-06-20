@@ -141,6 +141,8 @@ readObject = Person(age=22, name=lily)
 
 #### 接口关系
 
+引用[这里](https://www.cnblogs.com/binarylei/p/10987933.html)一张接口关系图
+
 ![Java序列化接口](/github/northernw.github.io/image/1322310-20190606081015449-98486965.png)
 
 1. `Serializable`和`Externalizable` 序列化接口
@@ -169,7 +171,545 @@ readObject = Person(age=22, name=lily)
 
 #### ObjectOutputStream源码分析
 
+源码版本：jdk-12.0.1.jdk
 
+##### ObjectOutputStream 数据结构
+
+```java
+    /** 输出流 */
+    private final BlockDataOutputStream bout;
+    /** 句柄映射，如果在句柄中找到当前对象，说明已经序列化过，只输出句柄信息 */
+    private final HandleTable handles;
+    /** 替换对象的映射 obj -> replacement obj map */
+    private final ReplaceTable subs; 
+    /** true 则调用writeObjectOverride()来替代writeObject() -- ObjectOutputStream的子类可重写writeObjectOverride()*/
+    private final boolean enableOverride;
+    /** true 则调用replaceObject() -- JavaBean中实现replaceObject() */
+    private boolean enableReplace;
+```
+
+
+
+##### ObjectOutputStream 构造函数
+
+```java
+    /** 一些初试化 */
+    public ObjectOutputStream(OutputStream out) throws IOException {
+        verifySubclass();
+        bout = new BlockDataOutputStream(out);
+        handles = new HandleTable(10, (float) 3.00);
+        subs = new ReplaceTable(10, (float) 3.00);
+        enableOverride = false;
+        writeStreamHeader();
+        bout.setBlockDataMode(true);
+        if (extendedDebugInfo) {
+            debugInfoStack = new DebugTraceInfoStack();
+        } else {
+            debugInfoStack = null;
+        }
+    }
+    /**
+     *  魔数和版本号
+     */
+    protected void writeStreamHeader() throws IOException {
+        bout.writeShort(STREAM_MAGIC);
+        bout.writeShort(STREAM_VERSION);
+    }
+```
+
+
+
+##### 序列化入口 writeObject
+
+引用[这里](https://www.cnblogs.com/binarylei/p/10987933.html)一张时序图
+
+![writeObject调用过程](/github/northernw.github.io/image/1322310-20190607214343020-892127930.png)
+
+以下顺着基础用法的逻辑，看下代码实现。
+
+###### 1. writeObject
+
+```java
+    public final void writeObject(Object obj) throws IOException {
+      // 如果当前是ObjectOutputStream的子类，走这个分支
+        if (enableOverride) {
+            writeObjectOverride(obj);
+            return;
+        }
+        try {
+          // 核心方法
+            writeObject0(obj, false);
+        } catch (IOException ex) {
+            if (depth == 0) {
+                writeFatalException(ex);
+            }
+            throw ex;
+        }
+    }
+```
+
+###### 2. writeObject0
+
+```java
+    /**
+     * Underlying writeObject/writeUnshared implementation.
+     * unshared=false表示共享对象，就是指同一个对象只输出句柄信息
+     * unshared=true表示不共享，会完整再序列化一次
+     */
+    private void writeObject0(Object obj, boolean unshared)
+        throws IOException
+    {
+        boolean oldMode = bout.setBlockDataMode(false);
+      // depth表示对象深度，比如当前对象为1，递归到对象属性时，depth++为2
+        depth++;
+        try {
+            // handle previously written and non-replaceable objects
+            int h;
+          // 判断要不要序列化 以下4种情况不用序列化
+            if ((obj = subs.lookup(obj)) == null) {
+                writeNull();
+                return;
+            } else if (!unshared && (h = handles.lookup(obj)) != -1) { // 是否共享已序列化对象，一般为是
+                writeHandle(h);
+                return;
+            } else if (obj instanceof Class) {
+                writeClass((Class) obj, unshared);
+                return;
+            } else if (obj instanceof ObjectStreamClass) {
+                writeClassDesc((ObjectStreamClass) obj, unshared);
+                return;
+            }
+
+            // check for replacement object
+          // 这里处理对象替换，也先不看
+            Object orig = obj;
+            Class<?> cl = obj.getClass();
+            ObjectStreamClass desc;
+            for (;;) {
+                // REMIND: skip this check for strings/arrays?
+                Class<?> repCl;
+                desc = ObjectStreamClass.lookup(cl, true);
+                if (!desc.hasWriteReplaceMethod() ||
+                    (obj = desc.invokeWriteReplace(obj)) == null ||
+                    (repCl = obj.getClass()) == cl)
+                {
+                    break;
+                }
+                cl = repCl;
+            }
+          // 如果对象替换了，取新对象的描述符
+            if (enableReplace) {
+                Object rep = replaceObject(obj);
+                if (rep != obj && rep != null) {
+                    cl = rep.getClass();
+                    desc = ObjectStreamClass.lookup(cl, true);
+                }
+                obj = rep;
+            }
+
+            // 如果对象替换了，再判断一遍要不要序列化
+            if (obj != orig) {
+                subs.assign(orig, obj);
+                if (obj == null) {
+                    writeNull();
+                    return;
+                } else if (!unshared && (h = handles.lookup(obj)) != -1) {
+                    writeHandle(h);
+                    return;
+                } else if (obj instanceof Class) {
+                    writeClass((Class) obj, unshared);
+                    return;
+                } else if (obj instanceof ObjectStreamClass) {
+                    writeClassDesc((ObjectStreamClass) obj, unshared);
+                    return;
+                }
+            }
+
+            // 序列化的主体逻辑在这里
+            // 字符串和枚举在方法里写值进输出流了
+            // 数组里的元素，如果是原生类型，也直接写输出流，如果非原生类型，递归序列化
+            if (obj instanceof String) { // 字符串
+                writeString((String) obj, unshared);
+            } else if (cl.isArray()) { // 数组
+                writeArray(obj, desc, unshared);
+            } else if (obj instanceof Enum) { // 枚举
+                writeEnum((Enum<?>) obj, desc, unshared);
+            } else if (obj instanceof Serializable) { // 实现了Serializable的JavaBean，也是我们要主要看的逻辑
+                writeOrdinaryObject(obj, desc, unshared);
+            } else { // 不是以上几种情况的抛出异常
+                if (extendedDebugInfo) {
+                    throw new NotSerializableException(
+                        cl.getName() + "\n" + debugInfoStack.toString());
+                } else {
+                    throw new NotSerializableException(cl.getName());
+                }
+            }
+        } finally {
+            depth--;
+            bout.setBlockDataMode(oldMode);
+        }
+    }
+```
+
+###### 2.1 writeString&writeArray&writeEnum
+
+字符串、枚举的在这里就写值了
+
+数组元素如果是原生类型的，也写值了，如果非原生，递归调用writeObject0
+
+```java
+    /**
+     * Writes given string to stream, using standard or long UTF format
+     * depending on string length.
+     * UTF格式写string
+     */
+    private void writeString(String str, boolean unshared) throws IOException {
+        handles.assign(unshared ? null : str);
+        long utflen = bout.getUTFLength(str);
+        if (utflen <= 0xFFFF) {
+            bout.writeByte(TC_STRING);
+            bout.writeUTF(str, utflen);
+        } else {
+            bout.writeByte(TC_LONGSTRING);
+            bout.writeLongUTF(str, utflen);
+        }
+    }
+
+    /**
+     * 写数组
+     * Writes given array object to stream.
+     */
+    private void writeArray(Object array,
+                            ObjectStreamClass desc,
+                            boolean unshared)
+        throws IOException
+    {
+        bout.writeByte(TC_ARRAY);
+        writeClassDesc(desc, false);
+        handles.assign(unshared ? null : array);
+
+        Class<?> ccl = desc.forClass().getComponentType();
+      // 如果是原生类型的数组
+        if (ccl.isPrimitive()) {
+            if (ccl == Integer.TYPE) {
+                int[] ia = (int[]) array;
+                bout.writeInt(ia.length);
+                bout.writeInts(ia, 0, ia.length);
+            } 
+            // ... 省略其他原生类型 
+            else {
+                throw new InternalError();
+            }
+        } else {
+            Object[] objs = (Object[]) array;
+            int len = objs.length;
+          // 写长度信息
+            bout.writeInt(len);
+            if (extendedDebugInfo) {
+                debugInfoStack.push(
+                    "array (class \"" + array.getClass().getName() +
+                    "\", size: " + len  + ")");
+            }
+            try {
+                for (int i = 0; i < len; i++) {
+                    if (extendedDebugInfo) {
+                        debugInfoStack.push(
+                            "element of array (index: " + i + ")");
+                    }
+                    try {
+                      // 对每个对象序列化
+                        writeObject0(objs[i], false);
+                    } finally {
+                        if (extendedDebugInfo) {
+                            debugInfoStack.pop();
+                        }
+                    }
+                }
+            } finally {
+                if (extendedDebugInfo) {
+                    debugInfoStack.pop();
+                }
+            }
+        }
+    }
+
+    /**
+     * Writes given enum constant to stream.
+     */
+    private void writeEnum(Enum<?> en,
+                           ObjectStreamClass desc,
+                           boolean unshared)
+        throws IOException
+    {
+        bout.writeByte(TC_ENUM);
+        ObjectStreamClass sdesc = desc.getSuperDesc();
+      // 写枚举类信息
+        writeClassDesc((sdesc.forClass() == Enum.class) ? desc : sdesc, false);
+        handles.assign(unshared ? null : en);
+      // 写枚举name
+        writeString(en.name(), false);
+    }
+```
+
+
+
+###### 2.2 writeOrdinaryObject
+
+普通JavaBean的序列化逻辑
+
+1. 写类型
+2. 写类信息
+3. 写类数据
+
+```java
+    /**
+     * Writes representation of a "ordinary" (i.e., not a String, Class,
+     * ObjectStreamClass, array, or enum constant) serializable object to the
+     * stream.
+     */
+    private void writeOrdinaryObject(Object obj,
+                                     ObjectStreamClass desc,
+                                     boolean unshared)
+        throws IOException
+    {
+        if (extendedDebugInfo) {
+            debugInfoStack.push(
+                (depth == 1 ? "root " : "") + "object (class \"" +
+                obj.getClass().getName() + "\", " + obj.toString() + ")");
+        }
+        try {
+            desc.checkSerialize();
+          // 写类型
+            bout.writeByte(TC_OBJECT);
+          // 写类信息
+            writeClassDesc(desc, false);
+            handles.assign(unshared ? null : obj);
+          // 写数据（Field信息和数据）
+            if (desc.isExternalizable() && !desc.isProxy()) { // Externalizable接口
+                writeExternalData((Externalizable) obj);
+            } else {
+                writeSerialData(obj, desc); // Serializable接口
+            }
+        } finally {
+            if (extendedDebugInfo) {
+                debugInfoStack.pop();
+            }
+        }
+    }
+```
+
+
+
+###### 2.2.1 writeClassDesc
+
+写类信息。
+
+非代理类型的类信息，一般有类标志位、类名称、序列化协议版本、SUID、方法标志位、字段个数、然后每个字段的：字段TypeCode、字段名称、字段类型（非原生类型的）
+
+```java
+    private void writeClassDesc(ObjectStreamClass desc, boolean unshared)
+        throws IOException
+    {
+        int handle;
+        if (desc == null) {
+            writeNull();
+        } else if (!unshared && (handle = handles.lookup(desc)) != -1) {
+            writeHandle(handle);
+        } else if (desc.isProxy()) {
+            writeProxyDesc(desc, unshared);
+        } else {
+            writeNonProxyDesc(desc, unshared);
+        }
+    }
+     /**
+     * Writes class descriptor representing a standard (i.e., not a dynamic
+     * proxy) class to stream.
+     */
+    private void writeNonProxyDesc(ObjectStreamClass desc, boolean unshared)
+        throws IOException
+    {
+        bout.writeByte(TC_CLASSDESC);
+        handles.assign(unshared ? null : desc);
+
+        if (protocol == PROTOCOL_VERSION_1) {
+            // do not invoke class descriptor write hook with old protocol
+            desc.writeNonProxy(this);
+        } else {
+            writeClassDescriptor(desc);
+        }
+
+        Class<?> cl = desc.forClass();
+        bout.setBlockDataMode(true);
+        if (cl != null && isCustomSubclass()) {
+            ReflectUtil.checkPackageAccess(cl);
+        }
+        annotateClass(cl);
+        bout.setBlockDataMode(false);
+        bout.writeByte(TC_ENDBLOCKDATA);
+
+      // 往上递归，获取父类信息，直到父类没有实现Serializable
+        writeClassDesc(desc.getSuperDesc(), false);
+    }
+
+// ObjectStreamClass.java
+    /**
+     * Writes non-proxy class descriptor information to given output stream.
+     */
+    void writeNonProxy(ObjectOutputStream out) throws IOException {
+        out.writeUTF(name);
+        out.writeLong(getSerialVersionUID());
+
+        byte flags = 0;
+        if (externalizable) {
+            flags |= ObjectStreamConstants.SC_EXTERNALIZABLE;
+            int protocol = out.getProtocolVersion();
+            if (protocol != ObjectStreamConstants.PROTOCOL_VERSION_1) {
+                flags |= ObjectStreamConstants.SC_BLOCK_DATA;
+            }
+        } else if (serializable) {
+            flags |= ObjectStreamConstants.SC_SERIALIZABLE;
+        }
+        if (hasWriteObjectData) {
+            flags |= ObjectStreamConstants.SC_WRITE_METHOD;
+        }
+        if (isEnum) {
+            flags |= ObjectStreamConstants.SC_ENUM;
+        }
+        out.writeByte(flags);
+
+        out.writeShort(fields.length);
+        for (int i = 0; i < fields.length; i++) {
+            ObjectStreamField f = fields[i];
+            out.writeByte(f.getTypeCode());
+            out.writeUTF(f.getName());
+            if (!f.isPrimitive()) {
+                out.writeTypeString(f.getTypeString());
+            }
+        }
+    }
+```
+
+
+
+###### 2.2.2 writeSerailData
+
+写类数据
+
+```java
+    private void writeSerialData(Object obj, ObjectStreamClass desc)
+        throws IOException
+    {
+      // 获取要序列化的对象
+        ObjectStreamClass.ClassDataSlot[] slots = desc.getClassDataLayout();
+        for (int i = 0; i < slots.length; i++) {
+            ObjectStreamClass slotDesc = slots[i].desc;
+          // 如果对象中重写了writeObject
+            if (slotDesc.hasWriteObjectMethod()) {
+                PutFieldImpl oldPut = curPut;
+                curPut = null;
+                SerialCallbackContext oldContext = curContext;
+
+                if (extendedDebugInfo) {
+                    debugInfoStack.push(
+                        "custom writeObject data (class \"" +
+                        slotDesc.getName() + "\")");
+                }
+                try {
+                    curContext = new SerialCallbackContext(obj, slotDesc);
+                    bout.setBlockDataMode(true);
+                  // 反射调用重写的writeObject
+                    slotDesc.invokeWriteObject(obj, this);
+                    bout.setBlockDataMode(false);
+                    bout.writeByte(TC_ENDBLOCKDATA);
+                } finally {
+                    curContext.setUsed();
+                    curContext = oldContext;
+                    if (extendedDebugInfo) {
+                        debugInfoStack.pop();
+                    }
+                }
+
+                curPut = oldPut;
+            } else {
+              // 默认的序列化方法
+                defaultWriteFields(obj, slotDesc);
+            }
+        }
+    }
+```
+
+###### 2.2.2.1 defaultWriteFields
+
+真正写类数据的地方
+
+```java
+    /**
+     * Fetches and writes values of serializable fields of given object to
+     * stream.  The given class descriptor specifies which field values to
+     * write, and in which order they should be written.
+     */
+    private void defaultWriteFields(Object obj, ObjectStreamClass desc)
+        throws IOException
+    {
+        Class<?> cl = desc.forClass();
+        if (cl != null && obj != null && !cl.isInstance(obj)) {
+            throw new ClassCastException();
+        }
+
+        desc.checkDefaultSerialize();
+
+      // 获取对象中原生类型的字段的总长度
+        int primDataSize = desc.getPrimDataSize();
+        if (primDataSize > 0) {
+            if (primVals == null || primVals.length < primDataSize) {
+                primVals = new byte[primDataSize];
+            }
+          // 获取对象中原生类型的字段的所有值，放入字节数组primVals
+          // *这里是最终写对象里字段的值的地方*
+            desc.getPrimFieldValues(obj, primVals);
+          // 将primVals写入输出流
+            bout.write(primVals, 0, primDataSize, false);
+        }
+
+        int numObjFields = desc.getNumObjFields();
+        if (numObjFields > 0) {
+            ObjectStreamField[] fields = desc.getFields(false);
+            Object[] objVals = new Object[numObjFields];
+          // 剩下的非原生类型的字段
+            int numPrimFields = fields.length - objVals.length;
+            desc.getObjFieldValues(obj, objVals);
+            for (int i = 0; i < objVals.length; i++) {
+                if (extendedDebugInfo) {
+                    debugInfoStack.push(
+                        "field (class \"" + desc.getName() + "\", name: \"" +
+                        fields[numPrimFields + i].getName() + "\", type: \"" +
+                        fields[numPrimFields + i].getType() + "\")");
+                }
+                try {
+                  // 递归序列化这个非原生类型字段对象
+                    writeObject0(objVals[i],
+                                 fields[numPrimFields + i].isUnshared());
+                } finally {
+                    if (extendedDebugInfo) {
+                        debugInfoStack.pop();
+                    }
+                }
+            }
+        }
+    }
+```
+
+
+
+到这主体逻辑就结束了。
+
+举上面Person的例子。
+
+write Person: person -> write Integer: age & write String: name
+
+write Integer: age -> write int :11
+
+write String: name
 
 
 
@@ -182,32 +722,6 @@ ObjectOutputStream写值的逻辑：获取到当前对象中的原生类型字�
 实现在`ObjectStreamClass#getPrimFieldValues`和`ObjectStreamClass#setPrimFieldValues`
 
 
-
-**以下自己看**
-
-为什么要实现Serializable接口？
-
-Serializable是一个标记接口，告诉程序只要是实现了Serializable接口的类都是可以被序列化的。
-
-![image-20200620170911977](/github/northernw.github.io/image/image-20200620170911977.png)
-
-
-
-### 原理
-
-[Java序列化系列](https://www.cnblogs.com/binarylei/category/1159503.html)
-
-反射获取对象的Field。
-
-本质上是先写对象信息，再写对象每个属性的信息。是一个递归的过程，递归到最后是写基本类型的数据。
-
-String的调用栈
-
-![image-20200619200736381](/github/northernw.github.io/image/image-20200619200736381.png)
-
-Integer的调用栈
-
-![image-20200619201836237](/github/northernw.github.io/image/image-20200619201836237.png)
 
 
 
@@ -225,9 +739,9 @@ Integer的调用栈
 
 
 
-###Jackson
+## Jackson
 
-### FastJson 
+## FastJson 
 
 
 
@@ -245,6 +759,6 @@ Integer的调用栈
 
 1. [Java序列化](https://juejin.im/post/5ce3cdc8e51d45777b1a3cdf#heading-8)
 
-2. [Java 序列化和反序列化（一）Serializable 使用场景](https://www.cnblogs.com/binarylei/p/10987540.html)
+2. [Java 序列化和反序列化的几篇文章](https://www.cnblogs.com/binarylei/category/1159503.html)
 3. 
 
