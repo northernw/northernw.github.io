@@ -504,7 +504,7 @@ readObject = Person(age=22, name=lily)
 
 写类信息。
 
-非代理类型的类信息，一般有类标志位、类名称、序列化协议版本、SUID、方法标志位、字段个数、然后每个字段的：字段TypeCode、字段名称、字段类型（非原生类型的）
+非代理类型的类信息，一般有类标志位、类名称、序列化协议版本、SUID、方法标志位、字段个数、然后每个字段的：字段TypeCode、字段名称、（非原生类型的）字段类型
 
 ```java
     private void writeClassDesc(ObjectStreamClass desc, boolean unshared)
@@ -703,23 +703,101 @@ readObject = Person(age=22, name=lily)
 
 到这主体逻辑就结束了。
 
-举上面Person的例子。
-
-write Person: person -> write Integer: age & write String: name
-
-write Integer: age -> write int :11
-
-write String: name
 
 
+#### 其他知识点
 
-小知识点：
+###### 字段值的读取和写入
 
 ObjectOutputStream写值的逻辑：获取到当前对象中的原生类型字段，primDataSize是对象中所有原生类型字段的总长度，`desc.getPrimFieldValues(obj, primVals);`是将对象中的所有原生字段的值写入primVals这个字节数组，获取对象的值时是用Unsafe类直接通过偏移量取值，`unsafe.getBoolean(obj, offset)`这样的方式。
 
 同理，ObjectInputStream读值的逻辑，`unsafe.putBoolean(obj, key, Bits.getBoolean(buf, off));`
 
 实现在`ObjectStreamClass#getPrimFieldValues`和`ObjectStreamClass#setPrimFieldValues`
+
+
+
+###### 共享句柄
+
+序列化过程中出现过的对象、字符串、数值，甚至拼接出来的类信息，如果是shared模式，都不会再完整序列化一次，只会输出handles句柄的索引。
+
+![image-20200621001054494](/github/northernw.github.io/image/image-20200621001054494.png)
+
+写入句柄的地方
+
+![image-20200621001613320](/github/northernw.github.io/image/image-20200621001613320.png)
+
+
+
+#### 一个直观的例子
+
+举上面Person的例子。
+
+write Person: person -> write Integer: age & write String: name
+
+write Integer: age -> write Number :11
+
+write String: name
+
+
+
+Person里再加Birthday one, Birthday two属性。
+
+Birthday属性 year, month, day.
+
+```java
+@Slf4j
+@Data
+public class Person implements Serializable {
+    private static final long serialVersionUID = 6666716291353949192L;
+    private Integer age;
+    private String name;
+    private Birthday one;
+    private Birthday two;
+
+    @Data
+    class Birthday implements Serializable {
+        private Integer year;
+        private Integer month;
+        private Integer day;
+    }
+
+    @Test
+    public void test() throws IOException, ClassNotFoundException {
+        Person person = new Person();
+        person.setAge(22);
+        person.setName("lily");
+
+        Birthday one = new Birthday();
+        one.setYear(2020);
+
+        Birthday two = new Birthday();
+        two.setYear(2019);
+        person.setOne(one);
+        person.setTwo(two);
+//        person.setIsParent(false);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("java.person.txt"));
+        objectOutputStream.writeObject(person);
+        log.info("writeObject = {}", person);
+
+        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("java.person.txt"));
+        person = (Person) objectInputStream.readObject();
+        log.info("readObject = {}", person);
+    }
+}
+```
+
+
+
+直观上不严谨的一份序列化结果接近这样：
+
+魔数、版本号、类标志、类信息开始、类名称、序列化协议版本、SUID、一些序列信息标志（比如是Serializable还是externalizable..）、字段个数、（for每个字段的）字段TypeCode、字段名称、（非原生类型的）字段类型、类信息结束【父类的类标志....（非原生类型的）字段类型、类信息结束】（从父类到子类，for每个类）所有原生字段的值+递归所有非原生字段的序列化
+
+~~高亮那一段解释不来...~~可以解释了，Birthday的fields如debug截图
+
+![image-20200621002637015](/github/northernw.github.io/image/image-20200621002637015.png)
+
+![image-20200621003459769](/github/northernw.github.io/image/image-20200621003459769.png)
 
 
 
