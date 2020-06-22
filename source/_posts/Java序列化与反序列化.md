@@ -701,7 +701,106 @@ readObject = Person(age=22, name=lily)
 
 
 
-到这主体逻辑就结束了。
+到这序列化的主体逻辑就结束了。
+
+反序列化的主要操作和序列化都是一一对应的。读出每个类标志，用对应方式去解析。
+
+```java
+    private Object readObject0(boolean unshared) throws IOException {
+        boolean oldMode = bin.getBlockDataMode();
+        if (oldMode) {
+            int remain = bin.currentBlockRemaining();
+            if (remain > 0) {
+                throw new OptionalDataException(remain);
+            } else if (defaultDataEnd) {
+                /*
+                 * Fix for 4360508: stream is currently at the end of a field
+                 * value block written via default serialization; since there
+                 * is no terminating TC_ENDBLOCKDATA tag, simulate
+                 * end-of-custom-data behavior explicitly.
+                 */
+                throw new OptionalDataException(true);
+            }
+            bin.setBlockDataMode(false);
+        }
+
+      // 这里开始
+        byte tc;
+        while ((tc = bin.peekByte()) == TC_RESET) {
+            bin.readByte();
+            handleReset();
+        }
+
+        depth++;
+        totalObjectRefs++;
+        try {
+            switch (tc) {
+                case TC_NULL:
+                    return readNull();
+
+                // 共享的句柄索引
+                case TC_REFERENCE:
+                    return readHandle(unshared);
+
+                case TC_CLASS:
+                    return readClass(unshared);
+
+                // 类说明
+                case TC_CLASSDESC:
+                case TC_PROXYCLASSDESC:
+                    return readClassDesc(unshared);
+
+                // 字符串
+                case TC_STRING:
+                case TC_LONGSTRING:
+                    return checkResolve(readString(unshared));
+
+                case TC_ARRAY:
+                    return checkResolve(readArray(unshared));
+
+                case TC_ENUM:
+                    return checkResolve(readEnum(unshared));
+
+                // JavaBean
+                case TC_OBJECT:
+                    return checkResolve(readOrdinaryObject(unshared));
+
+                case TC_EXCEPTION:
+                    IOException ex = readFatalException();
+                    throw new WriteAbortedException("writing aborted", ex);
+
+                case TC_BLOCKDATA:
+                case TC_BLOCKDATALONG:
+                    if (oldMode) {
+                        bin.setBlockDataMode(true);
+                        bin.peek();             // force header read
+                        throw new OptionalDataException(
+                            bin.currentBlockRemaining());
+                    } else {
+                        throw new StreamCorruptedException(
+                            "unexpected block data");
+                    }
+
+                case TC_ENDBLOCKDATA:
+                    if (oldMode) {
+                        throw new OptionalDataException(true);
+                    } else {
+                        throw new StreamCorruptedException(
+                            "unexpected end of block data");
+                    }
+
+                default:
+                    throw new StreamCorruptedException(
+                        String.format("invalid type code: %02X", tc));
+            }
+        } finally {
+            depth--;
+            bin.setBlockDataMode(oldMode);
+        }
+    }
+```
+
+
 
 
 
@@ -735,7 +834,7 @@ ObjectOutputStream写值的逻辑：获取到当前对象中的原生类型字�
 
 write Person: person -> write Integer: age & write String: name
 
-write Integer: age -> write Number :11
+write Integer: age -> write int value(11) & write Number : null
 
 write String: name
 
@@ -793,7 +892,7 @@ public class Person implements Serializable {
 
 魔数、版本号只在初始化写一次
 
-魔数、版本号 | 类标志、类信息开始、类名称、序列化协议版本、SUID、一些序列信息标志（比如是Serializable还是externalizable..）、字段个数、（for每个字段的）字段TypeCode、字段名称、（非原生类型的）字段类型、类信息结束【父类的类标志....（非原生类型的）字段类型、类信息结束】（从父类到子类，for每个类）所有原生字段的值+递归所有非原生字段的序列化
+魔数、版本号 | 类标志、类信息开始、类名称、序列化协议版本、SUID、一些序列信息标志（比如是Serializable还是externalizable..）、字段个数、（for每个字段的）字段TypeCode、字段名称、（非原生类型的）字段类型、类信息结束（向上递归父类的信息）【父类的类标志....（非原生类型的）字段类型、类信息结束】（从父类到子类，for每个类）所有原生字段的值+递归所有非原生字段的序列化
 
 ~~高亮那一段解释不来...~~可以解释了，Birthday的fields如debug截图
 
@@ -807,11 +906,180 @@ public class Person implements Serializable {
 
 ## Gson
 
+JSON (JavaScript Object Notation)是一种轻量级数据交换格式。
+
 ### 使用
+
+依赖 maven
+
+```xml
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.6</version>
+      <scope>compile</scope>
+    </dependency>
+```
+
+#### 基础用法
+
+api非常的简单、易用
+
+##### 基本类型
+
+```java
+// Serialization
+Gson gson = new Gson();
+gson.toJson(1);            // ==> 1
+gson.toJson("abcd");       // ==> "abcd"
+gson.toJson(new Long(10)); // ==> 10
+int[] values = { 1 };
+gson.toJson(values);       // ==> [1]
+
+// Deserialization
+int one = gson.fromJson("1", int.class);
+Integer one = gson.fromJson("1", Integer.class);
+Long one = gson.fromJson("1", Long.class);
+Boolean false = gson.fromJson("false", Boolean.class);
+String str = gson.fromJson("\"abc\"", String.class);
+String[] anotherStr = gson.fromJson("[\"abc\"]", String[].class);
+```
+
+##### 引用类型
+
+```java
+class BagOfPrimitives {
+  private int value1 = 1;
+  private String value2 = "abc";
+  private transient int value3 = 3;
+  BagOfPrimitives() {
+    // no-args constructor
+  }
+}
+
+// Serialization
+BagOfPrimitives obj = new BagOfPrimitives();
+Gson gson = new Gson();
+String json = gson.toJson(obj);  
+
+// ==> json is {"value1":1,"value2":"abc"}
+
+// Deserialization
+BagOfPrimitives obj2 = gson.fromJson(json, BagOfPrimitives.class);
+// ==> obj2 is just like obj
+```
+
+##### 数组
+
+```java
+Gson gson = new Gson();
+int[] ints = {1, 2, 3, 4, 5};
+String[] strings = {"abc", "def", "ghi"};
+
+// Serialization
+gson.toJson(ints);     // ==> [1,2,3,4,5]
+gson.toJson(strings);  // ==> ["abc", "def", "ghi"]
+
+// Deserialization
+int[] ints2 = gson.fromJson("[1,2,3,4,5]", int[].class); 
+// ==> ints2 will be same as ints
+```
+
+##### 泛型
+
+```java
+class Foo<T> {
+  T value;
+}
+Gson gson = new Gson();
+Foo<Bar> foo = new Foo<Bar>();
+gson.toJson(foo); // May not serialize foo.value correctly
+
+gson.fromJson(json, foo.getClass()); // foo.value 不能反序列化成 Bar
+
+// 正确反序列化泛型的方式 利用TypeToken
+Type fooType = new TypeToken<Foo<Bar>>() {}.getType();
+gson.toJson(foo, fooType);
+
+gson.fromJson(json, fooType);
+```
+
+
 
 
 
 ### 实现原理
+
+
+
+#### 核心：TypeAdapter
+
+类型适配器，用到了适配器模式，作为JsonWriter/JsonReader和类型T的对象之间的适配器，将一个对象写入json数据，或从json数据中读入一个对象。
+
+```java
+public abstract class TypeAdapter<T> {
+  
+  public abstract void write(JsonWriter out, T value) throws IOException;
+  
+  public abstract T read(JsonReader in) throws IOException;
+  
+  ...
+}
+```
+
+Gson为每一种类型创建一个TypeAdapter，同样的，每一个Type都对应唯一一个TypeAdapter。
+
+在Gson中，类型Type大致可以分为两类：
+
+1. 基本平台类型，如int.class、Integer.class、String.class、Url.class等
+2. 组合及自定义类型，如Collection.class、Map.class和用户自定义的JavaBean等
+
+引用[这里](https://juejin.im/post/5c1473d9e51d4529ee23645f#heading-2)一张示意图：
+
+Gson根据传入的Type找对应的TypeAdapter，如果是基本平台类型，利用TypeAdapter可直接读写json，如果是组合及自定义类型，则在对应的TypeAdapter里封装了对内部属性的处理，是一个迭代的过程（和上面Java自带的序列化writeOrdinaryObject&readOrdinaryObject是很类似的）。
+
+![image-20200622204756920](/github/northernw.github.io/image/image-20200622204756920.png)
+
+
+
+#### 源码分析
+
+```java
+@Slf4j
+public class LearningGsonTest {
+    @Test
+    public void testGson() {
+        Person person = new Person();
+        person.setAge(22);
+        person.setName("lily");
+        log.info("person = {}", person);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(person);
+        log.info("json = {}", json);
+
+        person = gson.fromJson(json, Person.class);
+        log.info("person = {}", person);
+    }
+}
+```
+
+
+
+```java
+  public String toJson(Object src) {
+    if (src == null) {
+      return toJson(JsonNull.INSTANCE);
+    }
+    // 取Object的Type
+    // Class.class属于Type的一种
+    return toJson(src, src.getClass());
+  }
+```
+
+
+
+
 
 
 
@@ -840,5 +1108,5 @@ public class Person implements Serializable {
 1. [Java序列化](https://juejin.im/post/5ce3cdc8e51d45777b1a3cdf#heading-8)
 
 2. [Java 序列化和反序列化的几篇文章](https://www.cnblogs.com/binarylei/category/1159503.html)
-3. 
+3. [Gson源码解析和它的设计模式](https://juejin.im/post/5c1473d9e51d4529ee23645f)
 
