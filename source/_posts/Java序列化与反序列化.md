@@ -283,6 +283,7 @@ readObject = Person(age=22, name=lily)
             // check for replacement object
           // 这里处理对象替换，也先不看
             Object orig = obj;
+          // ps最后回来看: 怎么处理泛型呢？类信息写入的类型是java.lang.Object；写数据时，字段对应的类型是实际类型，比如java.lang.Integer这样的
             Class<?> cl = obj.getClass();
             ObjectStreamClass desc;
             for (;;) {
@@ -1044,6 +1045,124 @@ Gson根据传入的Type找对应的TypeAdapter，如果是基本平台类型，�
 
 #### 源码分析
 
+##### Gson属性和构造函数
+
+一些属性
+
+```java
+  /**
+   * 避免获取adapter的时候产生无限递归
+   */
+  private final ThreadLocal<Map<TypeToken<?>, FutureTypeAdapter<?>>> calls
+      = new ThreadLocal<Map<TypeToken<?>, FutureTypeAdapter<?>>>();
+// 缓存的adapter
+  private final Map<TypeToken<?>, TypeAdapter<?>> typeTokenCache = new ConcurrentHashMap<TypeToken<?>, TypeAdapter<?>>();
+// 注册的adapter工厂
+final List<TypeAdapterFactory> factories;
+```
+
+最终调用的构造函数
+
+`new Gson()`得到默认的实例，或者用`GsonBuilder`自定义一些策略
+
+```java
+Gson(Excluder excluder, FieldNamingStrategy fieldNamingStrategy,
+      Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
+      boolean complexMapKeySerialization, boolean generateNonExecutableGson, boolean htmlSafe,
+      boolean prettyPrinting, boolean lenient, boolean serializeSpecialFloatingPointValues,
+      LongSerializationPolicy longSerializationPolicy, String datePattern, int dateStyle,
+      int timeStyle, List<TypeAdapterFactory> builderFactories,
+      List<TypeAdapterFactory> builderHierarchyFactories,
+      List<TypeAdapterFactory> factoriesToBeAdded) {
+  // 默认的一些序列化策略，比如字段名称策略，自定义的实例化构造器，pretty输出...
+    this.excluder = excluder;
+    this.fieldNamingStrategy = fieldNamingStrategy;
+    this.instanceCreators = instanceCreators;
+    this.constructorConstructor = new ConstructorConstructor(instanceCreators);
+    this.serializeNulls = serializeNulls;
+    this.complexMapKeySerialization = complexMapKeySerialization;
+    this.generateNonExecutableJson = generateNonExecutableGson;
+    this.htmlSafe = htmlSafe;
+    this.prettyPrinting = prettyPrinting;
+    this.lenient = lenient;
+    this.serializeSpecialFloatingPointValues = serializeSpecialFloatingPointValues;
+    this.longSerializationPolicy = longSerializationPolicy;
+    this.datePattern = datePattern;
+    this.dateStyle = dateStyle;
+    this.timeStyle = timeStyle;
+    this.builderFactories = builderFactories;
+    this.builderHierarchyFactories = builderHierarchyFactories;
+
+  // 注册adapter工厂
+    List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>();
+
+    // built-in type adapters that cannot be overridden
+    factories.add(TypeAdapters.JSON_ELEMENT_FACTORY);
+    factories.add(ObjectTypeAdapter.FACTORY);
+
+    // the excluder must precede all adapters that handle user-defined types
+    factories.add(excluder);
+
+    // users' type adapters 如果有自定义的工厂，在这里被加入，顺序比较靠前
+    factories.addAll(factoriesToBeAdded);
+
+    // type adapters for basic platform types 基本平台类型的adapter工厂
+    factories.add(TypeAdapters.STRING_FACTORY);
+    factories.add(TypeAdapters.INTEGER_FACTORY);
+    factories.add(TypeAdapters.BOOLEAN_FACTORY);
+    factories.add(TypeAdapters.BYTE_FACTORY);
+    factories.add(TypeAdapters.SHORT_FACTORY);
+    TypeAdapter<Number> longAdapter = longAdapter(longSerializationPolicy);
+    factories.add(TypeAdapters.newFactory(long.class, Long.class, longAdapter));
+    factories.add(TypeAdapters.newFactory(double.class, Double.class,
+            doubleAdapter(serializeSpecialFloatingPointValues)));
+    factories.add(TypeAdapters.newFactory(float.class, Float.class,
+            floatAdapter(serializeSpecialFloatingPointValues)));
+    factories.add(TypeAdapters.NUMBER_FACTORY);
+    factories.add(TypeAdapters.ATOMIC_INTEGER_FACTORY);
+    factories.add(TypeAdapters.ATOMIC_BOOLEAN_FACTORY);
+    factories.add(TypeAdapters.newFactory(AtomicLong.class, atomicLongAdapter(longAdapter)));
+    factories.add(TypeAdapters.newFactory(AtomicLongArray.class, atomicLongArrayAdapter(longAdapter)));
+    factories.add(TypeAdapters.ATOMIC_INTEGER_ARRAY_FACTORY);
+    factories.add(TypeAdapters.CHARACTER_FACTORY);
+    factories.add(TypeAdapters.STRING_BUILDER_FACTORY);
+    factories.add(TypeAdapters.STRING_BUFFER_FACTORY);
+    factories.add(TypeAdapters.newFactory(BigDecimal.class, TypeAdapters.BIG_DECIMAL));
+    factories.add(TypeAdapters.newFactory(BigInteger.class, TypeAdapters.BIG_INTEGER));
+    factories.add(TypeAdapters.URL_FACTORY);
+    factories.add(TypeAdapters.URI_FACTORY);
+    factories.add(TypeAdapters.UUID_FACTORY);
+    factories.add(TypeAdapters.CURRENCY_FACTORY);
+    factories.add(TypeAdapters.LOCALE_FACTORY);
+    factories.add(TypeAdapters.INET_ADDRESS_FACTORY);
+    factories.add(TypeAdapters.BIT_SET_FACTORY);
+    factories.add(DateTypeAdapter.FACTORY);
+    factories.add(TypeAdapters.CALENDAR_FACTORY);
+    factories.add(TimeTypeAdapter.FACTORY);
+    factories.add(SqlDateTypeAdapter.FACTORY);
+    factories.add(TypeAdapters.TIMESTAMP_FACTORY);
+    factories.add(ArrayTypeAdapter.FACTORY);
+    factories.add(TypeAdapters.CLASS_FACTORY);
+
+    // type adapters for composite and user-defined types 复合类型和自定义类型的adapter工厂
+    factories.add(new CollectionTypeAdapterFactory(constructorConstructor));
+    factories.add(new MapTypeAdapterFactory(constructorConstructor, complexMapKeySerialization));
+    this.jsonAdapterFactory = new JsonAdapterAnnotationTypeAdapterFactory(constructorConstructor);
+    factories.add(jsonAdapterFactory);
+    factories.add(TypeAdapters.ENUM_FACTORY);
+    factories.add(new ReflectiveTypeAdapterFactory(
+        constructorConstructor, fieldNamingStrategy, excluder, jsonAdapterFactory));
+
+    this.factories = Collections.unmodifiableList(factories);
+  }
+```
+
+
+
+
+
+##### toJson
+
 ```java
 @Slf4j
 public class LearningGsonTest {
@@ -1075,17 +1194,421 @@ public class LearningGsonTest {
     // Class.class属于Type的一种
     return toJson(src, src.getClass());
   }
+
+  public String toJson(Object src, Type typeOfSrc) {
+    StringWriter writer = new StringWriter();
+    toJson(src, typeOfSrc, writer);
+    return writer.toString();
+  }
+
+  public void toJson(Object src, Type typeOfSrc, Appendable writer) throws JsonIOException {
+    try {
+      JsonWriter jsonWriter = newJsonWriter(Streams.writerForAppendable(writer));
+      toJson(src, typeOfSrc, jsonWriter);
+    } catch (IOException e) {
+      throw new JsonIOException(e);
+    }
+  }
+
+// 最终都会到这个方法
+  public void toJson(Object src, Type typeOfSrc, JsonWriter writer) throws JsonIOException {
+    // 关键步骤1，获取到对应的TypeAdapter
+    TypeAdapter<?> adapter = getAdapter(TypeToken.get(typeOfSrc));
+    boolean oldLenient = writer.isLenient();
+    writer.setLenient(true);
+    boolean oldHtmlSafe = writer.isHtmlSafe();
+    writer.setHtmlSafe(htmlSafe);
+    boolean oldSerializeNulls = writer.getSerializeNulls();
+    writer.setSerializeNulls(serializeNulls);
+    try {
+      // 关键步骤2，利用TypeAdapter写出json数据
+      ((TypeAdapter<Object>) adapter).write(writer, src);
+    } catch (IOException e) {
+      throw new JsonIOException(e);
+    } catch (AssertionError e) {
+      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
+      error.initCause(e);
+      throw error;
+    } finally {
+      writer.setLenient(oldLenient);
+      writer.setHtmlSafe(oldHtmlSafe);
+      writer.setSerializeNulls(oldSerializeNulls);
+    }
+  }
+```
+
+看一下`TypeToken.get(typeOfSrc)`
+
+```java
+  /**
+   * Gets type literal for the given {@code Type} instance.
+   */
+  public static TypeToken<?> get(Type type) {
+    return new TypeToken<Object>(type);
+  }
+
+  /**
+   * Unsafe. Constructs a type literal manually.
+   */
+  @SuppressWarnings("unchecked")
+  TypeToken(Type type) {
+    // 带泛型信息的类型
+    this.type = $Gson$Types.canonicalize($Gson$Preconditions.checkNotNull(type));
+    // 泛型擦除的类型，比如List.class
+    this.rawType = (Class<? super T>) $Gson$Types.getRawType(this.type);
+    this.hashCode = this.type.hashCode();
+  }
 ```
 
 
 
+穿插一下Java类型（Type）系统的介绍。
 
+详细内容可以看这两篇文章Java中的Type类型详解](https://juejin.im/post/5adefaba518825670e5cb44d)和[Java Type类型](https://www.jianshu.com/p/39cc237ad815)，或者Google下。
+
+简单说明下
+
+1. Type是Java语言中所有类型的公共父接口，有4个扩展接口，主要是用来记录泛型的信息（一个泛型中的信息可能是另一个泛型）
+   1. GenericArrayType：泛型数组类型，比如`T[] array`、`List<String>[] array`中的`T[]`、`List<String>[]`
+   2. ParameterizedType：参数化类型，比如`Lis<String> list`、`Map<String,Object> map`中的`Lis<String>`、`Map<String,Object>`
+   3. TypeVariable：类型变量，比如`List<T> list`中的`T`、`Map<K,V> map`、`E[] array`中的`K`、`V`、`E`（一般外层还有一个GenericArrayType或者ParameterizedType）
+   4. WildcardType：通配符类型，比如`Map<? extends A,? super B> map`中的`? extends A`、`? super B`，`A`称为上界，`B`称为下界；如果只有`List<?> list`，默认下界是String，默认上界是Object
+2. Class是Type的一个直接实现类
+3. 其他4个接口都有自己的实现类，在sun.reflect包下
+
+![image-20200624164140296](/github/northernw.github.io/image/image-20200624164140296.png)
+
+举例子：
+
+比如`List<T extends Map>[] array`是一个泛型数组类型GenericArrayType，其中`List<T>`是ParameterizedType，`T`是TypeVariable
+
+genericComponentType可以理解为数组中每个元素的（泛型）类型
+
+![image-20200624174833587](/github/northernw.github.io/image/image-20200624174833587.png)
+
+再如`List<? extends Map> list`，本身是一个ParameterizedType，`? extends Map`是WildcardType
+
+![image-20200624175245701](/github/northernw.github.io/image/image-20200624175245701.png)
+
+`T[] array`，本身是GenericArrayType，`T`是TypeVariable
+
+![image-20200624180623826](/github/northernw.github.io/image/image-20200624180623826.png)
+
+
+
+##### getAdapter
+
+```java
+  /**
+   * Returns the type adapter for {@code} type.
+   *
+   * @throws IllegalArgumentException if this GSON cannot serialize and
+   *     deserialize {@code type}.
+   */
+  @SuppressWarnings("unchecked")
+  public <T> TypeAdapter<T> getAdapter(TypeToken<T> type) {
+    // 先看缓存中有无对应的adapter
+    TypeAdapter<?> cached = typeTokenCache.get(type == null ? NULL_KEY_SURROGATE : type);
+    if (cached != null) {
+      return (TypeAdapter<T>) cached;
+    }
+
+    // FutureTypeAdapter的本地缓存，避免无限递归取adapter
+    Map<TypeToken<?>, FutureTypeAdapter<?>> threadCalls = calls.get();
+    boolean requiresThreadLocalCleanup = false;
+    if (threadCalls == null) {
+      threadCalls = new HashMap<TypeToken<?>, FutureTypeAdapter<?>>();
+      calls.set(threadCalls);
+      requiresThreadLocalCleanup = true;
+    }
+
+    // the key and value type parameters always agree
+    // 如果在FutureTypeAdapter的本地缓存中找到当前类型，表明这个类型的adapter正在创建中
+    FutureTypeAdapter<T> ongoingCall = (FutureTypeAdapter<T>) threadCalls.get(type);
+    if (ongoingCall != null) {
+      return ongoingCall;
+    }
+
+    try {
+      // 放入future的本地缓存
+      FutureTypeAdapter<T> call = new FutureTypeAdapter<T>();
+      threadCalls.put(type, call);
+
+      // 遍历adapter工厂，创建adapter
+      // 工厂创建的逻辑是，当前类型不是这个工厂负责的，返回null，反之创意一个adapter实例返回，接下来会讲一个普通类型的工厂、一个复合工厂创建实例的过程
+      for (TypeAdapterFactory factory : factories) {
+        TypeAdapter<T> candidate = factory.create(this, type);
+        if (candidate != null) {
+          // 如果取到adapter，在FutureTypeAdapter中放入真实adapter
+          call.setDelegate(candidate);
+          typeTokenCache.put(type, candidate);
+          return candidate;
+        }
+      }
+      throw new IllegalArgumentException("GSON (" + GsonBuildConfig.VERSION + ") cannot handle " + type);
+    } finally {
+      // 从future的本地缓存中移除当前类型
+      threadCalls.remove(type);
+
+      if (requiresThreadLocalCleanup) {
+        calls.remove();
+      }
+    }
+  }
+```
+
+为什么要有个FutureTypeAdapter的本地缓存呢？
+
+先剧透ReflectiveTypeAdapterFactory在创建adapter的时候，会遍历属性取对应的adapte。比如Person里有个Person属性，就会递归取Person的adapter..
+
+```java
+@Data
+@Slf4j
+public class Person {
+    private Integer age;
+    private String name;
+    private Person person;
+}
+```
+
+FutureTypeAdapter本质上是个委托者，内部引用了真正的adapter，在执行json读写时会用这个真正的adapter进行操作。
+
+```java
+  static class FutureTypeAdapter<T> extends TypeAdapter<T> {
+    // 真正的adapter
+    private TypeAdapter<T> delegate;
+
+    public void setDelegate(TypeAdapter<T> typeAdapter) {
+      if (delegate != null) {
+        throw new AssertionError();
+      }
+      delegate = typeAdapter;
+    }
+
+    @Override public T read(JsonReader in) throws IOException {
+      if (delegate == null) {
+        throw new IllegalStateException();
+      }
+      // 用真正adapter进行读
+      return delegate.read(in);
+    }
+
+    @Override public void write(JsonWriter out, T value) throws IOException {
+      if (delegate == null) {
+        throw new IllegalStateException();
+      }
+      // 用真正adapter进行写
+      delegate.write(out, value);
+    }
+  }
+```
+
+
+
+##### AdapterFactory
+
+平台基础类型的Adapter是预先定义好的，每个类型对应一个adapter，比如String类型的AdapterFactory返回的adapter永远是`TypeAdapters.STRING`
+
+复合类型和自定义类型的Adapter是需要动态创建的，因为泛型不同、JavaBean的属性不同，等等
+
+###### STRING_FACTORY和'STRING_ADAPTER'
+
+实际上没有STRING_ADAPTER这个名字，真正名字是STRING
+
+```java
+// TypeAdapterFactory是一个只有create方法的工厂，用于创建adapter
+public interface TypeAdapterFactory {
+  <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type);
+}
+
+// String类型的工厂
+public static final TypeAdapterFactory STRING_FACTORY = newFactory(String.class, STRING); // STRING是个adapter
+
+// 创建一个工厂实例的公共方法...
+  public static <TT> TypeAdapterFactory newFactory(
+      final Class<TT> type, final TypeAdapter<TT> typeAdapter) {
+    return new TypeAdapterFactory() {
+      @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+      @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+        // 这一类工厂创建adapter的逻辑是一样的
+        // 如果传入的typeToken.getRawType()和预先定义的type是相同的，就返回预先定义的adapter，否则返回null（表示这个rawType不是当前工厂和adapter负责的）
+        return typeToken.getRawType() == type ? (TypeAdapter<T>) typeAdapter : null;
+      }
+      @Override public String toString() {
+        return "Factory[type=" + type.getName() + ",adapter=" + typeAdapter + "]";
+      }
+    };
+  }
+
+// String类型的TypeAdapter
+  public static final TypeAdapter<String> STRING = new TypeAdapter<String>() {
+    @Override
+    public String read(JsonReader in) throws IOException {
+      JsonToken peek = in.peek();
+      // 如果是null
+      if (peek == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+      // 某个兼容..先跳过
+      /* coerce booleans to strings for backwards compatibility */
+      if (peek == JsonToken.BOOLEAN) {
+        return Boolean.toString(in.nextBoolean());
+      }
+      // 调用JsonReader读json
+      return in.nextString();
+    }
+    @Override
+    public void write(JsonWriter out, String value) throws IOException {
+      // 调用JsonWriter写json
+      out.value(value);
+    }
+  };
+```
+
+Integer、Long、Boolean、AtomicInteger等等平台基础类型的factory的框架是类似的，或者一样的，有细微的差别（比如同时支持非包装类型和包装类型）
+
+
+
+###### CollectionTypeAdapterFactory
+
+集合类型的factory和adapter
+
+`MapTypeAdapterFactory`和集合的很类似
+
+```java
+public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
+  private final ConstructorConstructor constructorConstructor;
+
+  public CollectionTypeAdapterFactory(ConstructorConstructor constructorConstructor) {
+    this.constructorConstructor = constructorConstructor;
+  }
+
+  // create在这里
+  @Override
+  public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+    Type type = typeToken.getType();
+
+    // 如果Collection不是rawType的超类/超接口，那就不是集合工厂来负责
+    Class<? super T> rawType = typeToken.getRawType();
+    if (!Collection.class.isAssignableFrom(rawType)) {
+      return null;
+    }
+
+    // 获取集合元素的类型，这里是带泛型信息的类型
+    Type elementType = $Gson$Types.getCollectionElementType(type, rawType);
+    // 取元素类型的adapter
+    TypeAdapter<?> elementTypeAdapter = gson.getAdapter(TypeToken.get(elementType));
+    // 获取构造器，如果没有自定义等等情况，一般是用反射的constructor
+    ObjectConstructor<T> constructor = constructorConstructor.get(typeToken);
+
+    @SuppressWarnings({"unchecked", "rawtypes"}) // create() doesn't define a type parameter
+    // 创建一个集合类型的adapter实例
+    TypeAdapter<T> result = new Adapter(gson, elementType, elementTypeAdapter, constructor);
+    return result;
+  }
+
+  private static final class Adapter<E> extends TypeAdapter<Collection<E>> {
+    // 集合元素的adapter
+    private final TypeAdapter<E> elementTypeAdapter;
+    // 构造器
+    private final ObjectConstructor<? extends Collection<E>> constructor;
+
+    public Adapter(Gson context, Type elementType,
+        TypeAdapter<E> elementTypeAdapter,
+        ObjectConstructor<? extends Collection<E>> constructor) {
+      // 这里元素adapter还有一个封装，会在writeJson时取运行时的Type，毕竟运行时的最准确（比如定义时候是List<? extends Cat>，运行时实际放入的是Cat接口的一个实现WhiteCat），再根据运行时Type取相应adapter...
+      this.elementTypeAdapter =
+          new TypeAdapterRuntimeTypeWrapper<E>(context, elementTypeAdapter, elementType);
+      this.constructor = constructor;
+    }
+
+    // 读json
+    @Override public Collection<E> read(JsonReader in) throws IOException {
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+
+      Collection<E> collection = constructor.construct();
+      // 读入 [
+      in.beginArray();
+      while (in.hasNext()) {
+        // 委托元素adapter读每个元素
+        E instance = elementTypeAdapter.read(in);
+        // 元素放入集合
+        collection.add(instance);
+      }
+      // 读入 ]
+      in.endArray();
+      return collection;
+    }
+
+    @Override public void write(JsonWriter out, Collection<E> collection) throws IOException {
+      if (collection == null) {
+        out.nullValue();
+        return;
+      }
+
+      // 写 ]
+      out.beginArray();
+      for (E element : collection) {
+        // 写每个元素
+        elementTypeAdapter.write(out, element);
+      }
+      // 写 ]
+      out.endArray();
+    }
+  }
+}
+```
+
+
+
+TypeAdapterRuntimeTypeWrapper
+
+```java
+  @Override
+  public void write(JsonWriter out, T value) throws IOException {
+    // 优先级 运行时类型adapter（最高） > 声明类型adapter > 运行时类型reflective adapter > 声明类型reflective adapter
+    // Order of preference for choosing type adapters
+    // First preference: a type adapter registered for the runtime type
+    // Second preference: a type adapter registered for the declared type
+    // Third preference: reflective type adapter for the runtime type (if it is a sub class of the declared type)
+    // Fourth preference: reflective type adapter for the declared type
+
+    TypeAdapter chosen = delegate;
+    // 运行时Type
+    Type runtimeType = getRuntimeTypeIfMoreSpecific(type, value);
+    // 如果runtimeType和传入的Type（即用户声明的对象的Type）不一样
+    if (runtimeType != type) {
+      TypeAdapter runtimeTypeAdapter = context.getAdapter(TypeToken.get(runtimeType));
+      if (!(runtimeTypeAdapter instanceof ReflectiveTypeAdapterFactory.Adapter)) {
+        // The user registered a type adapter for the runtime type, so we will use that
+        // ReflectiveTypeAdapterFactory是注册的最后一个factory
+        // 如果运行时TypeAdapter不是最后一种Adapter
+        chosen = runtimeTypeAdapter;
+      } else if (!(delegate instanceof ReflectiveTypeAdapterFactory.Adapter)) {
+        // The user registered a type adapter for Base class, so we prefer it over the
+        // reflective type adapter for the runtime type
+        // （delegate是根据用户声明的类型找到的）如果delegate也不是最后一种，用delegate
+        chosen = delegate;
+      } else {
+        // Use the type adapter for runtime type
+        chosen = runtimeTypeAdapter;
+      }
+    }
+    chosen.write(out, value);
+  }
+```
+
+
+
+https://juejin.im/post/5c1473d9e51d4529ee23645f#heading-8
 
 
 
 ### 小结
-
-
 
 ## Jackson
 
