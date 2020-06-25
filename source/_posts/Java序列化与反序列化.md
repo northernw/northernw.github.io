@@ -1889,6 +1889,10 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 
 
 
+源码中比较难看懂的是有很多工厂类、委托类，如果能理清大体的逻辑，就比较容易触类旁通了。
+
+
+
 to be continued...
 
 Jackson
@@ -1900,6 +1904,125 @@ FastJson
 
 
 # 性能对比
+
+```java
+@Slf4j
+public class PerformanceComparison {
+    @Test
+    public void testPerformance() throws IOException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start("mock list");
+        List<People> peoples = Lists.newArrayList();
+        int cnt = 10;
+        for (int i = 0; i < cnt; i++) {
+            People people = new People();
+            people.setAge(i);
+            people.setName("lily" + i);
+            people.setNicknames(Lists.newArrayList("nick1-" + i, "nick2-" + i));
+            People friend = new People();
+            friend.setName("friend");
+            people.setFriends(Maps.newHashMap("friend", friend));
+            peoples.add(people);
+        }
+        stopWatch.stop();
+        stopWatch.start("print");
+        log.info("peoples = {}", peoples);
+        stopWatch.stop();
+
+        Gson gson = new Gson();
+        stopWatch.start("gson toJson");
+        String json = gson.toJson(peoples);
+        stopWatch.stop();
+        log.info("gson toJson = {}", json);
+
+        stopWatch.start("serialization ");
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("performance.txt"));
+        outputStream.writeObject(peoples);
+        stopWatch.stop();
+        log.info("\n{}", stopWatch.prettyPrint());
+    }
+}
+```
+
+结果
+
+```shell
+16:19:56.483 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 10
+StopWatch '': running time = 26069677 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+002320593  009%  mock list
+006721048  026%  gson toJson
+017028036  065%  serialization 
+
+16:19:56.521 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 100
+StopWatch '': running time = 32385670 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+000322435  001%  mock list
+016472014  051%  gson toJson
+015591221  048%  serialization 
+
+16:19:56.611 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 1000
+StopWatch '': running time = 89620834 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+001630599  002%  mock list
+022239885  025%  gson toJson
+065750350  073%  serialization 
+
+16:19:57.315 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 10000
+StopWatch '': running time = 703038881 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+005390392  001%  mock list
+033934519  005%  gson toJson
+663713970  094%  serialization 
+
+16:20:03.333 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 100000
+StopWatch '': running time = 6017844063 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+074621832  001%  mock list
+181025115  003%  gson toJson
+5762197116  096%  serialization 
+```
+
+
+
+10次的平均：
+
+```shell
+16:36:16.309 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 10
+16:36:16.316 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 6ms
+16:36:16.316 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 3ms
+16:36:16.406 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 100
+16:36:16.406 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 1ms
+16:36:16.406 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 7ms
+16:36:17.025 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 1000
+16:36:17.026 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 3ms
+16:36:17.026 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 58ms
+16:36:21.700 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 10000
+16:36:21.701 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 16ms
+16:36:21.701 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 450ms
+16:37:14.224 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 100000
+16:37:14.224 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 122ms
+16:37:14.224 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 5123ms
+```
+
+可以看出来，个数越多，性能差异越明显。
+
+
 
 
 
