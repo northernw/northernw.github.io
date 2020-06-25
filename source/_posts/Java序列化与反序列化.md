@@ -9,6 +9,10 @@ date: 2020-06-19 16:45:34
 
 **序列化与反序列化是成对存在的，文中简称为序列化。**
 
+写在前面：
+
+文中有很多源码，稍显凌乱。也主要是自己的一个记录，未字斟句酌。
+
 
 
 # 简介
@@ -1881,7 +1885,9 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 
 #### 小结
 
-源码差不多就到这里了。捋一下大体流程
+源码差不多就到这里了，还有很多Gson的细节、以及扩展性的地方，就不在这里深入讨论了。
+
+捋一下大体流程
 
 1. 根据对象的Type，由Factory创建adapter
 2. 创建adapter的过程中，会递归对内部属性创建adapter -- 可选，不同Type逻辑不同
@@ -1904,6 +1910,8 @@ FastJson
 
 
 # 性能对比
+
+比较简单粗暴地对比..
 
 ```java
 @Slf4j
@@ -2021,6 +2029,130 @@ ns         %     Task name
 ```
 
 可以看出来，个数越多，性能差异越明显。
+
+
+
+# Mock小工具
+
+仿Gson反序列化的逻辑，比较简单的Mock工具，可以支持常见的JavaBean的对象Mock，省去一一手工创建对象、赋值的麻烦。
+
+ps如果对数值有要求，还是要后续自己赋值的。这个小工具的初衷是ut测试时，程序中对属性有非空校验。
+
+pps暂未实现全部的类型
+
+```java
+@Slf4j
+public class SimpleMock {
+
+    @SuppressWarnings("unchecked")
+    public static <T, TT> T mockOf(Type type) {
+        Class<? super T> rawType = (Class<? super T>) getRawType(type);
+        Object object = null;
+        if (rawType == String.class) {
+            object = "mock" + RandomUtils.nextInt();
+        } else if (rawType == Long.class || rawType == long.class) {
+            object = RandomUtils.nextLong();
+        } else if (rawType == Integer.class || rawType == int.class) {
+            object = RandomUtils.nextInt();
+        } else if (rawType == BigDecimal.class) {
+            object = BigDecimal.valueOf(RandomUtils.nextFloat()).setScale(2, RoundingMode.HALF_UP);
+        } else if (rawType == Date.class) {
+            object = new Date();
+        } else if (type instanceof GenericArrayType || type instanceof Class && ((Class) type).isArray()) {
+            Type componentType = type instanceof GenericArrayType ? ((GenericArrayType) type).getGenericComponentType() : ((Class) type).getComponentType();
+            if (componentType == type) {
+                return null;
+            }
+            Class<TT> rawComponentType = (Class<TT>) getRawType(componentType);
+            List<TT> list = new ArrayList<TT>();
+            for (int i = 0, num = RandomUtils.nextInt(1, 5); i < num; i++) {
+                TT instance = mockOf(rawComponentType);
+                list.add(instance);
+            }
+            Object array = Array.newInstance(rawComponentType, list.size());
+            for (int i = 0; i < list.size(); i++) {
+                Array.set(array, i, list.get(i));
+            }
+            object = array;
+        } else if (Collection.class.isAssignableFrom(rawType)) {
+            Type elementType = type instanceof ParameterizedType ? ((ParameterizedType) type).getActualTypeArguments()[0] : Object.class;
+            if (elementType == type) {
+                return null;
+            }
+            Collection<TT> collection = construct(rawType);
+            for (int i = 0, size = RandomUtils.nextInt(1, 5); i < size; i++) {
+                collection.add(mockOf((Class<TT>) elementType));
+            }
+            object = collection;
+        } else if (Map.class.isAssignableFrom(rawType)) {
+            log.info("map ignored");
+        } else if (Object.class.isAssignableFrom(rawType)) {
+            try {
+                T t = (T) rawType.getDeclaredConstructor().newInstance();
+                Field[] fields = rawType.getDeclaredFields();
+                for (Field field : fields) {
+                    Type fieldType = field.getGenericType();
+                    if (fieldType instanceof ParameterizedType && ((ParameterizedType) fieldType).getActualTypeArguments()[0] == type) {
+                        log.info("cycle ignored");
+                        continue;
+                    }
+                    TT value = mockOf(fieldType);
+                    field.setAccessible(true);
+                    field.set(t, value);
+                }
+                object = t;
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+
+        }
+        if (object == null) {
+            return null;
+        }
+        return (T) object;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T construct(Class<? super T> rawType) {
+        if (Collection.class.isAssignableFrom(rawType)) {
+            if (SortedSet.class.isAssignableFrom(rawType)) {
+                return (T) new TreeSet<Object>();
+            } else if (Set.class.isAssignableFrom(rawType)) {
+                return (T) new LinkedHashSet<Object>();
+            } else if (Queue.class.isAssignableFrom(rawType)) {
+                return (T) new ArrayDeque<Object>();
+            } else {
+                return (T) new ArrayList<Object>();
+            }
+        }
+        if (Map.class.isAssignableFrom(rawType)) {
+            return (T) new LinkedHashMap<Object, Object>();
+        }
+
+        return null;
+    }
+
+    @Test
+    public void test() {
+        Gson gson = new Gson();
+        Product product = SimpleMock.mockOf(Product.class);
+        log.info("product = {}", gson.toJson(product));
+
+        List<Product> products = SimpleMock.mockOf(new TypeToken<List<Product>>() {
+        }.getType());
+        log.info("products = {}", gson.toJson(products));
+    }
+
+    @Data
+    public static class Product {
+        private Long id;
+        private String name;
+        private List<String> list;
+        private List<Product> products;
+        private Integer[] integers;
+    }
+}
+```
 
 
 
