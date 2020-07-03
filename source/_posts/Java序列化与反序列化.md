@@ -9,6 +9,10 @@ date: 2020-06-19 16:45:34
 
 **序列化与反序列化是成对存在的，文中简称为序列化。**
 
+写在前面：
+
+文中有很多源码，稍显凌乱。也主要是自己的一个记录，未字斟句酌。
+
 
 
 # 简介
@@ -1409,9 +1413,15 @@ FutureTypeAdapter本质上是个委托者，内部引用了真正的adapter，�
 
 平台基础类型的Adapter是预先定义好的，每个类型对应一个adapter，比如String类型的AdapterFactory返回的adapter永远是`TypeAdapters.STRING`
 
-复合类型和自定义类型的Adapter是需要动态创建的，因为泛型不同、JavaBean的属性不同，等等
+复合类型和自定义类型（反射类型）的Adapter是需要动态创建的，因为泛型不同、JavaBean的属性不同，等等
 
-###### STRING_FACTORY和'STRING_ADAPTER'
+接下来看3个实现，其他类型大同小异，理解的思路是一样的
+
+
+
+###### String类型
+
+STRING_FACTORY和'STRING_ADAPTER'
 
 实际上没有STRING_ADAPTER这个名字，真正名字是STRING
 
@@ -1470,7 +1480,9 @@ Integer、Long、Boolean、AtomicInteger等等平台基础类型的factory的框
 
 
 
-###### CollectionTypeAdapterFactory
+###### 集合类型
+
+CollectionTypeAdapterFactory
 
 集合类型的factory和adapter
 
@@ -1508,6 +1520,7 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
     return result;
   }
 
+  // 集合类型的adapter
   private static final class Adapter<E> extends TypeAdapter<Collection<E>> {
     // 集合元素的adapter
     private final TypeAdapter<E> elementTypeAdapter;
@@ -1604,23 +1617,544 @@ TypeAdapterRuntimeTypeWrapper
 
 
 
-https://juejin.im/post/5c1473d9e51d4529ee23645f#heading-8
+###### 反射类型
+
+ReflectiveTypeAdapterFactory，可以理解为用户自定义的JavaBean对应的Factory。
+
+这是一个通过遍历对象中的属性来进行序列化的adapter。
+
+接口、或者抽象类，不能反序列化（因为不能实例化）
+
+```java
+/**
+ * Type adapter that reflects over the fields and methods of a class.
+ */
+public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
+  private final ConstructorConstructor constructorConstructor;
+  private final FieldNamingStrategy fieldNamingPolicy;
+  private final Excluder excluder;
+  private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
+  private final ReflectionAccessor accessor = ReflectionAccessor.getInstance();
+
+  // 先看构造器
+  public ReflectiveTypeAdapterFactory(ConstructorConstructor constructorConstructor,
+      FieldNamingStrategy fieldNamingPolicy, Excluder excluder,
+      JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory) {
+    this.constructorConstructor = constructorConstructor;
+    this.fieldNamingPolicy = fieldNamingPolicy;
+    this.excluder = excluder;
+    this.jsonAdapterFactory = jsonAdapterFactory;
+  }
+
+  public boolean excludeField(Field f, boolean serialize) {
+    return excludeField(f, serialize, excluder);
+  }
+
+  static boolean excludeField(Field f, boolean serialize, Excluder excluder) {
+    return !excluder.excludeClass(f.getType(), serialize) && !excluder.excludeField(f, serialize);
+  }
+
+  /** first element holds the default name */
+  private List<String> getFieldNames(Field f) {
+    SerializedName annotation = f.getAnnotation(SerializedName.class);
+    if (annotation == null) {
+      String name = fieldNamingPolicy.translateName(f);
+      return Collections.singletonList(name);
+    }
+
+    String serializedName = annotation.value();
+    String[] alternates = annotation.alternate();
+    if (alternates.length == 0) {
+      return Collections.singletonList(serializedName);
+    }
+
+    List<String> fieldNames = new ArrayList<String>(alternates.length + 1);
+    fieldNames.add(serializedName);
+    for (String alternate : alternates) {
+      fieldNames.add(alternate);
+    }
+    return fieldNames;
+  }
+
+  @Override public <T> TypeAdapter<T> create(Gson gson, final TypeToken<T> type) {
+    Class<? super T> raw = type.getRawType();
+
+    // 因为Object是所有类的父类，所以这个Factory可以适配任意类型
+    if (!Object.class.isAssignableFrom(raw)) {
+      return null; // it's a primitive!
+    }
+
+    ObjectConstructor<T> constructor = constructorConstructor.get(type);
+    // 构造一个adapter实例，getBoundFields封装了类中的属性，继续往里看
+    return new Adapter<T>(constructor, getBoundFields(gson, type, raw));
+  }
+
+  // 封装Field
+  private Map<String, BoundField> getBoundFields(Gson context, TypeToken<?> type, Class<?> raw) {
+    Map<String, BoundField> result = new LinkedHashMap<String, BoundField>();
+    // 如果是接口，就没有Field，直接返回
+    if (raw.isInterface()) {
+      return result;
+    }
+
+    Type declaredType = type.getType();
+    while (raw != Object.class) {
+      // 当前类声明的属性
+      Field[] fields = raw.getDeclaredFields();
+      for (Field field : fields) {
+        // 判断这个属性是否进行序列化和反序列化
+        boolean serialize = excludeField(field, true);
+        boolean deserialize = excludeField(field, false);
+        // 如果序列化和反序列都不需要，跳过
+        if (!serialize && !deserialize) {
+          continue;
+        }
+        accessor.makeAccessible(field);
+        // 取属性的带泛型信息的Type
+        Type fieldType = $Gson$Types.resolve(type.getType(), raw, field.getGenericType());
+        // 获取属性对应的序列化名称
+        // 如果没有@SerializedName注解，就取Field的name，再根据fieldNamingPolicy策略做下转换，比如全驼峰、驼峰带空格等
+        // 如果有注解，用注解里定义的name和其他备选
+        // fieldNames里的第一个是默认name
+        List<String> fieldNames = getFieldNames(field);
+        // previous是用来判断，是否有两个field的name重复了
+        BoundField previous = null;
+        for (int i = 0, size = fieldNames.size(); i < size; ++i) {
+          String name = fieldNames.get(i);
+          if (i != 0) serialize = false; // only serialize the default name 序列化的时候只序列化第一个name，反序列时可以通过其他的备选name来反序列化
+          // 封装field
+          BoundField boundField = createBoundField(context, field, name,
+              TypeToken.get(fieldType), serialize, deserialize);
+          // 放进result（不允许存在相同name的boundField，如果有相同name，反序列时就不知道该把value赋值给哪个属性了）
+          BoundField replaced = result.put(name, boundField);
+          if (previous == null) previous = replaced;
+        }
+        // 如果name重复，抛出异常
+        if (previous != null) {
+          throw new IllegalArgumentException(declaredType
+              + " declares multiple JSON fields named " + previous.name);
+        }
+      }
+      // 向上递归父类
+      type = TypeToken.get($Gson$Types.resolve(type.getType(), raw, raw.getGenericSuperclass()));
+      raw = type.getRawType();
+    }
+    return result;
+  }
+
+  // 封装field，本质上是每个Field的adapter
+  private ReflectiveTypeAdapterFactory.BoundField createBoundField(
+      final Gson context, final Field field, final String name,
+      final TypeToken<?> fieldType, boolean serialize, boolean deserialize) {
+    final boolean isPrimitive = Primitives.isPrimitive(fieldType.getRawType());
+    // special casing primitives here saves ~5% on Android
+    // 如果在属性上有@JsonAdapter注解，指定了adapter，用这个adapter（优先级最高）
+    JsonAdapter annotation = field.getAnnotation(JsonAdapter.class);
+    TypeAdapter<?> mapped = null;
+    if (annotation != null) {
+      mapped = jsonAdapterFactory.getTypeAdapter(
+          constructorConstructor, context, fieldType, annotation);
+    }
+    final boolean jsonAdapterPresent = mapped != null;
+    // 如果未指定，用属性的Type找adapter
+    if (mapped == null) mapped = context.getAdapter(fieldType);
+
+    final TypeAdapter<?> typeAdapter = mapped;
+    // 返回封装的Field
+    return new ReflectiveTypeAdapterFactory.BoundField(name, serialize, deserialize) {
+      @SuppressWarnings({"unchecked", "rawtypes"}) // the type adapter and field type always agree
+      // 写json
+      @Override void write(JsonWriter writer, Object value)
+          throws IOException, IllegalAccessException {
+        Object fieldValue = field.get(value);
+        // 如果有指定adapter，直接用指定的，否则要再检查一下运行时的精确Type
+        TypeAdapter t = jsonAdapterPresent ? typeAdapter
+            : new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType.getType());
+        t.write(writer, fieldValue);
+      }
+      // 读json
+      @Override void read(JsonReader reader, Object value)
+          throws IOException, IllegalAccessException {
+        // 不论是指定的，还是声明的type取到的adapter，直接读
+        Object fieldValue = typeAdapter.read(reader);
+        if (fieldValue != null || !isPrimitive) {
+          field.set(value, fieldValue);
+        }
+      }
+      @Override public boolean writeField(Object value) throws IOException, IllegalAccessException {
+        if (!serialized) return false;
+        Object fieldValue = field.get(value);
+        return fieldValue != value; // avoid recursion for example for Throwable.cause
+      }
+    };
+  }
+
+  // 定义的抽象类，Field的封装，上面看过了
+  static abstract class BoundField {
+    final String name;
+    final boolean serialized;
+    final boolean deserialized;
+
+    protected BoundField(String name, boolean serialized, boolean deserialized) {
+      this.name = name;
+      this.serialized = serialized;
+      this.deserialized = deserialized;
+    }
+    abstract boolean writeField(Object value) throws IOException, IllegalAccessException;
+    abstract void write(JsonWriter writer, Object value) throws IOException, IllegalAccessException;
+    abstract void read(JsonReader reader, Object value) throws IOException, IllegalAccessException;
+  }
+
+  // 属性的adapter封装看完了，到对象的adapter了
+  public static final class Adapter<T> extends TypeAdapter<T> {
+    private final ObjectConstructor<T> constructor;
+    private final Map<String, BoundField> boundFields;
+
+    // 持有构造器和属性
+    Adapter(ObjectConstructor<T> constructor, Map<String, BoundField> boundFields) {
+      this.constructor = constructor;
+      this.boundFields = boundFields;
+    }
+
+    // 读json
+    @Override public T read(JsonReader in) throws IOException {
+      // 空对象
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+
+      // 构造器make一个实例
+      T instance = constructor.construct();
+
+      try {
+        // 读对象开始 {
+        in.beginObject();
+        while (in.hasNext()) {
+          // 读一个名称
+          String name = in.nextName();
+          // 取对应field封装
+          BoundField field = boundFields.get(name);
+          // 如果field找不到，或不需要反序列化，则跳过
+          if (field == null || !field.deserialized) {
+            in.skipValue();
+          } else {
+            // 委托filed封装读入value
+            // 如果定义的field是个List<String> list的话，实际上是会委托到集合Adapter去操作的，集合Adapter又会委托到集合元素的Adapter...就是这么一层层递归下去的，直到递归到平台基本类型的Adapter，执行基础的read和write
+            field.read(in, instance);
+          }
+        }
+      } catch (IllegalStateException e) {
+        throw new JsonSyntaxException(e);
+      } catch (IllegalAccessException e) {
+        throw new AssertionError(e);
+      }
+      // 读对象结束 }
+      in.endObject();
+      return instance;
+    }
+
+    // 写json
+    @Override public void write(JsonWriter out, T value) throws IOException {
+      if (value == null) {
+        out.nullValue();
+        return;
+      }
+
+      // 写 {
+      out.beginObject();
+      try {
+        // 委托每个属性adapter写name和value
+        for (BoundField boundField : boundFields.values()) {
+          if (boundField.writeField(value)) {
+            out.name(boundField.name);
+            boundField.write(out, value);
+          }
+        }
+      } catch (IllegalAccessException e) {
+        throw new AssertionError(e);
+      }
+      // 写 }
+      out.endObject();
+    }
+  }
+}
+```
 
 
 
-### 小结
+#### 小结
 
-## Jackson
+源码差不多就到这里了，还有很多Gson的细节、以及扩展性的地方，就不在这里深入讨论了。
 
-## FastJson 
+捋一下大体流程
+
+1. 根据对象的Type，由Factory创建adapter
+2. 创建adapter的过程中，会递归对内部属性创建adapter -- 可选，不同Type逻辑不同
+3. 委托adapter读写json
 
 
 
-## 其他序列化
+源码中比较难看懂的是有很多工厂类、委托类，如果能理清大体的逻辑，就比较容易触类旁通了。
+
+
+
+to be continued...
+
+Jackson
+
+FastJson 
+
+其他序列化
 
 
 
 # 性能对比
+
+比较简单粗暴地对比..
+
+```java
+@Slf4j
+public class PerformanceComparison {
+    @Test
+    public void testPerformance() throws IOException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start("mock list");
+        List<People> peoples = Lists.newArrayList();
+        int cnt = 10;
+        for (int i = 0; i < cnt; i++) {
+            People people = new People();
+            people.setAge(i);
+            people.setName("lily" + i);
+            people.setNicknames(Lists.newArrayList("nick1-" + i, "nick2-" + i));
+            People friend = new People();
+            friend.setName("friend");
+            people.setFriends(Maps.newHashMap("friend", friend));
+            peoples.add(people);
+        }
+        stopWatch.stop();
+        stopWatch.start("print");
+        log.info("peoples = {}", peoples);
+        stopWatch.stop();
+
+        Gson gson = new Gson();
+        stopWatch.start("gson toJson");
+        String json = gson.toJson(peoples);
+        stopWatch.stop();
+        log.info("gson toJson = {}", json);
+
+        stopWatch.start("serialization ");
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("performance.txt"));
+        outputStream.writeObject(peoples);
+        stopWatch.stop();
+        log.info("\n{}", stopWatch.prettyPrint());
+    }
+}
+```
+
+结果
+
+```shell
+16:19:56.483 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 10
+StopWatch '': running time = 26069677 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+002320593  009%  mock list
+006721048  026%  gson toJson
+017028036  065%  serialization 
+
+16:19:56.521 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 100
+StopWatch '': running time = 32385670 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+000322435  001%  mock list
+016472014  051%  gson toJson
+015591221  048%  serialization 
+
+16:19:56.611 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 1000
+StopWatch '': running time = 89620834 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+001630599  002%  mock list
+022239885  025%  gson toJson
+065750350  073%  serialization 
+
+16:19:57.315 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 10000
+StopWatch '': running time = 703038881 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+005390392  001%  mock list
+033934519  005%  gson toJson
+663713970  094%  serialization 
+
+16:20:03.333 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - 
+cnt = 100000
+StopWatch '': running time = 6017844063 ns
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+074621832  001%  mock list
+181025115  003%  gson toJson
+5762197116  096%  serialization 
+```
+
+
+
+10次的平均：
+
+```shell
+16:36:16.309 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 10
+16:36:16.316 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 6ms
+16:36:16.316 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 3ms
+16:36:16.406 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 100
+16:36:16.406 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 1ms
+16:36:16.406 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 7ms
+16:36:17.025 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 1000
+16:36:17.026 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 3ms
+16:36:17.026 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 58ms
+16:36:21.700 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 10000
+16:36:21.701 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 16ms
+16:36:21.701 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 450ms
+16:37:14.224 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - cnt = 100000
+16:37:14.224 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - gson = 122ms
+16:37:14.224 [main] INFO wyq.learning.quickstart.serialization.PerformanceComparison - serial = 5123ms
+```
+
+可以看出来，个数越多，性能差异越明显。
+
+
+
+# Mock小工具
+
+仿Gson反序列化的逻辑，比较简单的Mock工具，可以支持常见的JavaBean的对象Mock，省去一一手工创建对象、赋值的麻烦。
+
+ps如果对数值有要求，还是要后续自己赋值的。这个小工具的初衷是ut测试时，程序中对属性有非空校验。
+
+pps暂未实现全部的类型
+
+```java
+@Slf4j
+public class SimpleMock {
+
+    @SuppressWarnings("unchecked")
+    public static <T, TT> T mockOf(Type type) {
+        Class<? super T> rawType = (Class<? super T>) getRawType(type);
+        Object object = null;
+        if (rawType == String.class) {
+            object = "mock" + RandomUtils.nextInt();
+        } else if (rawType == Long.class || rawType == long.class) {
+            object = RandomUtils.nextLong();
+        } else if (rawType == Integer.class || rawType == int.class) {
+            object = RandomUtils.nextInt();
+        } else if (rawType == BigDecimal.class) {
+            object = BigDecimal.valueOf(RandomUtils.nextFloat()).setScale(2, RoundingMode.HALF_UP);
+        } else if (rawType == Date.class) {
+            object = new Date();
+        } else if (type instanceof GenericArrayType || type instanceof Class && ((Class) type).isArray()) {
+            Type componentType = type instanceof GenericArrayType ? ((GenericArrayType) type).getGenericComponentType() : ((Class) type).getComponentType();
+            if (componentType == type) {
+                return null;
+            }
+            Class<TT> rawComponentType = (Class<TT>) getRawType(componentType);
+            List<TT> list = new ArrayList<TT>();
+            for (int i = 0, num = RandomUtils.nextInt(1, 5); i < num; i++) {
+                TT instance = mockOf(rawComponentType);
+                list.add(instance);
+            }
+            Object array = Array.newInstance(rawComponentType, list.size());
+            for (int i = 0; i < list.size(); i++) {
+                Array.set(array, i, list.get(i));
+            }
+            object = array;
+        } else if (Collection.class.isAssignableFrom(rawType)) {
+            Type elementType = type instanceof ParameterizedType ? ((ParameterizedType) type).getActualTypeArguments()[0] : Object.class;
+            if (elementType == type) {
+                return null;
+            }
+            Collection<TT> collection = construct(rawType);
+            for (int i = 0, size = RandomUtils.nextInt(1, 5); i < size; i++) {
+                collection.add(mockOf((Class<TT>) elementType));
+            }
+            object = collection;
+        } else if (Map.class.isAssignableFrom(rawType)) {
+            log.info("map ignored");
+        } else if (Object.class.isAssignableFrom(rawType)) {
+            try {
+                T t = (T) rawType.getDeclaredConstructor().newInstance();
+                Field[] fields = rawType.getDeclaredFields();
+                for (Field field : fields) {
+                    Type fieldType = field.getGenericType();
+                    if (fieldType instanceof ParameterizedType && ((ParameterizedType) fieldType).getActualTypeArguments()[0] == type) {
+                        log.info("cycle ignored");
+                        continue;
+                    }
+                    TT value = mockOf(fieldType);
+                    field.setAccessible(true);
+                    field.set(t, value);
+                }
+                object = t;
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+
+        }
+        if (object == null) {
+            return null;
+        }
+        return (T) object;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T construct(Class<? super T> rawType) {
+        if (Collection.class.isAssignableFrom(rawType)) {
+            if (SortedSet.class.isAssignableFrom(rawType)) {
+                return (T) new TreeSet<Object>();
+            } else if (Set.class.isAssignableFrom(rawType)) {
+                return (T) new LinkedHashSet<Object>();
+            } else if (Queue.class.isAssignableFrom(rawType)) {
+                return (T) new ArrayDeque<Object>();
+            } else {
+                return (T) new ArrayList<Object>();
+            }
+        }
+        if (Map.class.isAssignableFrom(rawType)) {
+            return (T) new LinkedHashMap<Object, Object>();
+        }
+
+        return null;
+    }
+
+    @Test
+    public void test() {
+        Gson gson = new Gson();
+        Product product = SimpleMock.mockOf(Product.class);
+        log.info("product = {}", gson.toJson(product));
+
+        List<Product> products = SimpleMock.mockOf(new TypeToken<List<Product>>() {
+        }.getType());
+        log.info("products = {}", gson.toJson(products));
+    }
+
+    @Data
+    public static class Product {
+        private Long id;
+        private String name;
+        private List<String> list;
+        private List<Product> products;
+        private Integer[] integers;
+    }
+}
+```
+
+
 
 
 
