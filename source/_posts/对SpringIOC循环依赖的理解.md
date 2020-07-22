@@ -32,6 +32,63 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
 /** Cache of early singleton objects: bean name to bean instance. */
 private final Map<String, Object> earlySingletonObjects = new HashMap<>(16);
 ```
+```java
+	/**
+	 * Return the (raw) singleton object registered under the given name.
+	 * <p>Checks already instantiated singletons and also allows for an early
+	 * reference to a currently created singleton (resolving a circular reference).
+	 * @param beanName the name of the bean to look for
+	 * @param allowEarlyReference whether early references should be created or not
+	 * @return the registered singleton object, or {@code null} if none found
+	 */
+	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+    // 先看singletonObjects
+		Object singletonObject = this.singletonObjects.get(beanName);
+		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			synchronized (this.singletonObjects) {
+        // 再看earlySingletonObjects
+				singletonObject = this.earlySingletonObjects.get(beanName);
+				if (singletonObject == null && allowEarlyReference) {
+          // 如果允许earlyReference，从singletonFactories中取bean
+          // singletonFactories中的bean是经过getEarlyBeanReference的bean，一大作用是提前创建好代理类，放入的是代理类，作用就是为了处理循环依赖
+					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+					if (singletonFactory != null) {
+						singletonObject = singletonFactory.getObject();
+						this.earlySingletonObjects.put(beanName, singletonObject);
+						this.singletonFactories.remove(beanName);
+					}
+				}
+			}
+		}
+		return (singletonObject != NULL_OBJECT ? singletonObject : null);
+	}
+
+	/**
+	 * Obtain a reference for early access to the specified bean,
+	 * typically for the purpose of resolving a circular reference.
+	 * @param beanName the name of the bean (for error handling purposes)
+	 * @param mbd the merged bean definition for the bean
+	 * @param bean the raw bean instance
+	 * @return the object to expose as bean reference
+	 */
+	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
+		Object exposedObject = bean;
+		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+			for (BeanPostProcessor bp : getBeanPostProcessors()) {
+				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+					exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
+				}
+			}
+		}
+		return exposedObject;
+	}
+```
+
+
+
+
+
 ioc
 
 AbstractApplicationContext#refresh#finishBeanFactoryInitialization
