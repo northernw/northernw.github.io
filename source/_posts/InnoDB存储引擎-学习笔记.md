@@ -9,9 +9,9 @@ date: 2020-07-20 11:17:44
 
 
 
-## 第2章 InnoDB存储引擎
+# 第2章 InnoDB存储引擎
 
-### 2.1 概述
+## 2.1 概述
 
 MySQL5.5开始默认存储引擎
 
@@ -19,19 +19,19 @@ MySQL5.5开始默认存储引擎
 
 
 
-### 2.2 InnoDB存储引擎的版本
+## 2.2 InnoDB存储引擎的版本
 
 最新的是InnoDB 1.2.x
 
 
 
-### 2.3 InnoDB体系架构
+## 2.3 InnoDB体系架构
 
 文件+内存池+后台线程
 
 <img src="/github/northernw.github.io/image/image-20200722201328178.png" alt="image-20200722201328178" style="zoom:50%;" />
 
-#### 2.3.1 后台线程
+### 2.3.1 后台线程
 
 主要作用
 
@@ -63,7 +63,7 @@ MySQL5.5开始默认存储引擎
 
 
 
-#### 2.3.2 内存
+### 2.3.2 内存
 
 1. 缓冲池
 
@@ -86,7 +86,7 @@ MySQL5.5开始默认存储引擎
 
 
 
-### 2.4 Checkpoint技术
+## 2.4 Checkpoint技术
 
 Write Ahead Log策略，即当事务提交时，先写重做日志，再修改页。
 
@@ -100,7 +100,7 @@ Write Ahead Log策略，即当事务提交时，先写重做日志，再修改�
 
 
 
-### 2.5 MasterThread工作方式
+## 2.5 MasterThread工作方式
 
 各个版本有些微差异，比如刷新脏页的阈值有差异等，但主要工作是以下内容。
 
@@ -123,7 +123,7 @@ Write Ahead Log策略，即当事务提交时，先写重做日志，再修改�
 
 
 
-### 2.6 InnoDB关键特性
+## 2.6 InnoDB关键特性
 
 InnoDB存储引擎的关键特性包括：
 
@@ -137,15 +137,73 @@ InnoDB存储引擎的关键特性包括：
 
 
 
-#### 2.6.1 插入缓冲
+### 2.6.1 插入缓冲
 
 insert buffer，和数据页一样，也是物理页的组成部分。
 
+insert buffer的使用场景，非唯一辅助索引的插入操作。
+
+具体实现是B+树
+
+1.0.x引入Change Buffer，是insert buffer的升级。对DML操作——insert、delete、update都进行缓冲，分别是insert buffer、delete buffer、Purge buffer。
+
+对一条记录进行UPDATE操作可能分为两个过程：
+
+1. 将记录标记为已删除；
+
+2. 真正将记录删除。
+
+因此Delete Buffer对应UPDATE操作的第一个过程，即将记录标记为删除。PurgeBuffer对应UPDATE操作的第二个过程，即将记录真正的删除
+
+
+
+### 2.6.2 两次写
+
+<img src="/github/northernw.github.io/image/image-20200723113756682.png" alt="image-20200723113756682" style="zoom:50%;" />
+
+doublewrite由两部分组成，一部分是内存中的doublewrite buffer，大小为2MB，另一部分是物理磁盘上共享表空间中连续的128个页，即2个区（extent），大小同样为2MB。
+
+doublewrite发生在对缓冲池的脏页进行刷新的时候，不直接写磁盘，先memcpy将脏页复制到doublewrite buffer，之后doublewrite buffer每次1MB写入共享表空间的物理磁盘（马上调用fsync，避免缓冲写）（写入是顺序的）。doublewrite写完后，再将页写入各个表空间（写入是离散的）。
+
+
+
+### 2.6.3 自适应哈希索引
+
+对象是索引页。
+
+根据访问频率和模式自动为某些热点页建立哈希索引。
+
+
+
+### 2.6.4 异步IO
+
+
+
+# 第3章 文件
+
+## 3.1 参数文件
+
+## 3.2日志文件
+
+### 3.2.1 错误日志
+
+错误日志文件对MySQL的启动、运行、关闭过程进行了记录。
+
+
+
+慢查询日志
+
+查询日志
+
+二进制日志
 
 
 
 
-## 问题汇总
+
+
+
+# 问题汇总
 
 ###### 1. 三大范式？
 
