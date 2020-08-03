@@ -5,6 +5,7 @@ tags:
 categories:
   - null
 date: 2019-10-19 15:20:42
+typora-copy-images-to: ../../image
 ---
 
 
@@ -327,6 +328,14 @@ public final class $Proxy0 extends Proxy implements Subject {
    2. 将bean与advisors放入proxyFactory，创建代理对象
 
 
+
+这里缓存着@Aspect注解的类。它又是怎么生成的呢？遍历beanDefinitions，取className对应的Class，看有没有注解
+
+![image-20200803211031409](/github/northernw.github.io/image/image-20200803211031409.png)
+
+
+
+bpp判断要不要代理：先获取候选advisor，对每个Advisor判断是不是当前bean需要的（通过正则等），如果都没有需要的Advisor，则不代理；否则生成代理。
 
 
 
