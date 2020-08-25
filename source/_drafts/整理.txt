@@ -1,0 +1,4 @@
+了解dubbo的原理和设计，对常见中间件如kafka、netty、zookeeper有一定了解
+
+
+京牌代理
