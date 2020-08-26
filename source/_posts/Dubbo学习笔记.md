@@ -29,6 +29,38 @@ dubbo关键功能
 
 # 学习笔记
 
+《深度剖析ApacheDubbo核心技术内幕》翟陆续.2019.电子工业出版社
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------
+
 《深入理解Apache Dubbo与实战》诣极 林琳@著
 
 
@@ -97,4 +129,10 @@ ExtensionLoaderFactory有三个实现，分别是adaptive、spi、spring.
 
 [Dubbo源码解析（二）Dubbo扩展机制SPI]: https://segmentfault.com/a/1190000016842868
 [dubbo源码分析4——SPI机制_ExtensionFactory类的作用]: https://www.cnblogs.com/hzhuxin/p/7553070.html
+
+
+
+
+
+
 
