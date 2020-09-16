@@ -129,13 +129,13 @@ provider
 public class ApiProvider {
     public static void main(String[] args) {
       // 发布一个服务
-        ServiceConfig<HelloService> service = new ServiceConfig<>();
+        ServiceConfig<DemoService> service = new ServiceConfig<>();
       // 配置接口名称
-        service.setInterface(HelloService.class);
+        service.setInterface(DemoService.class);
       // 配置对实现类的引用
-        service.setRef(new HelloServiceImpl());
+        service.setRef(new DemoServiceImpl());
       // 设置ID
-        service.setId("helloService");
+        service.setId("DemoService");
 
         DubboBootstrap bootstrap = DubboBootstrap.getInstance();
         bootstrap.application(new ApplicationConfig("dubbo-demo-api-myprovider"))
@@ -158,8 +158,8 @@ consumer
 public class ApiConsumer {
     public static void main(String[] args) {
       // 引用一个服务
-        ReferenceConfig<HelloService> reference = new ReferenceConfig<>();
-        reference.setInterface(HelloService.class);
+        ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
+        reference.setInterface(DemoService.class);
 
         DubboBootstrap bootstrap = DubboBootstrap.getInstance();
         bootstrap.application(new ApplicationConfig("dubbo-demo-api-myconsumer"))
@@ -167,7 +167,7 @@ public class ApiConsumer {
                 .reference(reference)
                 .start();
 
-        HelloService demoService = reference.get();
+        DemoService demoService = reference.get();
         String message = demoService.sayHello("world");
         System.out.println(message);
     }
@@ -219,7 +219,7 @@ https://www.cs.rutgers.edu/~pxk/417/notes/03-rpc.html
 
 
 
-### Dubbo框架
+### Dubbo设计
 
 Dubbo做的事情，首先是实现了上面提到的rpc的基础要求（通信、寻址（无注册中心的话，就是消费者直连提供者）、序列化），其次是引入容错&负载均衡和注册中心（~实现自动寻址）。对应Dubbo的三大核心功能。
 
@@ -232,9 +232,9 @@ Dubbo做的事情，首先是实现了上面提到的rpc的基础要求（通信
 
 
 
-#### 架构图
+#### 架构
 
-这个图比较常见了，说明了节点角色和其中的调用关系。
+这个图比较常见了，说明了<u>节点角色和其中的调用关系</u>。
 
 ![dubbo-architucture](/github/northernw.github.io/image/dubbo-architecture.jpg)
 
@@ -319,7 +319,17 @@ Dubbo做的事情，首先是实现了上面提到的rpc的基础要求（通信
 
 ### 服务导出与引用流程
 
-【这里是官网提供的源码导读，基于spring的方式。代码比较早期，但核心逻辑是一致的。】
+Dubbo中常见的两个概念先提一下
+
+1. SPI：Service Provider Interface服务提供接口，是JDK内置的一种服务提供发现机制，Dubbo进行了扩展。简单理解，可以动态替换接口的实现。比如有一个负载均衡的接口，有随机、轮询、最少活跃调用数等实现，在使用的时候根据传入的实现的名称来获取想要的实现。
+
+   `LoadBalance lb = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension("roundrobin");`
+
+2. URL：Dubbo定义的URL类（不是Java包的URL），可以理解是一个参数类，存了服务相关的所有元信息，比如接口名称、方法有哪些、使用的协议、端口、IP等等，很多组件之间用URL进行参数的传递
+
+   
+
+【以下是官网提供的源码导读，基于spring的方式。代码比较早期，但核心逻辑是一致的。】
 
 #### 服务导出
 
@@ -440,7 +450,7 @@ doExportUrlsFor1Protocol：
 
 如果有多个服务提供者，会得到多个Invoker，这时候需要通过集群管理类Cluster将多个Invoker封装成一个。
 
-Invoker实例具备调用本地或远程服务的能力了，但还不能直接暴露给用户使用，会对业务代码造成侵入，所以通过代理工厂类ProxyFactory为借口生成代理类，让代理类去调用Invoker逻辑，避免了对业务代码的侵入，也让框架更易用。
+Invoker实例具备调用本地或远程服务的能力了，但还不能直接暴露给用户使用，会对业务代码造成侵入，所以通过代理工厂类ProxyFactory为接口生成代理类，让代理类去调用Invoker逻辑，避免了对业务代码的侵入，也让框架更易用。
 
 时序图
 
@@ -454,11 +464,11 @@ Invoker实例具备调用本地或远程服务的能力了，但还不能直接�
 
 1. 处理配置和服务导出类似，包括配置信息检查、组装URL等。
 
-2. 引用服务，如果配置了引用本地或者在本地能找到服务，就引用本地的。否则，引用远端，转向RegistryProtocol的refer方法。做这么些事情：
+2. 引用服务，<u>如果配置了引用本地或者在本地能找到服务，就引用本地的。否则，引用远端</u>，转向RegistryProtocol的refer方法。做这么些事情：
 
    1. 从注册中心获取服务提供者列表，存入RegistryDirectory
 
-   2. 向zk注册服务消费方的信息，订阅服务提供方信息（这时候会通过DubboProtocol和提供方建立连接，如果已有别的服务引用和服务方建立了连接，可以服用这个连接）
+   2. 向zk注册服务消费方的信息，订阅服务提供方信息（这时候会通过DubboProtocol和提供方建立连接，如果已有别的服务引用和服务方建立了连接，可以复用这个连接）
 
    3. 构造路由链 routerChain，封装容错集群+负载均衡 MockClusterInvoker
 
@@ -505,7 +515,7 @@ Invoker实例具备调用本地或远程服务的能力了，但还不能直接�
 
 #### 调用过程
 
-Dubbo 服务调用过程比较复杂，包含众多步骤，比如发送请求、编解码、服务降级、过滤器链处理、序列化、线程派发以及响应请求等步骤。
+Dubbo 服务调用过程比较复杂，包含众多步骤，比如<u>发送请求、编解码</u>、服务降级、过滤器链处理、序列化、<u>线程派发以及响应</u>请求等步骤。
 
 【会重点分析请求的发送与接收、编解码、线程派发以及响应的发送与接收等过程，至于服务降级、过滤器链和序列化可以将其当成一个黑盒，暂时忽略也没关系。】
 
@@ -636,12 +646,17 @@ ChannelEventRunnable#run()
 2. 重要的rpc中转在DubboProtocol
    1. 消费方调用RegistryProtocol的本质是有注册中心的多个服务方，待路由和负载均衡后还是经过DubboProtocol进行调用
    2. 提供方通过RegistryProtocol，也是在注册中心的范畴上注册服务，再通过DubboProtocol发布服务（发布服务本质上是在DubboProtocol上缓存了一个接口的实现类的代理，让DubboProtocol可以根据接口信息调用到实现类）
-3. 请求和响应的写数据通过Netty channel的read和send，属于Netty范畴的知识点了
+3. 请求和响应的写数据通过Netty channel的read和send，属于Netty的知识点
 4. 提供方和消费方的代理类不太一样
    1. 提供方是实现类的一个字节码生成的代理类，为了节省反射调用的开销（通过传入的方法名和实现类中的方法名做equals，显式调用实现类的该方法，而不是通过Java提供的反射调用）
    2. 消费方的代理类，说白了是对RegistryProtocol/DubboProtocol（或InjvmProtocol）的封装，调用代理类就发起远端rpc（或本地）的调用
 
 
+
+### 参考链接和书目
+
+1. Dubbo中文官网：http://dubbo.apache.org/zh-cn/docs/user/quick-start.html
+2. 翟陆续.深度剖析Apache Dubbo核心技术内幕[M]. 北京：电子工业出版社，2019-12.
 
 
 
