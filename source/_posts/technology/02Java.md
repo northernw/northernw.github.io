@@ -1408,6 +1408,111 @@ cpu使用率较低，程序中会存在大量I/O操作占据时间，导致线�
 
 
 
+###### Java线程池的设计和实现
+
+https://www.javadoop.com/post/java-thread-pool
+
+`Executor <- ExecutorService <- AbstractExecutorService <- ThreadPoolExecutor `
+
+`Future + Runnable <- RunnableFuture <- FutureTask`
+
+<img src="/github/northernw.github.io/image/image-20200907114713751.png" alt="image-20200907114713751" style="zoom:50%;" />
+
+> 需要获取结果（FutureTask），用 submit 方法，不需要获取结果，可以用 execute 方法。
+
+核心参数：
+
+1. corePoolSize 核心线程数
+2. maximumPoolSize 最大线程数
+3. keepAliveTime 空闲线程的保活时间
+4. workQueue 任务队列 BlockingQueue接口的某个实现
+5. threadFactory 线程工厂
+6. handler 拒绝策略
+
+
+
+用一个32位的整数来存放线程池的状态（前3位），和线程池中的线程数（后29位）
+
+###### java 线程池有哪些关键属性？
+
+> corePoolSize，maximumPoolSize，workQueue，keepAliveTime，rejectedExecutionHandler
+>
+> corePoolSize 到 maximumPoolSize 之间的线程会被回收，当然 corePoolSize 的线程也可以通过设置而得到回收（allowCoreThreadTimeOut(true)）。
+>
+> workQueue 用于存放任务，添加任务的时候，如果当前线程数超过了 corePoolSize，那么往该队列中插入任务，线程池中的线程会负责到队列中拉取任务。
+>
+> keepAliveTime 用于设置空闲时间，如果线程数超出了 corePoolSize，并且有些线程的空闲时间超过了这个值，会执行关闭这些线程的操作
+>
+> rejectedExecutionHandler 用于处理当线程池不能执行此任务时的情况，默认有**抛出 RejectedExecutionException 异常**、**忽略任务**、**使用提交任务的线程来执行此任务**和**将队列中等待最久的任务删除，然后提交此任务**这四种策略，默认为抛出异常。
+
+###### 说说线程池中的线程创建时机？
+
+> 1. 如果当前线程数少于 corePoolSize，那么提交任务的时候创建一个新的线程，并由这个线程执行这个任务；
+> 2. 如果当前线程数已经达到 corePoolSize，那么将提交的任务添加到队列中，等待线程池中的线程去队列中取任务；
+> 3. 如果队列已满，那么创建新的线程来执行任务，需要保证池中的线程数不会超过 maximumPoolSize，如果此时线程数超过了 maximumPoolSize，那么执行拒绝策略。
+
+
+
+###### Executors工具类创建的几种线程池的特征
+
+1. 固定大小的线程池 newFixedThreadPoolSize
+
+   最大线程数与核心线程数相等，keepAliveTime设置为0（因为这里它是没用的，即使不为 0，线程池默认也不会回收 corePoolSize 内的线程），任务队列为LinkedBlockingQueue，无界队列。
+
+   过程分析：刚开始，每提交一个任务都创建一个 worker，当 worker 的数量达到 nThreads 后，不再创建新的线程，而是把任务提交到 LinkedBlockingQueue 中，而且之后线程数始终为 nThreads。
+
+2. 只有一个线程的线程池 newSingleThreadPool
+
+   和上一个类似，线程数设置为1
+
+3. 有需要就创建新线程，可复用之前创建的线程 newCachedThreadPool
+
+   核心线程数为0，最大线程数为Integer.MAX_VALUE，keepAliveTime为60秒，任务队列为SynchronousQueue，相当于是没有容量的队列。
+
+   【当一个线程往队列中写入一个元素时，写入操作不会立即返回，需要等待另一个线程来将这个元素拿走；同理，当一个读线程做读操作的时候，同样需要一个相匹配的写线程的写操作。<u>数据必须从某个写线程交给某个读线程，而不是写到某个队列中等待被消费。不提供任何空间（一个都没有）来存储元素。</u>】
+
+
+
+###### 合理配置线程池
+
+1. CPU密集型：尽可能小的线程数，如N+1个线程
+2. IO密集型：尽可能多，比如2N个线程
+3. N指CPU核数
+
+
+
+###### ReentrantLock Condition
+
+在使用 condition 时，必须先持有相应的锁。
+
+
+
+###### volatile
+
+作用：内存可见性和禁止指令重排序。
+
+<u>volatile 有synchronized类似的语义，读一个 volatile 变量之前，需要先使相应的本地缓存失效，这样就必须到主内存读取最新值，写一个 volatile 属性会立即刷入到主内存。</u>所以，volatile 读和 monitorenter 有相同的语义，volatile 写和 monitorexit 有相同的语义。
+
+volatile 的禁止重排序并不局限于两个 volatile 的属性操作不能重排序，而且是 <u>**volatile 属性操作和它周围的普通属性的操作也不能重排序**</u>。
+
+volatile 属性的读写操作都是无锁的，它不能替代 synchronized，因为**它没有提供原子性和互斥性**。因为无锁，不需要花费时间在获取锁和释放锁上，所以说它是低成本的。—— 【原子性是指一个写操作的多个指令是原子执行的】
+
+JMM 规定了对于 volatile long 和 volatile double，JVM 需要保证写入操作的原子性。
+
+
+
+###### synchronized
+
+https://www.javadoop.com/post/java-memory-model
+
+一个线程在获取到监视器锁以后才能进入 synchronized 控制的代码块，一旦进入代码块，<u>首先，该线程对于共享变量的缓存就会失效</u>，因此 <u>synchronized 代码块中**对于共享变量的读取需要从主内存中重新获取**，也就能获取到最新的值。</u>
+
+<u>退出代码块的时候的，**会将该线程写缓冲区中的数据刷到主内存中**</u>，所以在 <u>synchronized 代码块之前或 synchronized 代码块中对于共享变量的操作随着该线程退出 synchronized 块，会立即对其他线程可见</u>（这句话的前提是其他读取共享变量的线程会从主内存读取最新值）。
+
+在进入 synchronized 的时候，并不会保证之前的写操作刷入到主内存中，synchronized 主要是保证退出的时候能将本地内存的数据刷入到主内存。
+
+
+
 ## Java虚拟机
 
 **虚拟机的几大问题**
