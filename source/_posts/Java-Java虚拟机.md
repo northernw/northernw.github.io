@@ -10,7 +10,7 @@ date: 2019-09-17 11:28:38
 
 ## 运行时数据区域
 
-<img src="/github/northernw.github.io/image/image-20190917200125910.png" alt="image-20190917200125910" style="zoom:50%;" />
+<img src="../../image/image-20190917200125910.png" alt="image-20190917200125910" style="zoom:50%;" />
 
 1. 程序计数器：
 
@@ -204,7 +204,7 @@ Object obj = new Object();
 
 ### 垃圾收集器
 
-<img src="/github/northernw.github.io/image/image-20190918173939889.png" alt="image-20190918173939889" style="zoom:50%;" />
+<img src="../../image/image-20190918173939889.png" alt="image-20190918173939889" style="zoom:50%;" />
 
 
 
@@ -229,15 +229,15 @@ Safepoint：并非所有地方都能停顿下来开始GC，只有在到达安全
 - 单线程与多线程:单线程指的是垃圾收集器只使用一个线程，而多线程使用多个线程;
 - 串行与并行:串行指的是垃圾收集器与用户程序交替执行，这意味着在执行垃圾收集的时候需要停顿用户程序;并行指的是垃圾收集器和用户程序同时执行。除了 CMS 和 G1 之外，其它垃圾收集器都是以串行的方式执行。
 
-<img src="/github/northernw.github.io/image/image-20190918195708514.png" alt="image-20190918195708514" style="zoom:50%;" />
+<img src="../../image/image-20190918195708514.png" alt="image-20190918195708514" style="zoom:50%;" />
 <center>Serial 和 Serial old</center>
-<img src="/github/northernw.github.io/image/image-20190918200259494.png" alt="image-20190918200259494" style="zoom:50%;" />
+<img src="../../image/image-20190918200259494.png" alt="image-20190918200259494" style="zoom:50%;" />
 
 <center>ParNew 和 Serial Old</center>
-<img src="/github/northernw.github.io/image/image-20190918200445576.png" alt="image-20190918200445576" style="zoom:50%;" />
+<img src="../../image/image-20190918200445576.png" alt="image-20190918200445576" style="zoom:50%;" />
 
 <center>Parallel Scavenge 和 Parallel Old</center>
-<img src="/github/northernw.github.io/image/image-20190918200628015.png" alt="image-20190918200628015" style="zoom:50%;" />
+<img src="../../image/image-20190918200628015.png" alt="image-20190918200628015" style="zoom:50%;" />
 
 <center>CMS</center>
 #### 1. Serial
@@ -325,9 +325,9 @@ FullGC 老年代收集，JDK1.8不提供。
 
 
 
-<img src="/github/northernw.github.io/image/image-20190918201137363.png" alt="image-20190918201137363" style="zoom:50%;" />
+<img src="../../image/image-20190918201137363.png" alt="image-20190918201137363" style="zoom:50%;" />
 
-<img src="/github/northernw.github.io/image/image-20190918201055001.png" alt="image-20190918201055001" style="zoom:50%;" />
+<img src="../../image/image-20190918201055001.png" alt="image-20190918201055001" style="zoom:50%;" />
 
 
 
@@ -393,7 +393,7 @@ Eden区空间不足
 
 
 
-![屏幕快照 2019-09-21 下午4.25.49](/github/northernw.github.io/image/屏幕快照 2019-09-21 下午4.25.49.png)
+![屏幕快照 2019-09-21 下午4.25.49](../../image/屏幕快照 2019-09-21 下午4.25.49.png)
 
 ### 双亲委派模型
 
@@ -411,7 +411,7 @@ Eden区空间不足
 
 
 
-<img src="/github/northernw.github.io/image/image-20190921163056457.png" alt="image-20190921163056457" style="zoom:50%;" />
+<img src="../../image/image-20190921163056457.png" alt="image-20190921163056457" style="zoom:50%;" />
 
 ### 为什么有三个加载器？
 
@@ -425,7 +425,7 @@ Eden区空间不足
 
 [为什么java里面会用三种classloader，这样设计目的是什么？](https://segmentfault.com/q/1010000015149054)
 
-![image-20190921224824233](/github/northernw.github.io/image/image-20190921224824233.png)
+![image-20190921224824233](../../image/image-20190921224824233.png)
 
 ## JVM调优
 

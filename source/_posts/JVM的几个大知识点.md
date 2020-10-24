@@ -126,7 +126,7 @@ JVM参数与收集器组合
 
 -XX:NewRatio=2 表示老年代是新生代的2倍，老年代占2/3，新生代1/3。默认值是2
 
-![image-20200619155026818](/github/northernw.github.io/image/image-20200619155026818.png)
+![image-20200619155026818](../../image/image-20200619155026818.png)
 
 
 

@@ -107,14 +107,14 @@ AbstractautowireCapableBeanFactory#createBean#doCreateBean
 
 `initializeBean` -- 执行工厂回调，初始化方法init-method和bean后置处理BeanPostProcessor（代理就是在这里创建的）
 
-![image-20200618192017006](/github/northernw.github.io/image/image-20200618192017006.png)
+![image-20200618192017006](../../image/image-20200618192017006.png)
 
 
 ​        
 
 ABC循环依赖实例
 
-![image-20200618205728132](/github/northernw.github.io/image/image-20200618205728132.png)
+![image-20200618205728132](../../image/image-20200618205728132.png)
 
 到C取A的引用时，ObjectFactory的getObject调用了BBP的一些处理getEarlyBeanReference（例如动态代理的创建）
 
@@ -124,14 +124,14 @@ C引用到的是A的最终bean
 
 对cglib：C取完对A的引用，这时A的实例是一个新的cglib产生的，容器中最终A的实例是这个cglib产生的，同时，**A的B没有自动注入** cglib代理的类不能实现自动注入？--- 整明白了。虽然cglib生成的代理里bService属性是null，但是它持有一个AServiceImpl的引用！所以对功能没有影响。也别想着整个幺蛾子了！
 
-![image-20200618205812481](/github/northernw.github.io/image/image-20200618205812481.png)
+![image-20200618205812481](../../image/image-20200618205812481.png)
 
 cglib的方式，正在创建的A实例还是当前的，earlySingleObject中有一个A的实例是C的属性注入过程中产生的。
 
-![image-20200618211703596](/github/northernw.github.io/image/image-20200618211703596.png)
+![image-20200618211703596](../../image/image-20200618211703596.png)
 
-![image-20200618211857154](/github/northernw.github.io/image/image-20200618211857154.png)
+![image-20200618211857154](../../image/image-20200618211857154.png)
 
-![image-20200618212929484](/github/northernw.github.io/image/image-20200618212929484.png)
+![image-20200618212929484](../../image/image-20200618212929484.png)
 
-![image-20200618213655441](/github/northernw.github.io/image/image-20200618213655441.png)
+![image-20200618213655441](../../image/image-20200618213655441.png)

@@ -137,7 +137,7 @@ readObject = Person(age=22, name=lily)
 
 10. serialVersionUID的idea快捷生成
 
-    ![image-20200620173518028](/github/northernw.github.io/image/image-20200620173518028.png)
+    ![image-20200620173518028](../../image/image-20200620173518028.png)
 
 
 
@@ -147,7 +147,7 @@ readObject = Person(age=22, name=lily)
 
 引用[这里](https://www.cnblogs.com/binarylei/p/10987933.html)一张接口关系图
 
-![Java序列化接口](/github/northernw.github.io/image/1322310-20190606081015449-98486965.png)
+![Java序列化接口](../../image/1322310-20190606081015449-98486965.png)
 
 1. `Serializable`和`Externalizable` 序列化接口
 
@@ -227,7 +227,7 @@ readObject = Person(age=22, name=lily)
 
 引用[这里](https://www.cnblogs.com/binarylei/p/10987933.html)一张时序图
 
-![writeObject调用过程](/github/northernw.github.io/image/1322310-20190607214343020-892127930.png)
+![writeObject调用过程](../../image/1322310-20190607214343020-892127930.png)
 
 以下顺着基础用法的逻辑，看下代码实现。
 
@@ -825,11 +825,11 @@ ObjectOutputStream写值的逻辑：获取到当前对象中的原生类型字�
 
 序列化过程中出现过的对象、字符串、数值，甚至拼接出来的类信息，如果是shared模式，都不会再完整序列化一次，只会输出handles句柄的索引。
 
-![image-20200621001054494](/github/northernw.github.io/image/image-20200621001054494.png)
+![image-20200621001054494](../../image/image-20200621001054494.png)
 
 写入句柄的地方
 
-![image-20200621001613320](/github/northernw.github.io/image/image-20200621001613320.png)
+![image-20200621001613320](../../image/image-20200621001613320.png)
 
 
 
@@ -901,9 +901,9 @@ public class Person implements Serializable {
 
 ~~高亮那一段解释不来...~~可以解释了，Birthday的fields如debug截图
 
-![image-20200621002637015](/github/northernw.github.io/image/image-20200621002637015.png)
+![image-20200621002637015](../../image/image-20200621002637015.png)
 
-![image-20200621003459769](/github/northernw.github.io/image/image-20200621003459769.png)
+![image-20200621003459769](../../image/image-20200621003459769.png)
 
 
 
@@ -1043,7 +1043,7 @@ Gson为每一种类型创建一个TypeAdapter，同样的，每一个Type都对�
 
 Gson根据传入的Type找对应的TypeAdapter，如果是基本平台类型，利用TypeAdapter可直接读写json，如果是组合及自定义类型，则在对应的TypeAdapter里封装了对内部属性的处理，是一个迭代的过程（和上面Java自带的序列化writeOrdinaryObject&readOrdinaryObject是很类似的）。
 
-![image-20200622204756920](/github/northernw.github.io/image/image-20200622204756920.png)
+![image-20200622204756920](../../image/image-20200622204756920.png)
 
 
 
@@ -1280,7 +1280,7 @@ public class LearningGsonTest {
 2. Class是Type的一个直接实现类
 3. 其他4个接口都有自己的实现类，在sun.reflect包下
 
-![image-20200624164140296](/github/northernw.github.io/image/image-20200624164140296.png)
+![image-20200624164140296](../../image/image-20200624164140296.png)
 
 举例子：
 
@@ -1288,15 +1288,15 @@ public class LearningGsonTest {
 
 genericComponentType可以理解为数组中每个元素的（泛型）类型
 
-![image-20200624174833587](/github/northernw.github.io/image/image-20200624174833587.png)
+![image-20200624174833587](../../image/image-20200624174833587.png)
 
 再如`List<? extends Map> list`，本身是一个ParameterizedType，`? extends Map`是WildcardType
 
-![image-20200624175245701](/github/northernw.github.io/image/image-20200624175245701.png)
+![image-20200624175245701](../../image/image-20200624175245701.png)
 
 `T[] array`，本身是GenericArrayType，`T`是TypeVariable
 
-![image-20200624180623826](/github/northernw.github.io/image/image-20200624180623826.png)
+![image-20200624180623826](../../image/image-20200624180623826.png)
 
 
 

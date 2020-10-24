@@ -436,7 +436,7 @@ Java7到Java8的改变[HashMap为何从头插入改为尾插入](https://blog.cs
 
 java7的问题[老生常谈，HashMap的死循环](https://www.jianshu.com/p/1e9cf0ac07f4)
 
-<img src="/github/northernw.github.io/image/IMG_2568.jpg" alt="IMG_2568" style="zoom:10%;" />
+<img src="../../../image/IMG_2568.jpg" alt="IMG_2568" style="zoom:10%;" />
 
 
 
@@ -494,7 +494,7 @@ TreeSet具体实现是TreeMap，底层是红黑树
 
 containsKey、get、put、remove 时间复杂度log(n)
 
-<img src="/github/northernw.github.io/image/image-20200714155730096.png" alt="image-20200714155730096" style="zoom: 33%;" />
+<img src="../../../image/image-20200714155730096.png" alt="image-20200714155730096" style="zoom: 33%;" />
 
 红黑树
 
@@ -695,7 +695,7 @@ FutureTask是用AQS实现的 get=acquireShared，run/cancel后=release
 
 新建、运行（运行中、就绪）、等待、超时等待、阻塞、终止
 
-![image-20200513105703453](/github/northernw.github.io/image/image-20200513105703453.png)
+![image-20200513105703453](../../../image/image-20200513105703453.png)
 
 
 
@@ -738,13 +738,13 @@ JMM规定，所有变量都存在主内存中（类似于操作系统的普通�
 
 
 
-<img src="/github/northernw.github.io/image/image-20200514161253557.png" alt="image-20200514161253557" style="zoom:30%;" />
+<img src="../../../image/image-20200514161253557.png" alt="image-20200514161253557" style="zoom:30%;" />
 
 
 
 **主内存与工作内存交互操作**
 
-<img src="/github/northernw.github.io/image/image-20200514163326711.png" alt="image-20200514163326711" style="zoom:50%;" />
+<img src="../../../image/image-20200514163326711.png" alt="image-20200514163326711" style="zoom:50%;" />
 
 **内存模型三大特性**
 
@@ -956,7 +956,7 @@ public class VolatileExample {
 
    2. 内存间交互规则【一个变量如何从主内存拷贝到工作内存，如何从工作内存同步到主内存中】
 
-      ![image-20200603190808840](/github/northernw.github.io/image/image-20200603190808840.png)
+      ![image-20200603190808840](../../../image/image-20200603190808840.png)
 
       **8种原子操作**
 
@@ -1086,7 +1086,7 @@ public class VolatileExample {
 
          在某个线程A正持有轻量级锁的时候（还在代码块内运行，时间比较长），某个线程B自旋cas竞争锁（肯定是cas失败了）失败了，这时候就会升级成重量级锁了，mark word指向了互斥量的指针，这和线程A中锁记录的值不同，线程A后续释放锁就失败了（意识到已经升级成重量级锁，唤醒其他挂起的线程）
 
-         ![img](/github/northernw.github.io/image/172a2f26935d33c8.png)
+         ![img](../../../image/172a2f26935d33c8.png)
 
    4. AQS
 
@@ -1700,7 +1700,7 @@ PS Old Generation
 jmap -histo:live 111957 | less
 ```
 
-![image-20200513150745023](/github/northernw.github.io/image/image-20200513150745023.png)
+![image-20200513150745023](../../../image/image-20200513150745023.png)
 
 ```shell
 B  byte  

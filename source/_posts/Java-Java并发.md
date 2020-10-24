@@ -121,7 +121,7 @@ public class ConditionTest {
 
 Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互操作。
 
-![image-20190923194832839](/github/northernw.github.io/image/image-20190923194832839.png)
+![image-20190923194832839](../../image/image-20190923194832839.png)
 
 
 
@@ -182,4 +182,4 @@ unlock
 
 ## 其他
 
-<img src="/github/northernw.github.io/image/image-20190923170254937.png" alt="image-20190923170254937" style="zoom:50%;" />
+<img src="../../image/image-20190923170254937.png" alt="image-20190923170254937" style="zoom:50%;" />

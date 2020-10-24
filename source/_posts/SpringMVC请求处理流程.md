@@ -32,11 +32,11 @@ HandlerMapping是用来找Handler的
 
 寻找interceptorList（一系列拦截器，包括自定义的业务拦截器，系统预定义的一些拦截器？），与HandlerMethod一起分装在HandlerExecutionChain里
 
-![image-20200414160859525](/github/northernw.github.io/image/image-20200414160859525.png)
+![image-20200414160859525](../../image/image-20200414160859525.png)
 
-![image-20200414161600585](/github/northernw.github.io/image/image-20200414161600585.png)
+![image-20200414161600585](../../image/image-20200414161600585.png)
 
-![image-20200414161303329](/github/northernw.github.io/image/image-20200414161303329.png)
+![image-20200414161303329](../../image/image-20200414161303329.png)
 
 
 
@@ -44,6 +44,6 @@ HandlerMapping是用来找Handler的
 
 根据Handler获取HandlerAdapte
 
-![image-20200414162424370](/github/northernw.github.io/image/image-20200414162424370.png)
+![image-20200414162424370](../../image/image-20200414162424370.png)
 
-![image-20200414162348657](/github/northernw.github.io/image/image-20200414162348657.png)
+![image-20200414162348657](../../image/image-20200414162348657.png)

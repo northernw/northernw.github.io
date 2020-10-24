@@ -13,7 +13,7 @@ date: 2019-10-16 15:53:29
 
 架构图
 
-<img src="/github/northernw.github.io/image/image-20191016155539701.png" alt="image-20191016155539701" style="zoom:50%;" />
+<img src="../../image/image-20191016155539701.png" alt="image-20191016155539701" style="zoom:50%;" />
 
 
 

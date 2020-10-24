@@ -29,7 +29,7 @@ MySQL5.5开始默认存储引擎
 
 文件+内存池+后台线程
 
-<img src="/github/northernw.github.io/image/image-20200722201328178.png" alt="image-20200722201328178" style="zoom:50%;" />
+<img src="../../image/image-20200722201328178.png" alt="image-20200722201328178" style="zoom:50%;" />
 
 ### 2.3.1 后台线程
 
@@ -69,7 +69,7 @@ MySQL5.5开始默认存储引擎
 
 缓冲池中缓存的数据页类型有：索引页、数据页、undo页【图片里是redo log_buffer重做日志缓冲】、插入缓冲（insert buffer）、自适应哈希索引（adaptive hash index）、InnoDB存储的锁信息（lock info）、数据字典信息（data dictionary）等。
 
-<img src="/github/northernw.github.io/image/image-20200722130448329.png" alt="image-20200722130448329" style="zoom:50%;" />
+<img src="../../image/image-20200722130448329.png" alt="image-20200722130448329" style="zoom:50%;" />
 
 2.  LRU List、Free List和Flush List
 
@@ -159,7 +159,7 @@ insert buffer的使用场景，非唯一辅助索引的插入操作。
 
 ### 2.6.2 两次写
 
-<img src="/github/northernw.github.io/image/image-20200723113756682.png" alt="image-20200723113756682" style="zoom:50%;" />
+<img src="../../image/image-20200723113756682.png" alt="image-20200723113756682" style="zoom:50%;" />
 
 doublewrite由两部分组成，一部分是内存中的doublewrite buffer，大小为2MB，另一部分是物理磁盘上共享表空间中连续的128个页，即2个区（extent），大小同样为2MB。
 
@@ -256,4 +256,4 @@ innodb限制
 
 备查
 
-![image-20200722200735949](/github/northernw.github.io/image/image-20200722200735949.png)
+![image-20200722200735949](../../image/image-20200722200735949.png)

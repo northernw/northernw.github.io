@@ -31,7 +31,7 @@ date: 2019-09-16 15:17:01
 
 Ps:一个docket看做一个文档，可设置是否启用，group分组，默认分组为default。
 
-![image-20190916203934721](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190916203934721.png)
+![image-20190916203934721](/Users/wangyuanqing1../../image/image-20190916203934721.png)
 
 
 
@@ -45,7 +45,7 @@ ApiListing：一个controller
 
 从description=user controller可以看出
 
-![image-20190917120935095](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190917120935095.png)
+![image-20190917120935095](/Users/wangyuanqing1../../image/image-20190917120935095.png)
 
 
 
@@ -63,7 +63,7 @@ ApiDescription（method的维度）-Operation中，出入参对model的引用
 
 response有4个，200status里有所需model
 
-![image-20190917115442171](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190917115442171.png)
+![image-20190917115442171](/Users/wangyuanqing1../../image/image-20190917115442171.png)
 
 
 
@@ -121,7 +121,7 @@ line: 177
   }
 ```
 
-![33image-20190916180323867](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190916180323867.png)
+![33image-20190916180323867](/Users/wangyuanqing1../../image/image-20190916180323867.png)
 
 
 
@@ -143,7 +143,7 @@ line: 177
     collectGlobalModels(context);
     ```
 
-![image-20190916173013716](/Users/wangyuanqing1/github/northernw.github.io/image/swagger-start-model-1.png)
+![image-20190916173013716](/Users/wangyuanqing1../../image/swagger-start-model-1.png)
 
 
 
@@ -151,13 +151,13 @@ line: 177
 
 这里解析每个属性的类型，jackson的实现
 
-![image-20190916174254264](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190916174254264.png)
+![image-20190916174254264](/Users/wangyuanqing1../../image/image-20190916174254264.png)
 
 
 
 这里记录下，82个typeResolver（在哪里注入的？）
 
-![image-20190916174027934](/Users/wangyuanqing1/github/northernw.github.io/image/image-20190916174027934.png)
+![image-20190916174027934](/Users/wangyuanqing1../../image/image-20190916174027934.png)
 
 
 
@@ -215,11 +215,11 @@ public class UserController {
 
 ```
 
-![image-20190916152524962](/Users/wangyuanqing1/github/northernw.github.io/image/swagger-pic.png)
+![image-20190916152524962](/Users/wangyuanqing1../../image/swagger-pic.png)
 
 
 
-![image-20190916154320343](/Users/wangyuanqing1/github/northernw.github.io/image/swagger-generic-type.png)
+![image-20190916154320343](/Users/wangyuanqing1../../image/swagger-generic-type.png)
 
 
 

@@ -17,7 +17,7 @@ date: 2020-06-11 17:28:50
 
    ads.h/adshdr
 
-   <img src="/github/northernw.github.io/image/image-20200611191443812.png" alt="image-20200611191443812" style="zoom:25%;" />
+   <img src="../../image/image-20200611191443812.png" alt="image-20200611191443812" style="zoom:25%;" />
 
 
 
@@ -29,9 +29,9 @@ date: 2020-06-11 17:28:50
 
    adlist.h/list
 
-   ![image-20200611191731604](/github/northernw.github.io/image/image-20200611191731604.png)
+   ![image-20200611191731604](../../image/image-20200611191731604.png)
 
-   ![image-20200611191938934](/github/northernw.github.io/image/image-20200611191938934.png)
+   ![image-20200611191938934](../../image/image-20200611191938934.png)
 
 3. 字典
 
@@ -41,11 +41,11 @@ date: 2020-06-11 17:28:50
 
    dict.h/dictht 哈希表
 
-   ![image-20200611192134108](/github/northernw.github.io/image/image-20200611192134108.png)
+   ![image-20200611192134108](../../image/image-20200611192134108.png)
 
-   ![image-20200611192151751](/github/northernw.github.io/image/image-20200611192151751.png)
+   ![image-20200611192151751](../../image/image-20200611192151751.png)
 
-   ![image-20200611192316123](/github/northernw.github.io/image/image-20200611192316123.png)
+   ![image-20200611192316123](../../image/image-20200611192316123.png)
 
 4. 跳跃表
 
@@ -55,7 +55,7 @@ date: 2020-06-11 17:28:50
 
    redis.h/zskiplist
 
-   ![image-20200611192508163](/github/northernw.github.io/image/image-20200611192508163.png)
+   ![image-20200611192508163](../../image/image-20200611192508163.png)
 
 5. 整数集合
 
@@ -63,7 +63,7 @@ date: 2020-06-11 17:28:50
 
    intset.h/intset
 
-   ![image-20200611192614681](/github/northernw.github.io/image/image-20200611192614681.png)
+   ![image-20200611192614681](../../image/image-20200611192614681.png)
 
 6. 压缩列表
 
@@ -71,9 +71,9 @@ date: 2020-06-11 17:28:50
 
    ziplist
 
-   ![image-20200611193109349](/github/northernw.github.io/image/image-20200611193109349.png)
+   ![image-20200611193109349](../../image/image-20200611193109349.png)
 
-   ![image-20200611193129132](/github/northernw.github.io/image/image-20200611193129132.png)
+   ![image-20200611193129132](../../image/image-20200611193129132.png)
 
 7. 对象
 
@@ -85,19 +85,19 @@ date: 2020-06-11 17:28:50
 
    还实现了基于引用计数计数的内存回收机制，对象可共享
 
-   ![image-20200611193700470](/github/northernw.github.io/image/image-20200611193700470.png)
+   ![image-20200611193700470](../../image/image-20200611193700470.png)
 
    type的枚举值
 
-   ![image-20200611193737253](/github/northernw.github.io/image/image-20200611193737253.png)
+   ![image-20200611193737253](../../image/image-20200611193737253.png)
 
    encoding属性记录了对象所使用的编码，也即是说这个对象使用了什么数据结构作为对象的底层实现
 
-   ![image-20200611193923869](/github/northernw.github.io/image/image-20200611193923869.png)
+   ![image-20200611193923869](../../image/image-20200611193923869.png)
 
    每种类型的对象都至少使用了两种不同的编码
 
-   ![image-20200611194007998](/github/northernw.github.io/image/image-20200611194007998.png)
+   ![image-20200611194007998](../../image/image-20200611194007998.png)
 
    **string: int / embstr / raw**
 
@@ -105,17 +105,17 @@ date: 2020-06-11 17:28:50
 
    （ziplist字符串元素长度小于64字节，元素个数小于512个） 
 
-   ![image-20200611194332923](/github/northernw.github.io/image/image-20200611194332923.png)
+   ![image-20200611194332923](../../image/image-20200611194332923.png)
 
-   ![image-20200611194347437](/github/northernw.github.io/image/image-20200611194347437.png)
+   ![image-20200611194347437](../../image/image-20200611194347437.png)
 
    **hash: ziplist / ht 压缩列表或者字典**
 
    （ziplist键值对键和值的字符串长度都小于64字节&&键值对数量个数小于512个）
 
-   ![image-20200611194553335](/github/northernw.github.io/image/image-20200611194553335.png)
+   ![image-20200611194553335](../../image/image-20200611194553335.png)
 
-   ![image-20200611194609549](/github/northernw.github.io/image/image-20200611194609549.png)
+   ![image-20200611194609549](../../image/image-20200611194609549.png)
 
    **set: intset / ht 整数集合或者字典**
 
@@ -123,19 +123,19 @@ date: 2020-06-11 17:28:50
 
    （使用字典时，值设置为NULL）
 
-   ![image-20200611194904298](/github/northernw.github.io/image/image-20200611194904298.png)
+   ![image-20200611194904298](../../image/image-20200611194904298.png)
 
    **zset: ziplist / skiplist 压缩列表或者跳跃表**
 
    （ziplist所有元素成员的长度小于64字节&&个数小于128个）
 
-   ![image-20200611195011400](/github/northernw.github.io/image/image-20200611195011400.png)
+   ![image-20200611195011400](../../image/image-20200611195011400.png)
 
-   ![image-20200611195025054](/github/northernw.github.io/image/image-20200611195025054.png)
+   ![image-20200611195025054](../../image/image-20200611195025054.png)
 
    同时使用跳跃表和字典：跳跃表实现有序集合，方便范围操作；字典方便查找成员的分值
 
-   ![image-20200611195122748](/github/northernw.github.io/image/image-20200611195122748.png)
+   ![image-20200611195122748](../../image/image-20200611195122748.png)
 
 8. 多态
 
@@ -155,11 +155,11 @@ date: 2020-06-11 17:28:50
 
 由一个或多个Sentinel实例（instance）组成的Sentinel系统（system）可以监视任意多个主服务器，以及这些主服务器属下的所有从服务器，并在被监视的主服务器进入下线状态时，自动将下线主服务器属下的某个从服务器升级为新的主服务器，然后由新的主服务器代替已下线的主服务器继续处理命令请求。
 
-![image-20200612194739938](/github/northernw.github.io/image/image-20200612194739938.png)
+![image-20200612194739938](../../image/image-20200612194739938.png)
 
-![image-20200612194818742](/github/northernw.github.io/image/image-20200612194818742.png)
+![image-20200612194818742](../../image/image-20200612194818742.png)
 
-![image-20200612194838387](/github/northernw.github.io/image/image-20200612194838387.png)
+![image-20200612194838387](../../image/image-20200612194838387.png)
 
 
 

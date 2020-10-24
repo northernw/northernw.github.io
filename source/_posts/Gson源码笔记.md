@@ -351,7 +351,7 @@ class1.isAssignableFrom(class2)  表示 class1是class2的超类或本身
 
 ### InetAdress和JsonElement是用超类Adapter工作的
 
-![image-20200319150955172](/github/northernw.github.io/image/image-20200319150955172.png)
+![image-20200319150955172](../../image/image-20200319150955172.png)
 
 
 
@@ -361,13 +361,13 @@ class1.isAssignableFrom(class2)  表示 class1是class2的超类或本身
 
 Long/Float/Double的adapter根据序列化自定义而不同
 
-![image-20200319151507859](/github/northernw.github.io/image/image-20200319151507859.png)
+![image-20200319151507859](../../image/image-20200319151507859.png)
 
 
 
 ### 复杂类型的factory和adapter
 
-![image-20200319151622774](/github/northernw.github.io/image/image-20200319151622774.png)
+![image-20200319151622774](../../image/image-20200319151622774.png)
 
 
 
@@ -389,7 +389,7 @@ Long/Float/Double的adapter根据序列化自定义而不同
 
 read时，以什么样的类型赋值给a？
 
-![image-20200322155848761](/github/northernw.github.io/image/image-20200322155848761.png)
+![image-20200322155848761](../../image/image-20200322155848761.png)
 
 
 
@@ -454,7 +454,7 @@ public static Class<?> getRawType(Type type) {
 
 
 
-![image-20200322164050596](/github/northernw.github.io/image/image-20200322164050596.png)
+![image-20200322164050596](../../image/image-20200322164050596.png)
 
 ```java
     @Test

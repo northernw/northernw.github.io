@@ -23,7 +23,7 @@ date: 2019-11-06 16:32:52
 
 
 
-![image-20191106164316937](/github/northernw.github.io/image/image-20191106164316937.png)
+![image-20191106164316937](../../image/image-20191106164316937.png)
 
 
 

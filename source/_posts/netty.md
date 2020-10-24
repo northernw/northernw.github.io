@@ -32,5 +32,5 @@ date: 2019-10-09 15:58:49
 4. Acceptor 获取到新的连接后，getPoller0() 获取其中一个 Poller，然后 register 到 Poller 中；
 5. Poller 循环 selector.select(xxx)，如果有通道 readable，那么在 processKey 中将其放到 worker 线程池中。
 
-![tomcat-nio](/github/northernw.github.io/image/tomcat-nio.png)
+![tomcat-nio](../../image/tomcat-nio.png)
 

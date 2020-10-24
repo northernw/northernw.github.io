@@ -11,7 +11,7 @@ date: 2019-09-24 11:54:31
 
 ### Collection
 
-<img src="/github/northernw.github.io/image/image-20190924140959722.png" alt="image-20190924140959722" style="zoom:50%;" />
+<img src="../../image/image-20190924140959722.png" alt="image-20190924140959722" style="zoom:50%;" />
 
 1. List: 
    1. ArrayList 基于动态数组（动态扩容），支持随机访问
@@ -27,7 +27,7 @@ date: 2019-09-24 11:54:31
 
 ### Map
 
-<img src="/github/northernw.github.io/image/image-20190924141045485.png" alt="image-20190924141045485" style="zoom:50%;" />
+<img src="../../image/image-20190924141045485.png" alt="image-20190924141045485" style="zoom:50%;" />
 
 1. HashMap 基于哈希表实现
 2. HashTable 线程安全，实现同HashMap
@@ -216,7 +216,7 @@ transient Node<E> first;
 transient Node<E> last;
 ```
 
-<img src="/github/northernw.github.io/image/image-20190924145904413.png" alt="image-20190924145904413" style="zoom:50%;" />
+<img src="../../image/image-20190924145904413.png" alt="image-20190924145904413" style="zoom:50%;" />
 
 
 
@@ -233,7 +233,7 @@ transient Node<E> last;
 
 hashMap使用基于拉链的散列算法，jdk1.8起使用红黑树优化过长的链表。底层结构为数组+链表+红黑树。
 
-![img](/github/northernw.github.io/image/15161231547335.jpg)
+![img](../../image/15161231547335.jpg)
 
 
 
@@ -850,7 +850,7 @@ void afterNodeInsertion(boolean evict) { // possibly remove eldest
 
 每当有新键值对节点插入，新节点最终会接在 tail 引用指向的节点后面。而 tail 引用则会移动到新的节点上，这样一个双向链表就建立起来了。
 
-![image-20190924161808646](/github/northernw.github.io/image/image-20190924161808646.png)
+![image-20190924161808646](../../image/image-20190924161808646.png)
 
 
 

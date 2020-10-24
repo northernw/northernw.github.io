@@ -13,11 +13,11 @@ MyBatis 消除了大部分 JDBC 的样板代码、手动设置参数以及检索
 
 MyBatis整体架构
 
-![image-20200708153303235](/github/northernw.github.io/image/image-20200708153303235.png)
+![image-20200708153303235](../../image/image-20200708153303235.png)
 
 MyBatis层级结构
 
-![image-20200708153220904](/github/northernw.github.io/image/image-20200708153220904.png)
+![image-20200708153220904](../../image/image-20200708153220904.png)
 
 
 
@@ -25,7 +25,7 @@ MyBatis层级结构
 
 spring用mapper/dao接口代理，本质上是一个MapperProxy，从下面的红框开始执行
 
-![image-20200708201723303](/github/northernw.github.io/image/image-20200708201723303.png)
+![image-20200708201723303](../../image/image-20200708201723303.png)
 
 spring事务是在哪个环节起作用？
 
@@ -91,7 +91,7 @@ mybatis的openSession默认开启事务，autocommit为false，隔离级别为nu
 
 mybatis的JdbcTransaction
 
-![image-20200710111527094](/github/northernw.github.io/image/image-20200710111527094.png)
+![image-20200710111527094](../../image/image-20200710111527094.png)
 
 
 
@@ -180,7 +180,7 @@ NESTED 子事务嵌套在父事务中，父事务回滚会引起子事务回滚�
 
 这几个类是可以自动创建代理的
 
-  ![image-20200617195143639](/github/northernw.github.io/image/image-20200617195143639.png)
+  ![image-20200617195143639](../../image/image-20200617195143639.png)
 
   
 
@@ -188,7 +188,7 @@ NESTED 子事务嵌套在父事务中，父事务回滚会引起子事务回滚�
 
    txNamespaceHandler注册了一个Advisor（BeanFactoryTransactionAttributeSourceAdvisor），再在这个advisor中判断是否当前bean符合这个切面（主要实现就是看有没有@Transactional注解）
 
-![image-20200617191910196](/github/northernw.github.io/image/image-20200617191910196.png)
+![image-20200617191910196](../../image/image-20200617191910196.png)
 
 
 
@@ -224,7 +224,7 @@ PlatformTransactionManager的getTransaction(), rollback(), commit()是spring处�
 - 在业务代码中执行sql时，通过DataSourceUtils.getConnection()从ThreadLocal中获取当前事务的jdbc connection, 然后在该jdbc connection上执行sql
 - commit和rollback事务时，从ThreadLocal中获取当前事务的jdbc connection，然后对该jdbc connection进行commit和rollback
 
-![143421_Bmpa_1452390.png (/github/northernw.github.io/image/143421_Bmpa_1452390.png)](/github/northernw.github.io/image/143421_Bmpa_1452390.png)
+![143421_Bmpa_1452390.png (../../image/143421_Bmpa_1452390.png)](../../image/143421_Bmpa_1452390.png)
 
 mybatis-spring的事务流程：
 
@@ -254,7 +254,7 @@ mybatis-spring的事务流程：
 
 调用过程
 
-![143554_iORI_1452390.png (/github/northernw.github.io/image/143554_iORI_1452390.png)](/github/northernw.github.io/image/143554_iORI_1452390.png)
+![143554_iORI_1452390.png (../../image/143554_iORI_1452390.png)](../../image/143554_iORI_1452390.png)
 
 可以看到mybatis-spring处理事务的主要流程和spring jdbc处理事务并没有什么区别，都是通过DataSourceTransactionManager的getTransaction(), rollback(), commit()完成事务的生命周期管理，而且jdbc connection的创建也是通过DataSourceTransactionManager.getTransaction()完成，mybatis并没有参与其中，mybatis只是在执行sql时通过DataSourceUtils.getConnection()获得当前thread的jdbc connection，然后在其上执行sql。
 

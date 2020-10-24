@@ -13,7 +13,7 @@ date: 2019-10-28 17:43:17
 
 # MyBatis框架架构图
 
-![img](/github/northernw.github.io/image/326517643.png)
+![img](../../image/326517643.png)
 
 
 

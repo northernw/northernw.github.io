@@ -9,9 +9,9 @@ date: 2020-05-19 11:26:24
 
 
 
-![image-20200519122103524](/github/northernw.github.io/image/image-20200519122103524.png)
+![image-20200519122103524](../../image/image-20200519122103524.png)
 
-![image-20200519122032838](/github/northernw.github.io/image/image-20200519122032838.png)
+![image-20200519122032838](../../image/image-20200519122032838.png)
 
 
 
@@ -19,9 +19,9 @@ date: 2020-05-19 11:26:24
 
 加载配置文件的地方
 
-![image-20200519123638203](/github/northernw.github.io/image/image-20200519123638203.png)
+![image-20200519123638203](../../image/image-20200519123638203.png)
 
-![image-20200519123710774](/github/northernw.github.io/image/image-20200519123710774.png)
+![image-20200519123710774](../../image/image-20200519123710774.png)
 
 
 
@@ -46,4 +46,4 @@ date: 2020-05-19 11:26:24
 
 
 
-![image-20200519113348338](/github/northernw.github.io/image/image-20200519113348338.png)
+![image-20200519113348338](../../image/image-20200519113348338.png)

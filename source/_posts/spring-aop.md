@@ -164,7 +164,7 @@ public static Object newProxyInstance(ClassLoader loader,
 2. JdkDynamicAopProxy主要有advised变量，内部有advisors（理解为增强方法）和targetSource（封装了被代理实例）
 3. 调用proxy时，实际上是调用了InvocationHandler的invoke方法，简化了说，先执行advisors的方法，再反射调用`method.invoke(target, args)`，或是链式执行。
 
-![屏幕快照 2019-10-20 上午11.41.02](/github/northernw.github.io/image/屏幕快照 2019-10-20 上午11.41.02.png)
+![屏幕快照 2019-10-20 上午11.41.02](../../image/屏幕快照 2019-10-20 上午11.41.02.png)
 
 
 
@@ -331,7 +331,7 @@ public final class $Proxy0 extends Proxy implements Subject {
 
 这里缓存着@Aspect注解的类。它又是怎么生成的呢？遍历beanDefinitions，取className对应的Class，看有没有注解
 
-![image-20200803211031409](/github/northernw.github.io/image/image-20200803211031409.png)
+![image-20200803211031409](../../image/image-20200803211031409.png)
 
 
 
@@ -349,7 +349,7 @@ bpp判断要不要代理：先获取候选advisor，对每个Advisor判断是不
 
 ps: `DefaultAdvisorAutoProxyCreator`与下面`@Aspect`要用的`AnnotationAwareAspectJAutoProxyCreator`同宗啊。
 
-![image-20191021202150103](/github/northernw.github.io/image/image-20191021202150103.png)
+![image-20191021202150103](../../image/image-20191021202150103.png)
 
 
 
@@ -357,11 +357,11 @@ default方式的查找advisors，是直接通过获取Advisor类型的bean实现
 
 从XML配置中可以看到，advisor实现了RegexpMethodPointcutAdvisor接口，是Advisor类型的。
 
-![image-20191021203120982](/github/northernw.github.io/image/image-20191021203120982.png)
+![image-20191021203120982](../../image/image-20191021203120982.png)
 
 
 
-![image-20191021115243986](/github/northernw.github.io/image/image-20191021115243986.png)
+![image-20191021115243986](../../image/image-20191021115243986.png)
 
 
 
@@ -390,7 +390,7 @@ default方式的查找advisors，是直接通过获取Advisor类型的bean实现
 
 
 
-![image-20191021193759979](/github/northernw.github.io/image/image-20191021193759979.png)
+![image-20191021193759979](../../image/image-20191021193759979.png)
 
 
 
@@ -402,5 +402,5 @@ default方式的查找advisors，是直接通过获取Advisor类型的bean实现
 
 beanName，就是在xml文件中直接写出哪些beanName是Advice，同时bean会实现`MethodBeforeAdvice`等接口。可能是比较古老的方式。
 
-![image-20191021204143441](/github/northernw.github.io/image/image-20191021204143441.png)
+![image-20191021204143441](../../image/image-20191021204143441.png)
 
