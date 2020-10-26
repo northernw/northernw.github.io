@@ -5,6 +5,7 @@ tags:
 categories:
   - null
 date: 2020-07-27 16:29:48
+typora-copy-images-to: ../../../image
 ---
 
 ###### ConcurrentHashMap
@@ -21,13 +22,13 @@ https://bbs.huaweicloud.com/blogs/151782 transfer讲的比较好
 
 ###### Java反射原理， 注解原理？
 
-反射原理：在运行状态下，对于任何一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能调用它的任意方法和属性，并能改变它的属性。总结来说，反射把Java类中的各个成分映射成为一个个Java对象，并且可以进行操作。
+反射原理：在运行状态下，**对于任何一个类，能够知道这个类的所有属性和方法**；对于任意一个**对象，都能调用它的任意方法，并能改变它的属性**。总结来说，反射把Java类中的各个成分映射成为一个个Java对象，并且可以进行操作。
 
 
 
 注解原理：注解的本质是一个继承了Annotation接口的接口。
 
-解析一个类或者方法的注解有两种形式，一是编译期扫描，如@Override，编译器会检查方法是否真的重写了父类的某个方法；二是运行期发射，虚拟机规范定义了一系列和注解相关的属性表，字段、属性或类上有注解时（被注解修饰了），会写相应信息进字节码文件，Class类中提供了一些接口用于获取注解或判断是否被某个注解修饰。
+解析一个类或者方法的注解有两种形式，一是编译期扫描，如@Override，编译器会检查方法是否真的重写了父类的某个方法；二是运行期反射，虚拟机规范定义了一系列和注解相关的属性表，字段、属性或类上有注解时（被注解修饰了），会写相应信息进字节码文件，Class类中提供了一些接口用于获取注解或判断是否被某个注解修饰。
 
 延伸阅读：[JAVA 注解的基本原理](https://www.cnblogs.com/yangming1996/p/9295168.html)
 
@@ -43,6 +44,8 @@ ps: Java类执行的过程/类加载过程（2-6）/类的生命周期（2-8） 
 6. 初始化：先初始化父类，再初始化自身；静态变量赋值，静态代码块执行。
 7. 使用
 8. 卸载
+
+<img src="/github/northernw.github.io/image/image-20201013150859729.png" alt="image-20201013150859729" style="zoom:50%;" />
 
 
 
@@ -155,9 +158,25 @@ https://juejin.im/post/5b9bb81ef265da0ac2565a0f
 
 简单说来，是将类信息和数据信息递归写成字节信息
 
+**序列化定义：将对象的状态信息转化为可存储或传输的形式（的过程）。**
+
+
+
+###### 讲一讲AtomicInteger，为什么要用CAS而不是synchronized？
+
+整形的原子操作类，可在并发场景中使用。
+
+主要方法是getAndIncrement自增等。
+
+因为这里临界区域的操作非常简单，只需要改变一个基本类型 变量的值，cas配合volatile即可实现原子性
+
+synchronized加锁的成本比CAS大
+
 
 
 ###### java中的反射
+
+**反射定义：指程序在运行时可以访问、检测和修改它本身状态或行为的一种能力。**
 
 field的赋值底层实现
 
@@ -258,9 +277,9 @@ java8中
 
 2. 创建新的数组，赋值给table
    3. 将键值对重新映射到新数组上
-      1. 如果无链表，直接根据`hash&(newCap-1)`定位
+      1. 如果无链表，根据`hash&(newCap-1)`定位
    4. 如果是树节点，委托红黑树来拆分和重新映射
-   5. 为链表，根据`hash&oldCap`的值分成0、1两组，映射到j和j+oldCap（0低位，1高位）（**链表顺序不变**）
+   5. 为链表，根据`hash&oldCap`的值分成0、非0两组，映射到j和j+oldCap（0低位，非0高位）（**链表顺序不变**）
 
 
 
@@ -306,11 +325,11 @@ java8中
 
    3. 将键值对重新映射到新数组上
 
-      1. 如果无链表，直接根据`hash&(newCap-1)`定位
+      1. 如果无链表，根据`hash&(newCap-1)`定位
 
       2. 如果是树节点，委托红黑树来拆分和重新映射
 
-      3. 为链表，根据`hash&oldCap`的值分成0、1两组，映射到j和j+oldCap（0低位，1高位）（**链表顺序不变**）
+      3. 为链表，根据`hash&oldCap`的值分成0、非0两组，映射到j和j+oldCap（0低位，非0高位）（**链表顺序不变**）
 
            
 
@@ -630,9 +649,9 @@ Executors工厂方法：
 3. newCachedThreadPool 大小无界的线程池（自动资源回收？），适用于有很多短期异步执行任务的小程序，或者是负载比较轻的服务器。
    1. corePoolSize = 0, maximumPoolSize = Integer.MAX_VALUE
    2. keepAliveTimes = 60s
-   3. SynchronousQueue 是一个没有容量的阻塞队列，一个插入操作必须等待另一个线程对应的移除操作
-   4. 提交任务时如果有空闲线程，就空闲线程取到这个任务执行；否则创建一个线程来执行任务
-   5. 适用于将主线程的任务传递给空闲线程执行
+4. SynchronousQueue 是一个没有容量的阻塞队列，一个插入操作必须等待另一个线程对应的移除操作
+   1. 提交任务时如果有空闲线程，就空闲线程取到这个任务执行；否则创建一个线程来执行任务
+   2. 适用于将主线程的任务传递给空闲线程执行
 
 
 
@@ -669,7 +688,7 @@ Executors工厂方法：
 
 
 
-ScheduledThreadPoolExcutor
+ScheduledThreadPoolExe7Zcutor
 
 延迟运行命令，或周期执行命令
 
@@ -686,6 +705,29 @@ LinkedBlockingQueue和DelayQueue的实现原理
 
 
 FutureTask是用AQS实现的 get=acquireShared，run/cancel后=release
+
+
+
+ThreadPoolExecutor->AbstractExecutorService->ExecutorService->Executor
+
+<img src="/github/northernw.github.io/image/image-20201014165004473.png" alt="image-20201014165004473" style="zoom:33%;" />
+
+
+
+###### Runnable、Callable、Future、FutureTask的关系
+
+1. Runnable表明它的一个实现要在Thread线程上运行，没有返回值
+2. Callable在Runnable基础上，有返回值
+3. Future表示一个异步计算的结果，Callable返回给调用方的句柄，用于对异步计算结果的查询、取消、获取执行结果
+4. 前三个是接口，FutureTask是Future的具体实现
+
+https://juejin.im/post/6844904033673560077
+
+> Future是一个句柄，即Callable任务返回给调用方这么一个句柄，通过这个句柄我们可以跟这个异步任务联系起来，我们可以通过future来对任务查询、取消、执行结果的获取，是调用方与异步执行方之间沟通的桥梁
+
+
+
+
 
 
 
@@ -709,7 +751,7 @@ Thread的静态方法，当前线程睡眠，不释放锁。运行->超时等待
 
 yield()
 
-Thread的方法，让出当前cpu。还是运行这个大状态，从运行中变成就绪状态。
+Thread的方法，让出当前cpu。还是运行这个大状态，从运行中变成就绪状态。不释放锁。
 
 
 
@@ -775,8 +817,8 @@ JMM规定，所有变量都存在主内存中（类似于操作系统的普通�
 
 **volatile关键字**
 
-1. 保证了不同线程对该变量操作的内存可见性
-2. 禁止指令重排序，保证（volatile读写）有序性
+1. **保证了不同线程对该变量操作的内存可见性**
+2. **禁止指令重排序，保证（volatile读写）有序性**
 
 
 
