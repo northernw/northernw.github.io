@@ -1,0 +1,532 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>数据库 | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">数据库</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">数据库</h1><div class="post-meta"><a href="/2020/07/28/technology/01数据库/#comments" class="comment-count"></a><p><span class="date">Jul 28, 2020</span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><h1 id="简单版"><a href="#简单版" class="headerlink" title="简单版"></a>简单版</h1><h4 id="架构与执行流程"><a href="#架构与执行流程" class="headerlink" title="架构与执行流程"></a>架构与执行流程</h4><h5 id="系统架构"><a href="#系统架构" class="headerlink" title="系统架构"></a>系统架构</h5><h6 id="MySQL架构"><a href="#MySQL架构" class="headerlink" title="MySQL架构"></a>MySQL架构</h6><p><img src="../../image/image-20200727190746182.png" alt="image-20200727190746182" style="zoom:50%;"></p>
+<p>□ 连接池组件□ 管理服务和工具组件□ SQL接口组件□ 查询分析器组件□ 优化器组件□ 缓冲（Cache）组件□ 插件式存储引擎□ 物理文件</p>
+<h6 id="innodb架构"><a href="#innodb架构" class="headerlink" title="innodb架构"></a>innodb架构</h6><p><img src="../../../image/image-20200730144042427.png" alt="image-20200730144042427" style="zoom:50%;"></p>
+<h5 id="执行流程图"><a href="#执行流程图" class="headerlink" title="执行流程图"></a>执行流程图</h5><p><a href="https://juejin.im/post/5c6ece80f265da2de7134d86" target="_blank" rel="noopener">https://juejin.im/post/5c6ece80f265da2de7134d86</a></p>
+<p><img src="../../../image/image-20200727191134017.png" alt="image-20200727191134017" style="zoom: 33%;"></p>
+<ol>
+<li><p>MySQL客户端通过协议将<strong>SQL语句发送</strong>给MySQL服务器。</p>
+</li>
+<li><p>服务器会先检查<strong>查询缓存</strong>中是否有执行过这条SQL，如果命中缓存，则将结果返回，否则进入下一个环节（查询缓存默认不开启）。</p>
+</li>
+<li><p>服务器端进行<strong>SQL解析</strong>，预处理，然后由查询<strong>优化器生成对应的执行计划</strong>。</p>
+</li>
+<li><p>服务器根据查询优化器给出的执行计划，再调用存储引擎的API<strong>执行查询</strong>。</p>
+</li>
+<li><p>将结果返回给客户端，如果开启查询缓存，则会<strong>备份一份到查询缓存</strong>中。</p>
+</li>
+</ol>
+<h5 id="innodb内存结构"><a href="#innodb内存结构" class="headerlink" title="innodb内存结构"></a>innodb内存结构</h5><p><img src="../../../image/image-20200727190956579.png" alt="image-20200727190956579" style="zoom:50%;"></p>
+<p>后台线程</p>
+<p>内存池</p>
+<p>物理文件</p>
+<h6 id="内存池"><a href="#内存池" class="headerlink" title="内存池"></a>内存池</h6><p><a href="https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool.html</a></p>
+<p><img src="../../../image/image-20200730140329983.png" alt="image-20200730140329983" style="zoom:50%;"></p>
+<h5 id="物理存储结构"><a href="#物理存储结构" class="headerlink" title="物理存储结构"></a>物理存储结构</h5><h6 id="MySQL二进制文件的格式"><a href="#MySQL二进制文件的格式" class="headerlink" title="MySQL二进制文件的格式"></a>MySQL二进制文件的格式</h6><p>STATEMENT：逻辑SQL语句</p>
+<p>ROW：记录表的行更改情况</p>
+<p>MIXED：混合 主要是statement 部分row</p>
+<h6 id="表空间文件"><a href="#表空间文件" class="headerlink" title="表空间文件"></a>表空间文件</h6><p>ibdata</p>
+<p>也可以单表一个表空间文件（独立表空间文件），.idb，存该表的数据、索引、插入缓冲bitmap等，其他数据还是在总的表空间文件里</p>
+<h6 id="重做日志"><a href="#重做日志" class="headerlink" title="重做日志"></a>重做日志</h6><p>关于每个页（Page）的更改的物理情况</p>
+<p>从重做日志缓冲往磁盘写入时，是按512个字节，也就是一个扇区的大小进行写入。因为扇区是写入的最小单位，因此可以保证写入必定是成功的。因此在重做日志的写入过程中不需要有doublewrite。</p>
+<p><img src="../../../image/image-20200728163817567.png" alt="image-20200728163817567" style="zoom:50%;"></p>
+<p>从表3-2可以看到重做日志条目是由4个部分组成：</p>
+<ol>
+<li>redo_log_type占用1字节，表示重做日志的类型</li>
+<li>space表示表空间的ID，但采用压缩的方式，因此占用的空间可能小于4字节</li>
+<li>page_no表示页的偏移量，同样采用压缩的方式</li>
+<li>redo_log_body表示每个重做日志的数据部分，恢复时需要调用相应的函数进行解析</li>
+</ol>
+<p>LSN（log sequence number， 表示从日志记录创建开始到特定的日志记录已经写入的字节数）</p>
+<p><a href="http://mysql.taobao.org/monthly/2017/09/07/" target="_blank" rel="noopener">http://mysql.taobao.org/monthly/2017/09/07/</a></p>
+<h5 id="innodb物理逻辑存储结构"><a href="#innodb物理逻辑存储结构" class="headerlink" title="innodb物理逻辑存储结构"></a>innodb物理逻辑存储结构</h5><h6 id="索引组织表"><a href="#索引组织表" class="headerlink" title="索引组织表"></a>索引组织表</h6><p>在InnoDB存储引擎表中，每张表都有个主键（Primary Key），如果在创建表时没有显式地定义主键，则InnoDB存储引擎会按如下方式选择或创建主键：</p>
+<ol>
+<li>首先判断表中是否有非空的唯一索引（Unique NOT NULL），如果有，则该列即为主键。</li>
+<li>如果不符合上述条件，InnoDB存储引擎自动创建一个6字节大小的指针。</li>
+</ol>
+<p>主键的选择根据的是定义索引的顺序，而不是建表时列的顺序。</p>
+<h6 id="InnoDB逻辑存储结构"><a href="#InnoDB逻辑存储结构" class="headerlink" title="InnoDB逻辑存储结构"></a>InnoDB逻辑存储结构</h6><p>表空间tablespace，段segment，区extent，页page，行row</p>
+<p>常见的段有数据段、索引段、回滚段等</p>
+<p>任何情况下，每个区的大小都为1MB</p>
+<p>每个页的大小为16KB，即一个区有64个页</p>
+<p>InnoDB 1.0.x版本开始引入<u>压缩页</u>，即每个页的大小可以通过参数KEY_BLOCK_SIZE设置为2K、4K、8K，因此每个区对应页的数量就应该为512、256、128。</p>
+<p>InnoDB 1.2.x版本新增了参数innodb_page_size，通过该参数可以<u>将默认页的大小设置为4K、8K</u>，但是页中的数据库不是压缩。这时区中页的数量同样也为256、128。<strong>总之，不论页的大小怎么变化，区的大小总是为1M。</strong></p>
+<p><img src="../../../image/image-20200727192218817.png" alt="image-20200727192218817" style="zoom:50%;"></p>
+<h6 id="表空间"><a href="#表空间" class="headerlink" title="表空间"></a>表空间</h6><p>共享表空间</p>
+<p>可以有独立表空间 innodb_file_per_table=ON</p>
+<h6 id="段"><a href="#段" class="headerlink" title="段"></a>段</h6><p>数据段、索引段、回滚段等</p>
+<p>数据即索引，索引即数据</p>
+<p>数据段即为B+树的叶子节点（图4-1的Leaf node segment），索引段即为B+树的非索引节点（图4-1的Non-leaf node segment）</p>
+<h6 id="区"><a href="#区" class="headerlink" title="区"></a>区</h6><p>大小为1M</p>
+<p>1.0.x压缩页，KEY_BLOCK_SIZE设置页为2K、4K、8K，对应页数512、256、128</p>
+<p>1.2.x非压缩页的页大小设置，innodb_page_size设置为4K、8K，页数为256、128.</p>
+<h6 id="页"><a href="#页" class="headerlink" title="页"></a>页</h6><p>在InnoDB存储引擎中，常见的页类型有：</p>
+<ol>
+<li>数据页（B-tree Node）</li>
+<li>undo页（undo Log Page）</li>
+<li>系统页（System Page）</li>
+<li>事务数据页（Transaction system Page）</li>
+<li>插入缓冲位图页（Insert Buffer Bitmap）</li>
+<li>插入缓冲空闲列表页（Insert Buffer Free List）</li>
+<li>未压缩的二进制大对象页（Uncompressed BLOB Page）</li>
+<li>压缩的二进制大对象页（compressed BLOB Page）</li>
+</ol>
+<h6 id="行"><a href="#行" class="headerlink" title="行"></a>行</h6><p>每个页最多允许存放16KB/2-100行的记录，即7992行记录 – 没看懂</p>
+<h6 id="数据页结构-–-再看吧"><a href="#数据页结构-–-再看吧" class="headerlink" title="数据页结构 – 再看吧"></a>数据页结构 – 再看吧</h6><p><a href="https://mp.weixin.qq.com/s?__biz=MzIxNTQ3NDMzMw==&amp;mid=2247483678&amp;idx=1&amp;sn=913780d42e7a81fd3f9b747da4fba8ec&amp;chksm=979688eca0e101fa0913c3d2e6107dfa3a6c151a075c8d68ab3f44c7c364d9510f9e1179d94d&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">https://mp.weixin.qq.com/s?__biz=MzIxNTQ3NDMzMw==&amp;mid=2247483678&amp;idx=1&amp;sn=913780d42e7a81fd3f9b747da4fba8ec&amp;chksm=979688eca0e101fa0913c3d2e6107dfa3a6c151a075c8d68ab3f44c7c364d9510f9e1179d94d&amp;scene=21#wechat_redirect</a></p>
+<h4 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h4><h5 id="索引的实现"><a href="#索引的实现" class="headerlink" title="索引的实现"></a>索引的实现</h5><h6 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h6><p>B+树的高度一般在2~4层，查找某一键值的行记录时最多只需要2~4次的IO，查询时间在0.02~0.04秒（当前一般的机械磁盘每秒至少可以做100次IO）。</p>
+<h6 id="Cardinality"><a href="#Cardinality" class="headerlink" title="Cardinality"></a>Cardinality</h6><p>Cardinality/n_rows_in_table应尽可能地接近1</p>
+<p>Cardinality值非常关键，<strong>表示索引中不重复记录数量的预估值</strong></p>
+<h6 id="联合索引的使用"><a href="#联合索引的使用" class="headerlink" title="联合索引的使用"></a>联合索引的使用</h6><ol>
+<li>最左匹配原则</li>
+<li>覆盖索引，即从辅助索引中就可以得到查询的记录（而不需要查询聚集索引中的记录，减少大量的IO操作）</li>
+</ol>
+<h6 id="hash索引"><a href="#hash索引" class="headerlink" title="hash索引"></a>hash索引</h6><p>innodb有自适应哈希索引，是数据库自身创建的，DBA不能干预</p>
+<p>冲突机制：链表方式</p>
+<p>哈希函数：除法散列 <code>h(k)=k mod m</code></p>
+<h6 id="全文检索-–-不会，pass"><a href="#全文检索-–-不会，pass" class="headerlink" title="全文检索 – 不会，pass"></a>全文检索 – 不会，pass</h6><p>倒排索引 inverted index</p>
+<p>在辅助表（Auxiliary Table）中存储了单词与单词自身在一个或多个文档中所在位置之间的映射。</p>
+<p>通常利用关联数组实现。</p>
+<p>两种表现形式：</p>
+<ol>
+<li>inverted file index，其表现形式为{单词，单词所在文档的ID}</li>
+<li>full inverted index，其表现形式为{单词，（单词所在文档的ID，在具体文档中的位置）}</li>
+</ol>
+<p>innodb采用full inverted index。</p>
+<p>全文检索通过MATCH函数进行查询，查询带有指定word的文档。</p>
+<p><img src="../../../image/image-20200728204020523.png" alt="image-20200728204020523" style="zoom:50%;"></p>
+<p><img src="../../../image/image-20200728204149387.png" alt="image-20200728204149387" style="zoom:50%;"></p>
+<h5 id="explain查询计划分析"><a href="#explain查询计划分析" class="headerlink" title="explain查询计划分析"></a>explain查询计划分析</h5><p>看下面的问答</p>
+<h4 id="锁和事务"><a href="#锁和事务" class="headerlink" title="锁和事务"></a>锁和事务</h4><h5 id="innodb存储引擎中的锁"><a href="#innodb存储引擎中的锁" class="headerlink" title="innodb存储引擎中的锁"></a>innodb存储引擎中的锁</h5><h6 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h6><p>行级锁</p>
+<p>共享锁 S Lock：允许事务读一行数据</p>
+<p>排他锁 X Lock：允许事务删除或更新一行数据</p>
+<p>表级锁</p>
+<p>意向共享锁 IS Lock：事务想要获得一张表中某几行的共享锁</p>
+<p>意向排他锁 IX Lock：事务想要获得一张表中某几行的排他锁</p>
+<p>InnoDB存储引擎支持的是行级别的锁，因此意向锁其实不会阻塞除全表扫以外的任何请求。</p>
+<p><img src="../../../image/image-20200729145027681.png" alt="image-20200729145027681" style="zoom:50%;"></p>
+<p>Record Lock: 单个行记录上的锁</p>
+<p>Gap Lock: 间隙锁，锁定一个范围，但不包含记录本身</p>
+<p>Next-Key Lock：Gap Lock + Record Lock，锁定一个范围，并锁定记录本身，邻键锁。解决幻读。锁定范围如(10,11]，前开后闭。</p>
+<p><strong>A next-key lock is a combination of a record lock on the index record and a gap lock on <u>the gap before the index record</u>.</strong></p>
+<p>PS1: MySQL官方定义的不可重复读包括不可重复读和幻读，都可以通过Next-Key Lock来解决，即设定为RR隔离级别。</p>
+<p>PS2: 还有previous-key lock，锁定范围如[10,11)，前闭后开。</p>
+<p>当查询索引含有唯一值时，存储引擎会对next-key lock做优化，降级为record lock.</p>
+<h6 id="next-key-lock加锁范围的示例"><a href="#next-key-lock加锁范围的示例" class="headerlink" title="next-key lock加锁范围的示例"></a>next-key lock加锁范围的示例</h6><p><a href="https://juejin.im/post/5ed0867de51d4578724e3760" target="_blank" rel="noopener">这篇文章</a>说的比较清楚，需要考虑主键的位置</p>
+<p>首先是对应记录本身加锁，即j，然后前后记录都会加间隙锁，可以理解为(g,m)，新插入的记录如果索引也是g或m，就看主键在原g或m记录的前面还是后面。（一般自增的话，就会是[g,m)了。）</p>
+<p>(29,’g’) 成功</p>
+<p>(31,’g’) 阻塞</p>
+<p>(49,’m’) 阻塞</p>
+<p>(51,’m’) 成功</p>
+<p><img src="../../../image/image-20200729202216883.png" alt="image-20200729202216883" style="zoom:50%;"></p>
+<h6 id="一致性非锁定读"><a href="#一致性非锁定读" class="headerlink" title="一致性非锁定读"></a>一致性非锁定读</h6><p>是指innodb存储引擎通过行多版本控制的方式来读取当前执行时间数据库中行的数据。</p>
+<p>如果读取的行正在执行delete或update操作，读取操作不会因此去等待行上锁的释放。相反，innodb存储引擎会去读取行的一个快照数据。</p>
+<p><img src="../../../image/image-20200729145721752.png" alt="image-20200729145721752" style="zoom:50%;"></p>
+<p>之所以称为非锁定读，是因为不需要等待访问的行上X锁的释放。</p>
+<p>快照数据是通过undo段来完成。</p>
+<p>undo用来在事务中回滚数据。</p>
+<p>读快照数据是不需要上锁的，因为没有事务需要对历史的数据进行修改操作。</p>
+<h6 id="多版本并发控制"><a href="#多版本并发控制" class="headerlink" title="多版本并发控制"></a>多版本并发控制</h6><p>multi version concurrency control, MVCC</p>
+<p>RC: Read Committed 读已提交</p>
+<p>RR: Repeatable Read 可重复读 innodb默认隔离级别</p>
+<p>RC和RR都使用非锁定一致性读</p>
+<p><strong>RC：总是读取被锁定行的最新一份快照数据</strong></p>
+<p><strong>RR：总是读取事务开始时的那份快照</strong></p>
+<h6 id="一致性锁定读"><a href="#一致性锁定读" class="headerlink" title="一致性锁定读"></a>一致性锁定读</h6><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> .. <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line"><span class="keyword">select</span> .. <span class="keyword">in</span> <span class="keyword">share</span> <span class="keyword">mode</span></span><br></pre></td></tr></table></figure>
+<h6 id="设置隔离级别"><a href="#设置隔离级别" class="headerlink" title="设置隔离级别"></a>设置隔离级别</h6><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> @@global.transaction_isolation, @@transaction_isolation;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> <span class="keyword">transaction</span> <span class="keyword">isolation</span> <span class="keyword">level</span> <span class="keyword">read</span> committed;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> <span class="keyword">transaction</span> <span class="keyword">isolation</span> <span class="keyword">level</span> <span class="keyword">read</span> committed;</span><br></pre></td></tr></table></figure>
+<h5 id="锁的算法"><a href="#锁的算法" class="headerlink" title="锁的算法"></a>锁的算法</h5><p><u>有两个索引，要分别加锁</u></p>
+<h6 id="插入意向锁"><a href="#插入意向锁" class="headerlink" title="插入意向锁"></a>插入意向锁</h6><p>是一种gap lock，insert操作在插入行之前加的锁</p>
+<h5 id="锁问题"><a href="#锁问题" class="headerlink" title="锁问题"></a>锁问题</h5><p>脏读：一个事务可以读到另一个事务未提交的数据。发生在隔离级别Read Uncommitted下。</p>
+<p>不可重复读：两次读取数据值不一样。在隔离级别Read Committed下。</p>
+<p>幻读：第二次读到了之前不存在的行。</p>
+<p>还有丢失更新，一般在当前数据库的任何隔离级别下都不会导致丢失更新。因为操作在事务里，而事务里的更新操作是会加排他锁的，另一个事务里的更新操作会阻塞。只有不在事务里的操作才可能引起“丢失更新”..</p>
+<h5 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h5><p>InnoDB存储引擎在大部分情况下都不会对异常进行回滚。</p>
+<p>等待锁超时会抛出异常，默认50秒。</p>
+<p>innodb_lock_wait_timeout</p>
+<h5 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h5><h6 id="死锁和解决方案"><a href="#死锁和解决方案" class="headerlink" title="死锁和解决方案"></a>死锁和解决方案</h6><p>指两个或两个以上的事务再执行过程中，因争夺锁资源而造成的一种互相等待的现象。（若无外力作用，事务都将无法推进下去）</p>
+<p>解决方式：</p>
+<ol>
+<li>超时机制，将超时的一个进行回滚，另一个等待的就可以进行下去。</li>
+<li><u>等待图</u>。进行死锁检测。</li>
+</ol>
+<h6 id="死锁的示例"><a href="#死锁的示例" class="headerlink" title="死锁的示例"></a>死锁的示例</h6><ol>
+<li><p>AB-BA死锁，A等待B，B在等待A</p>
+<p><img src="../../../image/image-20200729160258601.png" alt="image-20200729160258601" style="zoom:50%;"></p>
+</li>
+</ol>
+<ol start="2">
+<li><p>当前事务持有了待插入记录的下一个记录的X锁，但是在等待队列中存在一个S锁的请求，则可能会发生死锁</p>
+<p><img src="../../../image/image-20200729162259140.png" alt="image-20200729162259140" style="zoom:50%;"></p>
+</li>
+</ol>
+<h6 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h6><p>一个SQL用的是非聚集索引，那么对非聚集索引加锁，也会对聚集索引加锁。</p>
+<p>如果一个加锁SQL没有对应的索引，那会对整张表（中的记录）进行加锁</p>
+<h5 id="事务的实现"><a href="#事务的实现" class="headerlink" title="事务的实现"></a>事务的实现</h5><p>原子性、持久性是通过redo log实现的 （重做日志，属于物理日志，记录页的物理修改）</p>
+<p>一致性通过undo log实现 （逻辑日志，记录行）</p>
+<p>redo恢复提交事务修改的页操作</p>
+<p>undo回滚记录到某个特定版本</p>
+<h6 id="redo"><a href="#redo" class="headerlink" title="redo"></a>redo</h6><p>两部分组成，内存中的重做日志缓冲，磁盘的重做日志文件。</p>
+<p>与二进制日志的区别：二进制日志在事务提交完成后进行一次写入。重做日志在事务进行中不断地被写入（不是按事务提交的顺序进行写入的）。</p>
+<p>重做日志以块（block）的方式进行保存，块大小为512字节，和磁盘扇区大小一样，因此写入可以保证原子性，不需要doublewrite技术。</p>
+<p>日志块由三部分组成，重做日志块512字节，日志块头12字节，尾8字节。</p>
+<p><img src="../../../image/image-20200730113200138.png" alt="image-20200730113200138" style="zoom:50%;"></p>
+<p>redo块里有LSN编号，log sequence number，</p>
+<p>checkpoint表示已刷新到磁盘上的LSN。奔溃恢复的时候，只需恢复redo log当中比checkpoint大的那些LSN所在的页数据。</p>
+<p><img src="../../../image/image-20200730144748226.png" alt="image-20200730144748226" style="zoom:50%;"></p>
+<p><u>Log sequence number表示当前的LSN，Log flushed up to表示刷新到重做日志文件的LSN，Last checkpoint at表示刷新到磁盘的LSN。</u></p>
+<p><img src="../../../image/image-20200730144847266.png" alt="image-20200730144847266" style="zoom:50%;"></p>
+<h6 id="undo"><a href="#undo" class="headerlink" title="undo"></a>undo</h6><p>redo通常是物理日志，记录的是页的物理修改操作。</p>
+<p>undo是逻辑日志，根据每行记录进行记录。——这里的逻辑日志和物理日志，可以这么理解：物理日志记录一整页的修改，不区分行；逻辑日志，不等于是一个反向的sql语句，而是一行数据、每个列的值，等等。</p>
+<h4 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h4><h5 id="慢查询日志分析"><a href="#慢查询日志分析" class="headerlink" title="慢查询日志分析"></a>慢查询日志分析</h5><p>何时开启慢查询日志</p>
+<p>慢查询的时间设置多长</p>
+<p>分析慢查询日志的工具</p>
+<h5 id="查询计划分析"><a href="#查询计划分析" class="headerlink" title="查询计划分析"></a>查询计划分析</h5><h5 id="profile查询性能分析"><a href="#profile查询性能分析" class="headerlink" title="profile查询性能分析"></a>profile查询性能分析</h5><h4 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h4><h5 id="服务器层面"><a href="#服务器层面" class="headerlink" title="服务器层面"></a>服务器层面</h5><ol>
+<li>增加缓冲池大小innodb_buffer_pool_size</li>
+<li>内存预热——不太了解</li>
+<li>增加重做日志大小innodb_log_file_size</li>
+<li>使用SSD磁盘提高读写速度</li>
+</ol>
+<h5 id="库表设计层面"><a href="#库表设计层面" class="headerlink" title="库表设计层面"></a>库表设计层面</h5><ol>
+<li>中间表</li>
+<li>冗余字段</li>
+<li>字段拆分</li>
+<li>数据拆分：分库分表</li>
+</ol>
+<h5 id="SQL层面"><a href="#SQL层面" class="headerlink" title="SQL层面"></a>SQL层面</h5><ol>
+<li>正确建立索引和使用索引</li>
+<li>limit优化</li>
+</ol>
+<h4 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h4><h6 id="插入缓冲"><a href="#插入缓冲" class="headerlink" title="插入缓冲"></a>插入缓冲</h6><ol>
+<li>应用于非唯一的非聚集索引</li>
+<li>属于buffer pool的一部分（所以也需要double write）</li>
+</ol>
+<h6 id="redo-log重做日志"><a href="#redo-log重做日志" class="headerlink" title="redo log重做日志"></a>redo log重做日志</h6><ol>
+<li>物理逻辑日志（非纯物理）</li>
+<li>lsn 当前lsn，写入重做日志文件lsn，checkpoint 刷新到磁盘数据页的lsn</li>
+</ol>
+<h6 id="doublewrite"><a href="#doublewrite" class="headerlink" title="doublewrite"></a>doublewrite</h6><ol>
+<li>应用于buffer pool的数据页写入磁盘<ol start="2">
+<li>两部分组成：<ol>
+<li>内存中两次写缓存，2MB；</li>
+<li>磁盘上的两次写文件，2MB（两个区）</li>
+</ol>
+</li>
+<li>doublewrite每次写1M，in a large sequential chunk，再马上调用fsync，所以wr中不会有部分写失败的问题（？）。回答：也是有可能失败的，分两种情况分析：<ol>
+<li>doublewrite缓冲写入磁盘失败，表示脏页没有刷到磁盘，这时候数据库进行恢复，会使用redo log及现有磁盘数据重新计算出正确的buffer pool，再进行double write的流程</li>
+<li>doublewrite缓冲写入磁盘成功，脏页写磁盘时断电，那么磁盘数据可能有损了，恢复的时候根据doublewrite文件先恢复磁盘数据，再根据redo log和恢复后的磁盘数据恢复buffer pool（怎么理解页数据有损？比如redo日志是 偏移量2的位置写入aaa，这是可以重复写入的，但可能，偏移量10的地方是异常时写入一半的数据，整体上是不对的）</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="MySql"><a href="#MySql" class="headerlink" title="MySql"></a>MySql</h2><h6 id="查询中哪些情况不会使用索引？"><a href="#查询中哪些情况不会使用索引？" class="headerlink" title="查询中哪些情况不会使用索引？"></a>查询中哪些情况不会使用索引？</h6><ol>
+<li>使用or</li>
+<li>like以”%xx”开始匹配</li>
+<li>联合（复合）索引，不符合最左匹配</li>
+<li>索引列数据类型隐形转换，比如列是字符串，但用数值来查询就用不上索引</li>
+<li>在where子句中，对索引列有数学运算、或者使用函数，用不了索引</li>
+<li>MySQL估计全表扫描比查询索引快时（比如数据量非常少）</li>
+</ol>
+<p><a href="https://blog.csdn.net/kaka1121/article/details/53395628" target="_blank" rel="noopener">MYSQL 索引类型、什么情况下用不上索引、什么情况下不推荐使用索引</a></p>
+<p><a href="https://www.cnblogs.com/hongfei/archive/2012/10/19/2731342.html" target="_blank" rel="noopener">MySQL性能优化的最佳21条经验</a> – 没大用</p>
+<p><a href="https://blog.csdn.net/kaka1121/article/details/53394426" target="_blank" rel="noopener">mysql explain执行计划详解</a> – 有错字之类的</p>
+<p>type: const 命中唯一索引或主键的时候</p>
+<h6 id="数据库隔离级别"><a href="#数据库隔离级别" class="headerlink" title="数据库隔离级别"></a>数据库隔离级别</h6><ol>
+<li>读未提交</li>
+<li>读提交</li>
+<li>可重复读</li>
+<li>可串行化</li>
+</ol>
+<h6 id="数据库索引，底层是怎样实现的，为什么要用B-树索引？"><a href="#数据库索引，底层是怎样实现的，为什么要用B-树索引？" class="headerlink" title="数据库索引，底层是怎样实现的，为什么要用B+树索引？"></a>数据库索引，底层是怎样实现的，为什么要用B+树索引？</h6><p>MySQL底层使用B+树实现的。</p>
+<p>MyISAM引擎，B+树主索引、辅助索引叶节点是数据记录的地址，称为非聚集索引（与InnoDB区分）</p>
+<p>InnoDB的主键索引是聚集索引，叶节点存的完整的数据记录；辅助索引，叶节点存的是主键的值。</p>
+<h6 id="为什么用B-树索引？"><a href="#为什么用B-树索引？" class="headerlink" title="为什么用B+树索引？"></a>为什么用B+树索引？</h6><ol>
+<li><p>数据文件比较大，一般存储在磁盘上</p>
+</li>
+<li><p>索引的组织结构要尽量减少查找过程中磁盘IO次数。</p>
+</li>
+<li><p>数据库系统利用磁盘预读原理，将一个节点的大小设为一个页的大小，则只需要一次IO就可以将一个节点的数据都读入</p>
+</li>
+</ol>
+<p>B+树只有叶子节点存放数据，非叶子节点作为索引，这样树出度大，树高小，一般3层，查询目标数据的io次数比较少，效率高。</p>
+<p>使用节点大小正好等于磁盘一页大小的B+树，可以减少io操作次数，提高查询效率。</p>
+<p>从数组、哈希表、二叉树等数据结构的对比来回答，见下面这篇文章</p>
+<p><a href="https://juejin.im/post/5e920646e51d4546f5790713" target="_blank" rel="noopener">MySQL为什么不用数组、哈希表、二叉树等数据结构作为索引呢</a></p>
+<p><a href="https://juejin.im/post/5e945b9651882573b7537c2a" target="_blank" rel="noopener">orderby底层执行过程</a></p>
+<h6 id="Mysql主从同步的实现原理？"><a href="#Mysql主从同步的实现原理？" class="headerlink" title="Mysql主从同步的实现原理？"></a>Mysql主从同步的实现原理？</h6><p>原理：在主库上记录二进制日志，在备库重放日志的方式实现异步数据复制。</p>
+<p>复制有三个步骤：</p>
+<ol>
+<li>主库记录二进制日志，每次准备提交事务（完成数据库更新）前先记录二进制日志（记录日志完后，再执行数据库更新）</li>
+<li>备库将主库的二进制文件复制到本地的中继日志中。<ol>
+<li>备库会启动一个工作线程，称为IO工作线程，负责和主库建立一个普通的客户端连接</li>
+<li>如果该进程追赶上了主库，它将进入睡眠状态，直到主库有新的事件产生，会被唤醒，将接收到的事件记录到中继日志中</li>
+</ol>
+</li>
+<li>备库的SQL线程读取中继日志并在备库执行<ol>
+<li>中继日志一般在系统缓存中，开销低，也可以根据配置选项来决定是否写入自己的二进制日志中</li>
+</ol>
+</li>
+</ol>
+<p>常见复制架构：</p>
+<ol>
+<li><p>一主多从</p>
+</li>
+<li><p>主主</p>
+</li>
+<li><p>环型复制</p>
+<p><img src="../../../image/wKioL1YKPpuzRxapAAKMyc9n3zQ218.jpg" alt="wKioL1YKPpuzRxapAAKMyc9n3zQ218.jpg"></p>
+</li>
+</ol>
+<p><a href="https://blog.51cto.com/amyhehe/1699168" target="_blank" rel="noopener">MySQL复制详解</a></p>
+<h6 id="MySQL是怎么用B-树？"><a href="#MySQL是怎么用B-树？" class="headerlink" title="MySQL是怎么用B+树？"></a>MySQL是怎么用B+树？</h6><p>innodb引擎用B+树当索引，索引文件同时是数据文件。聚集索引，也就是主键索引，叶节点存储的完整行数据；辅助索引，也称为非聚集索引，叶节点存对应行记录的主键。</p>
+<p>MyISAM引擎也是用B+树当索引，为非聚集索引，索引不是数据文件，叶节点存的是行记录的地址。</p>
+<h6 id="谈谈数据库乐观锁与悲观锁？"><a href="#谈谈数据库乐观锁与悲观锁？" class="headerlink" title="谈谈数据库乐观锁与悲观锁？"></a>谈谈数据库乐观锁与悲观锁？</h6><ol>
+<li>悲观锁，认为操作会发生冲突，提前加锁，直到自己操作结束再释放锁。</li>
+<li>MySQL的显式锁定 写锁 <code>select .. for update</code> &amp; 读锁 <code>select .. lock in share mode</code></li>
+<li>乐观锁，认为不会发生冲突，在提交更新的时候会判断一下期间数据有没有被修改。类似于CAS操作，常用方式有版本号、时间戳。</li>
+</ol>
+<h6 id="mvcc，怎么实现rr-rc-todo"><a href="#mvcc，怎么实现rr-rc-todo" class="headerlink" title="mvcc，怎么实现rr rc todo"></a>mvcc，怎么实现rr rc todo</h6><h6 id="mysql间隙锁有没有了解，死锁有没有了解，写一段会造成死锁的sql语句，死锁发生了如何解决，mysql有没有提供什么机制去解决死锁"><a href="#mysql间隙锁有没有了解，死锁有没有了解，写一段会造成死锁的sql语句，死锁发生了如何解决，mysql有没有提供什么机制去解决死锁" class="headerlink" title="mysql间隙锁有没有了解，死锁有没有了解，写一段会造成死锁的sql语句，死锁发生了如何解决，mysql有没有提供什么机制去解决死锁"></a>mysql间隙锁有没有了解，死锁有没有了解，写一段会造成死锁的sql语句，死锁发生了如何解决，mysql有没有提供什么机制去解决死锁</h6><p>gap lock</p>
+<h6 id="MySQL几种常用的存储引擎区别"><a href="#MySQL几种常用的存储引擎区别" class="headerlink" title="MySQL几种常用的存储引擎区别"></a>MySQL几种常用的存储引擎区别</h6><p>InnoDB与MyISAM比较典型的几个区别：</p>
+<ol>
+<li>innodb支持事务、MVCC快照读、行级锁粒度、hash索引、聚集索引、支持外键</li>
+<li>myisam支持全文索引、空间索引、数据压缩</li>
+<li>innodb存储成本高、内存成本高、插入速度低，myisam反过来</li>
+</ol>
+<p>来源：MySQL技术内幕</p>
+<p><img src="../../../image/image-20200515154754678.png" alt="image-20200515154754678" style="zoom:50%;"></p>
+<h6 id="explain-可以看到哪些信息，什么信息说明什么，explain的结果列讲一下"><a href="#explain-可以看到哪些信息，什么信息说明什么，explain的结果列讲一下" class="headerlink" title="explain 可以看到哪些信息，什么信息说明什么，explain的结果列讲一下"></a>explain 可以看到哪些信息，什么信息说明什么，explain的结果列讲一下</h6><p><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/8.0/en/explain-output.html</a></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>JSON Name</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_id" target="_blank" rel="noopener"><code>id</code></a></td>
+<td><code>select_id</code></td>
+<td>The <code>SELECT</code> identifier     select标识</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_select_type" target="_blank" rel="noopener"><code>select_type</code></a></td>
+<td>None</td>
+<td>The <code>SELECT</code> type    select类型</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_table" target="_blank" rel="noopener"><code>table</code></a></td>
+<td><code>table_name</code></td>
+<td>The table for the output row    表名</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_partitions" target="_blank" rel="noopener"><code>partitions</code></a></td>
+<td><code>partitions</code></td>
+<td>The matching partitions 使用的分区</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_type" target="_blank" rel="noopener"><code>type</code></a></td>
+<td><code>access_type</code></td>
+<td>The join type  join类型</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_possible_keys" target="_blank" rel="noopener"><code>possible_keys</code></a></td>
+<td><code>possible_keys</code></td>
+<td>The possible indexes to choose  可能使用的索引</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_key" target="_blank" rel="noopener"><code>key</code></a></td>
+<td><code>key</code></td>
+<td>The index actually chosen   实际使用的索引</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_key_len" target="_blank" rel="noopener"><code>key_len</code></a></td>
+<td><code>key_length</code></td>
+<td>The length of the chosen key  实际使用的索引的长度</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_ref" target="_blank" rel="noopener"><code>ref</code></a></td>
+<td><code>ref</code></td>
+<td>The columns compared to the index   与索引进行对比的列</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_rows" target="_blank" rel="noopener"><code>rows</code></a></td>
+<td><code>rows</code></td>
+<td>Estimate of rows to be examined  预估要检查的行数</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_filtered" target="_blank" rel="noopener"><code>filtered</code></a></td>
+<td><code>filtered</code></td>
+<td>Percentage of rows filtered by table condition   符合条件的数据的百分比</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain_extra" target="_blank" rel="noopener"><code>Extra</code></a></td>
+<td>None</td>
+<td>Additional information  额外的信息</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><p>select_type</p>
+<p>常见的有SIMPLE（简单查询，无union、subqueries）、PRIMARY（子查询的外层）、SUBQUERY、UNION等</p>
+</li>
+<li><p>type</p>
+<ol>
+<li><p>system：表中只有一行数据，const的特殊情况</p>
+</li>
+<li><p>const：至多有一行matching，可以理解为主键或唯一索引的=  （单表，对tbl_name来说，1是const）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tbl_name <span class="keyword">WHERE</span> primary_key=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tbl_name</span><br><span class="line">  <span class="keyword">WHERE</span> primary_key_part1=<span class="number">1</span> <span class="keyword">AND</span> primary_key_part2=<span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>eq_ref：主键或唯一索引的=   （多表关联，other_table的结果不定，所以对ref_table来说，选择不是const）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> ref_table,other_table</span><br><span class="line">  <span class="keyword">WHERE</span> ref_table.key_column=other_table.column;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> ref_table,other_table</span><br><span class="line">  <span class="keyword">WHERE</span> ref_table.key_column_part1=other_table.column</span><br><span class="line">  <span class="keyword">AND</span> ref_table.key_column_part2=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>ref：（非主键与非唯一索引的）其他索引的=</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> ref_table <span class="keyword">WHERE</span> key_column=expr;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> ref_table,other_table</span><br><span class="line">  <span class="keyword">WHERE</span> ref_table.key_column=other_table.column;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> ref_table,other_table</span><br><span class="line">  <span class="keyword">WHERE</span> ref_table.key_column_part1=other_table.column</span><br><span class="line">  <span class="keyword">AND</span> ref_table.key_column_part2=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>fulltext</p>
+<p>用到了全文索引</p>
+</li>
+<li><p>ref_or_null</p>
+<p>类似ref，会额外检索包含null的行</p>
+</li>
+<li><p>index_merge</p>
+<p>用到了多个索引，索引合并优化</p>
+</li>
+<li><p>unique_subquery</p>
+<p>替换下面的in子查询，子查询返回不重复的集合</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">value IN (<span class="keyword">SELECT</span> primary_key <span class="keyword">FROM</span> single_table <span class="keyword">WHERE</span> some_expr)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>index_subquery</p>
+<p>区别于unique_subquery，用于非唯一索引，可以返回重复值</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">value IN (<span class="keyword">SELECT</span> key_column <span class="keyword">FROM</span> single_table <span class="keyword">WHERE</span> some_expr)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>range</p>
+<p>索引范围查找，包括主键、唯一索引、其他索引——即，所有key</p>
+<p> <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_equal" target="_blank" rel="noopener"><code>=</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_not-equal" target="_blank" rel="noopener"><code>&lt;&gt;</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_greater-than" target="_blank" rel="noopener"><code>&gt;</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_greater-than-or-equal" target="_blank" rel="noopener"><code>&gt;=</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_less-than" target="_blank" rel="noopener"><code>&lt;</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_less-than-or-equal" target="_blank" rel="noopener"><code>&lt;=</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_is-null" target="_blank" rel="noopener"><code>IS NULL</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_equal-to" target="_blank" rel="noopener"><code>&lt;=&gt;</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_between" target="_blank" rel="noopener"><code>BETWEEN</code></a>, <a href="https://dev.mysql.com/doc/refman/8.0/en/string-comparison-functions.html#operator_like" target="_blank" rel="noopener"><code>LIKE</code></a>, or <a href="https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_in" target="_blank" rel="noopener"><code>IN()</code></a> </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tbl_name</span><br><span class="line">  <span class="keyword">WHERE</span> key_column = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tbl_name</span><br><span class="line">  <span class="keyword">WHERE</span> key_column <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">and</span> <span class="number">20</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tbl_name</span><br><span class="line">  <span class="keyword">WHERE</span> key_column <span class="keyword">IN</span> (<span class="number">10</span>,<span class="number">20</span>,<span class="number">30</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> tbl_name</span><br><span class="line">  <span class="keyword">WHERE</span> key_part1 = <span class="number">10</span> <span class="keyword">AND</span> key_part2 <span class="keyword">IN</span> (<span class="number">10</span>,<span class="number">20</span>,<span class="number">30</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>index</p>
+<p>类似all，但是只扫描索引，有两种情况</p>
+<ol>
+<li>覆盖索引，select中的列都在索引中，extra中显示using index</li>
+<li>利用索引的顺序进行全表扫描（比如有order by），extra中不显示using index</li>
+</ol>
+</li>
+<li><p>all</p>
+<p>全表扫描</p>
+</li>
+</ol>
+</li>
+<li><p>rows和filtered</p>
+<ol>
+<li>rows：MySQL认为需要检查的行数</li>
+<li>filtered：rows中会被过滤出来的——即符合条件的——的数据的百分比</li>
+<li>rows*filtered=查询出的结果数</li>
+</ol>
+</li>
+<li><p>extra 常见的有</p>
+<ol>
+<li>using index 列信息只从索引出，不用再从实际行取。使用了覆盖索引</li>
+<li>using where 没有可用的索引，通过where条件过滤</li>
+<li>using filesort 需要额外排序</li>
+<li>Using index condition  Index Condition Pushdown (ICP) 简单说，就是在索引里进行where过滤。比如 like ‘%xx’本来是用不到索引的，如果开了ICP，则可以用这个条件在索引上做过滤，筛出更小的一部分数据，减少IO。参考<a href="https://developer.aliyun.com/article/27751" target="_blank" rel="noopener">文章</a></li>
+<li>….还有好多</li>
+</ol>
+</li>
+</ol>
+<h6 id="group-by-和-order-by"><a href="#group-by-和-order-by" class="headerlink" title="group by 和 order by"></a>group by 和 order by</h6><p>不能利用索引的有序性的话，需要额外进行排序，using filesort</p>
+<p>group by，先排序后分组</p>
+<p>distinct基于group by</p>
+<p>排序算法：双路排序（两次IO，第一次IO后用rowid+排序关键字进行排序，排完序后根据rowid再读一次数据）和单路排序（一次IO，查询的列和排序关键字一起在内存中进行排序，空间换时间）</p>
+<p><a href="https://blog.csdn.net/wuseyukui/article/details/72627667" target="_blank" rel="noopener">https://blog.csdn.net/wuseyukui/article/details/72627667</a></p>
+<p><a href="https://blog.csdn.net/qq_37113604/article/details/88973260" target="_blank" rel="noopener">https://blog.csdn.net/qq_37113604/article/details/88973260</a></p>
+<h6 id="索引优化-todo-看看高性能书，有硬件层面和开发层面？"><a href="#索引优化-todo-看看高性能书，有硬件层面和开发层面？" class="headerlink" title="索引优化 todo 看看高性能书，有硬件层面和开发层面？"></a>索引优化 todo 看看高性能书，有硬件层面和开发层面？</h6><p><a href="https://juejin.im/post/5b68e3636fb9a04fd343ba99#heading-3" target="_blank" rel="noopener">https://juejin.im/post/5b68e3636fb9a04fd343ba99#heading-3</a></p>
+<ol>
+<li><p>如果MySQL评估使用索引比全表扫描还慢，则不会使用索引</p>
+</li>
+<li><p>前导模糊查询（like ‘%xx’）不会使用索引，可以优化为非前导模糊查询（like ‘xx%’）</p>
+</li>
+<li><p>数据类型出现隐式转换的时候不会命中索引，特别是当列类型是字符串，一定要将字符常量值用引号引起来</p>
+</li>
+<li><p>复合索引，要满足最左匹配原则</p>
+</li>
+<li><p>union、in、or 都能够命中索引，建议使用 in</p>
+<p>查询的CPU消耗：or (id=1 or id=2)&gt; in (id in (1,2)) &gt;union(id = 1 union id = 2)</p>
+</li>
+<li><p>用or分割开的条件，如果or前的条件中列有索引，而后面的列中没有索引，那么涉及到的索引都不会被用到</p>
+<p>因为or后面的条件列中没有索引，那么后面的查询肯定要走全表扫描，在存在全表扫描的情况下，就没有必要多一次索引扫描增加IO访问。</p>
+</li>
+<li><p>负向条件查询不能使用索引，可以优化为 in 查询</p>
+<p>负向条件有：!=、&lt;&gt;、not in、not exists、not like 等。</p>
+</li>
+<li><p>范围条件查询可以命中索引</p>
+<p>范围条件有：&lt;、&lt;=、&gt;、&gt;=、between等（返回数据的比例超过30%，会不使用索引）</p>
+</li>
+<li><p>查询条件（带有计算函数）执行计算不会命中索引</p>
+</li>
+<li><p>利用覆盖索引进行查询，避免回表</p>
+</li>
+<li><p>建议索引的列设置为非null</p>
+</li>
+<li><p>更新十分频繁的字段上不宜建立索引</p>
+</li>
+<li><p>区分度不大的字段上不宜建立索引</p>
+</li>
+<li><p>业务上具有唯一特性的字段，建议建立唯一索引</p>
+</li>
+<li><p>多表关联时，关联字段建议有索引</p>
+</li>
+<li><p>创建索引时避免以下错误观念</p>
+<ol>
+<li><p>索引越多越好，认为一个查询就需要建一个索引。</p>
+</li>
+<li><p>宁缺勿滥，认为索引会消耗空间、严重拖慢更新和新增速度。</p>
+</li>
+<li><p>抵制唯一索引，认为业务的唯一性一律需要在应用层通过“先查后插”方式解决。</p>
+</li>
+<li><p>过早优化，在不了解系统的情况下就开始优化。</p>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="其他数据库"><a href="#其他数据库" class="headerlink" title="其他数据库"></a>其他数据库</h2><h6 id="有使用过哪些NoSQL数据库？MongoDB和Redis适用哪些场景？"><a href="#有使用过哪些NoSQL数据库？MongoDB和Redis适用哪些场景？" class="headerlink" title="有使用过哪些NoSQL数据库？MongoDB和Redis适用哪些场景？"></a>有使用过哪些NoSQL数据库？MongoDB和Redis适用哪些场景？</h6><p>工程中用过Redis，主要是小部分数据的缓存 其他不太了解</p>
+<p>NoSql not only sql 非关系型数据库</p>
+<p><a href="https://zhuanlan.zhihu.com/p/32940868" target="_blank" rel="noopener">memcache、redis、mongoDB 如何选择？</a></p>
+<h6 id="Redis和memcache有什么区别？Redis为什么比memcache有优势？"><a href="#Redis和memcache有什么区别？Redis为什么比memcache有优势？" class="headerlink" title="Redis和memcache有什么区别？Redis为什么比memcache有优势？"></a><del>Redis和memcache有什么区别？Redis为什么比memcache有优势？</del></h6><p>不太了解</p>
+<h6 id="考虑redis的时候，有没有考虑容量？大概数据量会有多少？"><a href="#考虑redis的时候，有没有考虑容量？大概数据量会有多少？" class="headerlink" title="考虑redis的时候，有没有考虑容量？大概数据量会有多少？"></a>考虑redis的时候，有没有考虑容量？大概数据量会有多少？</h6><p>没有，公司维护的Redis组件 – <strong>redis &amp; nosql 需要再深入一点呀</strong></p>
+<h6 id="Redis的缓存淘汰策略、更新策略"><a href="#Redis的缓存淘汰策略、更新策略" class="headerlink" title="Redis的缓存淘汰策略、更新策略"></a>Redis的缓存淘汰策略、更新策略</h6><ol>
+<li><p>过期策略</p>
+<ol>
+<li>定期删除：默认每隔100ms随机抽取一些设置了过期时间的key，检查是否过期，如果过期就删除（因为全表扫描非常耗时、耗性能，所以是随机，也因此要配合惰性删除）</li>
+<li>惰性删除：在客户端要获取某个key时，判断key是否设置过期以及是否过期，如果过期先删除</li>
+</ol>
+</li>
+<li><p>内存淘汰策略</p>
+<p>Redis在使用内存达到某个阈值（通过maxmemory配置)的时候，就会触发内存淘汰机制，选取一些key来删除。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> maxmemory &lt;bytes&gt; 配置内存阈值</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> maxmemory-policy noeviction</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>noeviction：当内存不足以容纳新写入数据时，新写入操作会报错。<strong>默认策略</strong></li>
+<li>allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。</li>
+<li>allkeys-random：当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。</li>
+<li>volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。</li>
+<li>volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。</li>
+<li>volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。</li>
+</ol>
+<p>如何选取合适的策略？<strong>比较推荐的是两种lru策略</strong>。根据自己的业务需求。如果你使用Redis只是作为缓存，不作为DB持久化，那推荐选择allkeys-lru；如果你使用Redis同时用于缓存和数据持久化，那推荐选择volatile-lru。</p>
+<p><a href="https://juejin.im/post/5d8bf523e51d4577ff0d9e8c" target="_blank" rel="noopener">redis过期策略和内存淘汰策略</a></p>
+<p><a href="https://www.cnblogs.com/lzrabbit/p/3734850.html" target="_blank" rel="noopener">java实现LRU</a></p>
+</li>
+</ol>
+<h6 id="redis的数据结构"><a href="#redis的数据结构" class="headerlink" title="redis的数据结构"></a>redis的数据结构</h6><p><a href="https://juejin.im/post/5db66ed9e51d452a2f15d833" target="_blank" rel="noopener">Redis基础</a></p>
+<p>Redis 键值（Key-Value）存储数据库</p>
+<ol>
+<li>string 字符类型</li>
+<li>map 散列类型</li>
+<li>list 列表类型</li>
+<li>set 集合类型</li>
+<li>sortedset 有序集合类型</li>
+</ol>
+<h6 id="redis如何实现分布式锁，zk如何实现分布式锁，两者的区别。如果service还没执行完，分布式锁在redis中已经过期了，怎么解决这种问题"><a href="#redis如何实现分布式锁，zk如何实现分布式锁，两者的区别。如果service还没执行完，分布式锁在redis中已经过期了，怎么解决这种问题" class="headerlink" title="redis如何实现分布式锁，zk如何实现分布式锁，两者的区别。如果service还没执行完，分布式锁在redis中已经过期了，怎么解决这种问题"></a>redis如何实现分布式锁，zk如何实现分布式锁，两者的区别。如果service还没执行完，分布式锁在redis中已经过期了，怎么解决这种问题</h6><p>redis实现分布式锁：setNX，创建成功表明获得了锁（要注意设置超时、谁加锁谁解锁、解锁的原子性）</p>
+<p>zk实现分布式锁：在路径下创建临时顺序节点，序号最小的节点表示获得了锁，其他竞争者监听自己的前一个节点</p>
+<p>redisson给的答案是锁获取成功后，注册一个定时任务，每隔一定时间(this.internalLockLeaseTime / 3L, 10s)就去续约</p>
+<p>加一个监听器，如果key快要超时了，就进行续约（重置成30s）</p>
+</div><div class="tags"></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2020/07/28/technology/03系统设计/" class="pre">系统设计</a><a href="/2020/07/28/technology/06框架/" class="next">框架</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#简单版"><span class="toc-text">简单版</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#架构与执行流程"><span class="toc-text">架构与执行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#系统架构"><span class="toc-text">系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#MySQL架构"><span class="toc-text">MySQL架构</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#innodb架构"><span class="toc-text">innodb架构</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#执行流程图"><span class="toc-text">执行流程图</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#innodb内存结构"><span class="toc-text">innodb内存结构</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#内存池"><span class="toc-text">内存池</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#物理存储结构"><span class="toc-text">物理存储结构</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#MySQL二进制文件的格式"><span class="toc-text">MySQL二进制文件的格式</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#表空间文件"><span class="toc-text">表空间文件</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#重做日志"><span class="toc-text">重做日志</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#innodb物理逻辑存储结构"><span class="toc-text">innodb物理逻辑存储结构</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#索引组织表"><span class="toc-text">索引组织表</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#InnoDB逻辑存储结构"><span class="toc-text">InnoDB逻辑存储结构</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#表空间"><span class="toc-text">表空间</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#段"><span class="toc-text">段</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#区"><span class="toc-text">区</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#页"><span class="toc-text">页</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#行"><span class="toc-text">行</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#数据页结构-–-再看吧"><span class="toc-text">数据页结构 – 再看吧</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#索引"><span class="toc-text">索引</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#索引的实现"><span class="toc-text">索引的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#B-树"><span class="toc-text">B+树</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Cardinality"><span class="toc-text">Cardinality</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#联合索引的使用"><span class="toc-text">联合索引的使用</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#hash索引"><span class="toc-text">hash索引</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#全文检索-–-不会，pass"><span class="toc-text">全文检索 – 不会，pass</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#explain查询计划分析"><span class="toc-text">explain查询计划分析</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#锁和事务"><span class="toc-text">锁和事务</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#innodb存储引擎中的锁"><span class="toc-text">innodb存储引擎中的锁</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#锁的类型"><span class="toc-text">锁的类型</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#next-key-lock加锁范围的示例"><span class="toc-text">next-key lock加锁范围的示例</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#一致性非锁定读"><span class="toc-text">一致性非锁定读</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#多版本并发控制"><span class="toc-text">多版本并发控制</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#一致性锁定读"><span class="toc-text">一致性锁定读</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#设置隔离级别"><span class="toc-text">设置隔离级别</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#锁的算法"><span class="toc-text">锁的算法</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#插入意向锁"><span class="toc-text">插入意向锁</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#锁问题"><span class="toc-text">锁问题</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#阻塞"><span class="toc-text">阻塞</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#死锁"><span class="toc-text">死锁</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#死锁和解决方案"><span class="toc-text">死锁和解决方案</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#死锁的示例"><span class="toc-text">死锁的示例</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#其他"><span class="toc-text">其他</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#事务的实现"><span class="toc-text">事务的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#redo"><span class="toc-text">redo</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#undo"><span class="toc-text">undo</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#性能分析"><span class="toc-text">性能分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#慢查询日志分析"><span class="toc-text">慢查询日志分析</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#查询计划分析"><span class="toc-text">查询计划分析</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#profile查询性能分析"><span class="toc-text">profile查询性能分析</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#性能优化"><span class="toc-text">性能优化</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#服务器层面"><span class="toc-text">服务器层面</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#库表设计层面"><span class="toc-text">库表设计层面</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#SQL层面"><span class="toc-text">SQL层面</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#补充"><span class="toc-text">补充</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#插入缓冲"><span class="toc-text">插入缓冲</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#redo-log重做日志"><span class="toc-text">redo log重做日志</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#doublewrite"><span class="toc-text">doublewrite</span></a></li></ol></li></ol></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#MySql"><span class="toc-text">MySql</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#查询中哪些情况不会使用索引？"><span class="toc-text">查询中哪些情况不会使用索引？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#数据库隔离级别"><span class="toc-text">数据库隔离级别</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#数据库索引，底层是怎样实现的，为什么要用B-树索引？"><span class="toc-text">数据库索引，底层是怎样实现的，为什么要用B+树索引？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#为什么用B-树索引？"><span class="toc-text">为什么用B+树索引？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Mysql主从同步的实现原理？"><span class="toc-text">Mysql主从同步的实现原理？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#MySQL是怎么用B-树？"><span class="toc-text">MySQL是怎么用B+树？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#谈谈数据库乐观锁与悲观锁？"><span class="toc-text">谈谈数据库乐观锁与悲观锁？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#mvcc，怎么实现rr-rc-todo"><span class="toc-text">mvcc，怎么实现rr rc todo</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#mysql间隙锁有没有了解，死锁有没有了解，写一段会造成死锁的sql语句，死锁发生了如何解决，mysql有没有提供什么机制去解决死锁"><span class="toc-text">mysql间隙锁有没有了解，死锁有没有了解，写一段会造成死锁的sql语句，死锁发生了如何解决，mysql有没有提供什么机制去解决死锁</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#MySQL几种常用的存储引擎区别"><span class="toc-text">MySQL几种常用的存储引擎区别</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#explain-可以看到哪些信息，什么信息说明什么，explain的结果列讲一下"><span class="toc-text">explain 可以看到哪些信息，什么信息说明什么，explain的结果列讲一下</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#group-by-和-order-by"><span class="toc-text">group by 和 order by</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#索引优化-todo-看看高性能书，有硬件层面和开发层面？"><span class="toc-text">索引优化 todo 看看高性能书，有硬件层面和开发层面？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#其他数据库"><span class="toc-text">其他数据库</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#有使用过哪些NoSQL数据库？MongoDB和Redis适用哪些场景？"><span class="toc-text">有使用过哪些NoSQL数据库？MongoDB和Redis适用哪些场景？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Redis和memcache有什么区别？Redis为什么比memcache有优势？"><span class="toc-text">Redis和memcache有什么区别？Redis为什么比memcache有优势？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#考虑redis的时候，有没有考虑容量？大概数据量会有多少？"><span class="toc-text">考虑redis的时候，有没有考虑容量？大概数据量会有多少？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Redis的缓存淘汰策略、更新策略"><span class="toc-text">Redis的缓存淘汰策略、更新策略</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#redis的数据结构"><span class="toc-text">redis的数据结构</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#redis如何实现分布式锁，zk如何实现分布式锁，两者的区别。如果service还没执行完，分布式锁在redis中已经过期了，怎么解决这种问题"><span class="toc-text">redis如何实现分布式锁，zk如何实现分布式锁，两者的区别。如果service还没执行完，分布式锁在redis中已经过期了，怎么解决这种问题</span></a></li></ol></li></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/国际-国内行业分析统计/">国际&国内行业分析统计</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java-Lambda的实现原理/">Java-Lambda的实现原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java动态代理/">Java动态代理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/06/关于中台/">关于中台</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/05/国内外大厂发展史/">国内外大厂发展史</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何构建笔记系统/">如何构建笔记系统</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何阅读一本书/">如何阅读一本书</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/03/广告行业入门/">广告行业入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/技术栈Notes/">技术栈Notes</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/Learning-English/">Learning English</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/INBOX/">INBOX</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/KNOWLEDGE/">KNOWLEDGE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/netty/">netty</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/netty/java-nio/">java nio</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/架构学习/">架构学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/COLA/" style="font-size: 15px;">COLA</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/Java并发/" style="font-size: 15px;">Java并发</a> <a href="/tags/INBOX/" style="font-size: 15px;">INBOX</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Lambda/" style="font-size: 15px;">Lambda</a> <a href="/tags/KNOWLEDGE/" style="font-size: 15px;">KNOWLEDGE</a> <a href="/tags/动态代理/" style="font-size: 15px;">动态代理</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/PropertyPlaceholderConfigurer/" style="font-size: 15px;">PropertyPlaceholderConfigurer</a> <a href="/tags/SpringMVC/" style="font-size: 15px;">SpringMVC</a> <a href="/tags/web/" style="font-size: 15px;">web</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/nio/" style="font-size: 15px;">nio</a> <a href="/tags/netty/" style="font-size: 15px;">netty</a> <a href="/tags/通信/" style="font-size: 15px;">通信</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/swagger/" style="font-size: 15px;">swagger</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/广告行业/" style="font-size: 15px;">广告行业</a> <a href="/tags/消息中间件/" style="font-size: 15px;">消息中间件</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/Java虚拟机/" style="font-size: 15px;">Java虚拟机</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a> <a href="/tags/Java容器/" style="font-size: 15px;">Java容器</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>

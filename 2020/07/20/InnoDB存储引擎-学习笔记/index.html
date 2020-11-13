@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>InnoDB存储引擎-学习笔记 | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">InnoDB存储引擎-学习笔记</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">InnoDB存储引擎-学习笔记</h1><div class="post-meta"><a href="/2020/07/20/InnoDB存储引擎-学习笔记/#comments" class="comment-count"></a><p><span class="date">Jul 20, 2020</span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><h1 id="第2章-InnoDB存储引擎"><a href="#第2章-InnoDB存储引擎" class="headerlink" title="第2章 InnoDB存储引擎"></a>第2章 InnoDB存储引擎</h1><h2 id="2-1-概述"><a href="#2-1-概述" class="headerlink" title="2.1 概述"></a>2.1 概述</h2><p>MySQL5.5开始默认存储引擎</p>
+<p>特点是行锁设计、支持MVCC、支持外键、提供一致性非锁定读</p>
+<h2 id="2-2-InnoDB存储引擎的版本"><a href="#2-2-InnoDB存储引擎的版本" class="headerlink" title="2.2 InnoDB存储引擎的版本"></a>2.2 InnoDB存储引擎的版本</h2><p>最新的是InnoDB 1.2.x</p>
+<h2 id="2-3-InnoDB体系架构"><a href="#2-3-InnoDB体系架构" class="headerlink" title="2.3 InnoDB体系架构"></a>2.3 InnoDB体系架构</h2><p>文件+内存池+后台线程</p>
+<p><img src="../../image/image-20200722201328178.png" alt="image-20200722201328178" style="zoom:50%;"></p>
+<h3 id="2-3-1-后台线程"><a href="#2-3-1-后台线程" class="headerlink" title="2.3.1 后台线程"></a>2.3.1 后台线程</h3><p>主要作用</p>
+<ol>
+<li>刷新内存池中的数据，保证缓存的是最近的数据</li>
+<li>将已修改数据文件刷新到磁盘文件</li>
+<li>保证在数据库发生异常的情况下，InnoDB能恢复到正常运行状态</li>
+</ol>
+<ol>
+<li><p>Master Thread：核心后台线程</p>
+<p>将缓冲池中的数据异步刷新到磁盘，保证数据的一致性。包括脏页的刷新、合并插入缓冲（insert buffer）、UNDO页的回收等</p>
+</li>
+<li><p>IO Thread：负责IO请求的回调处理</p>
+<p>write、read、insert buffer、log io thread</p>
+<p>innodb使用AIO（异步io）来处理io请求</p>
+</li>
+<li><p>Purge Thread</p>
+<p>innodb 1.1引入，原本操作也在master Thread中</p>
+<p>事务被提交后，其所使用的undolog可能不再需要，因此需要Purge Thread来回收已经使用并分配的undo页</p>
+</li>
+<li><p>Page Cleaner Thread</p>
+<p>innodb1.2.x引入的，脏页的刷新操作</p>
+</li>
+</ol>
+<h3 id="2-3-2-内存"><a href="#2-3-2-内存" class="headerlink" title="2.3.2 内存"></a>2.3.2 内存</h3><ol>
+<li>缓冲池</li>
+</ol>
+<p>缓冲池中缓存的数据页类型有：索引页、数据页、undo页【图片里是redo log_buffer重做日志缓冲】、插入缓冲（insert buffer）、自适应哈希索引（adaptive hash index）、InnoDB存储的锁信息（lock info）、数据字典信息（data dictionary）等。</p>
+<p><img src="../../image/image-20200722130448329.png" alt="image-20200722130448329" style="zoom:50%;"></p>
+<ol start="2">
+<li>LRU List、Free List和Flush List</li>
+</ol>
+<p>数据库中的缓冲池是通过LRU（Latest Recent Used，最近最少使用）算法来进行管理的。即最频繁使用的页在LRU列表的前端，而最少使用的页在LRU列表的尾端。</p>
+<p>优化：midpoint 最新读到的页，不是直接放入LRU列表的首部，而是放入列表的midpoint位置，一般在5/8处。</p>
+<p>在InnoDB存储引擎中，把midpoint之后的列表称为old列表，之前的列表称为new列表。可以简单地理解为new列表中的页都是最为活跃的热点数据。</p>
+<p>为什么不直接放首部？某些SQL操作会使缓冲池中的页被刷出，影响缓冲池的效率。比如索引或数据的扫描操作，需要访问表中的许多页，甚至全部的页，（而这些页可能只在本次查询需要，并不是活跃的热点数据。）会将热点数据从缓冲池中刷出，下次需要再加载，innodb需要再次访问磁盘。</p>
+<ol start="3">
+<li>重做日志缓冲</li>
+<li>额外的内存池</li>
+</ol>
+<h2 id="2-4-Checkpoint技术"><a href="#2-4-Checkpoint技术" class="headerlink" title="2.4 Checkpoint技术"></a>2.4 Checkpoint技术</h2><p>Write Ahead Log策略，即当事务提交时，先写重做日志，再修改页。</p>
+<p>因此Checkpoint（检查点）技术的目的是解决以下几个问题：</p>
+<ol>
+<li><p>缩短数据库的恢复时间；</p>
+</li>
+<li><p>缓冲池不够用时，将脏页刷新到磁盘；</p>
+</li>
+<li><p>重做日志不可用时，刷新脏页。</p>
+</li>
+</ol>
+<h2 id="2-5-MasterThread工作方式"><a href="#2-5-MasterThread工作方式" class="headerlink" title="2.5 MasterThread工作方式"></a>2.5 MasterThread工作方式</h2><p>各个版本有些微差异，比如刷新脏页的阈值有差异等，但主要工作是以下内容。</p>
+<p>另外，刷新脏页的操作已经从master Thread分离到了单独的线程page cleaner thread. 减轻master Thread的工作，提高系统并发性。</p>
+<p>每秒一次的操作包括： == srv_master_do_active_tasks</p>
+<ol>
+<li>日志缓冲刷新到磁盘，即使这个事务还没有提交（总是）</li>
+<li>合并插入缓冲（可能）</li>
+<li>至多刷新100个InnoDB的缓冲池中的脏页到磁盘（可能） – page cleaner</li>
+<li>如果当前没有用户活动，则切换到background loop（可能）。</li>
+</ol>
+<p>10秒的操作，包括如下内容： == srv_master_do_idle_tasks</p>
+<ol>
+<li>刷新100个脏页到磁盘（可能的情况下） – page cleaner</li>
+<li>合并至多5个插入缓冲（总是）</li>
+<li>将日志缓冲刷新到磁盘（总是）</li>
+<li>删除无用的Undo页（总是）– purge thread</li>
+<li>刷新100个或者10个脏页到磁盘（总是）。 – page cleaner</li>
+</ol>
+<h2 id="2-6-InnoDB关键特性"><a href="#2-6-InnoDB关键特性" class="headerlink" title="2.6 InnoDB关键特性"></a>2.6 InnoDB关键特性</h2><p>InnoDB存储引擎的关键特性包括：</p>
+<ol>
+<li>插入缓冲（Insert Buffer）</li>
+<li>两次写（Double Write）</li>
+<li>自适应哈希索引（Adaptive Hash Index）</li>
+<li>异步IO（Async IO）</li>
+<li>刷新邻接页（Flush Neighbor Page）</li>
+</ol>
+<p>网上看到的特性是 1+2+3+预读，read ahead</p>
+<h3 id="2-6-1-插入缓冲"><a href="#2-6-1-插入缓冲" class="headerlink" title="2.6.1 插入缓冲"></a>2.6.1 插入缓冲</h3><p>insert buffer，和数据页一样，也是物理页的组成部分。</p>
+<p>insert buffer的使用场景，非唯一辅助索引的插入操作。</p>
+<p>具体实现是B+树</p>
+<p>1.0.x引入Change Buffer，是insert buffer的升级。对DML操作——insert、delete、update都进行缓冲，分别是insert buffer、delete buffer、Purge buffer。</p>
+<p>对一条记录进行UPDATE操作可能分为两个过程：</p>
+<ol>
+<li><p>将记录标记为已删除；</p>
+</li>
+<li><p>真正将记录删除。</p>
+</li>
+</ol>
+<p>因此Delete Buffer对应UPDATE操作的第一个过程，即将记录标记为删除。PurgeBuffer对应UPDATE操作的第二个过程，即将记录真正的删除</p>
+<h3 id="2-6-2-两次写"><a href="#2-6-2-两次写" class="headerlink" title="2.6.2 两次写"></a>2.6.2 两次写</h3><p><img src="../../image/image-20200723113756682.png" alt="image-20200723113756682" style="zoom:50%;"></p>
+<p>doublewrite由两部分组成，一部分是内存中的doublewrite buffer，大小为2MB，另一部分是物理磁盘上共享表空间中连续的128个页，即2个区（extent），大小同样为2MB。</p>
+<p>doublewrite发生在对缓冲池的脏页进行刷新的时候，不直接写磁盘，先memcpy将脏页复制到doublewrite buffer，之后doublewrite buffer每次1MB写入共享表空间的物理磁盘（马上调用fsync，避免缓冲写）（写入是顺序的）。doublewrite写完后，再将页写入各个表空间（写入是离散的）。</p>
+<h3 id="2-6-3-自适应哈希索引"><a href="#2-6-3-自适应哈希索引" class="headerlink" title="2.6.3 自适应哈希索引"></a>2.6.3 自适应哈希索引</h3><p>对象是索引页。</p>
+<p>根据访问频率和模式自动为某些热点页建立哈希索引。</p>
+<h3 id="2-6-4-异步IO"><a href="#2-6-4-异步IO" class="headerlink" title="2.6.4 异步IO"></a>2.6.4 异步IO</h3><h1 id="第3章-文件"><a href="#第3章-文件" class="headerlink" title="第3章 文件"></a>第3章 文件</h1><h2 id="3-1-参数文件"><a href="#3-1-参数文件" class="headerlink" title="3.1 参数文件"></a>3.1 参数文件</h2><h2 id="3-2日志文件"><a href="#3-2日志文件" class="headerlink" title="3.2日志文件"></a>3.2日志文件</h2><h3 id="3-2-1-错误日志"><a href="#3-2-1-错误日志" class="headerlink" title="3.2.1 错误日志"></a>3.2.1 错误日志</h3><p>错误日志文件对MySQL的启动、运行、关闭过程进行了记录。</p>
+<p>慢查询日志</p>
+<p>查询日志</p>
+<p>二进制日志</p>
+<h1 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h1><h6 id="1-三大范式？"><a href="#1-三大范式？" class="headerlink" title="1. 三大范式？"></a>1. 三大范式？</h6><p>第一范式：每个列都不可以再拆分。</p>
+<p>第二范式：在第一范式的基础上，非主键列完全依赖于主键，而不能是依赖于主键的一部分。</p>
+<p>第三范式：在第二范式的基础上，非主键列只依赖于主键，不依赖于其他非主键。</p>
+<h6 id="2-数据类型"><a href="#2-数据类型" class="headerlink" title="2. 数据类型"></a>2. 数据类型</h6><p><a href="https://dev.mysql.com/doc/refman/8.0/en/integer-types.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/8.0/en/integer-types.html</a></p>
+<p>整数类型。</p>
+<p>可以指定长度，不会限制值的范围，只会影响显示字符的个数</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Storage (Bytes)</th>
+<th>Minimum Value Signed</th>
+<th>Minimum Value Unsigned</th>
+<th>Maximum Value Signed</th>
+<th>Maximum Value Unsigned</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TINYINT</code></td>
+<td>1</td>
+<td><code>-128</code></td>
+<td><code>0</code></td>
+<td><code>127</code></td>
+<td><code>255</code></td>
+</tr>
+<tr>
+<td><code>SMALLINT</code></td>
+<td>2</td>
+<td><code>-32768</code></td>
+<td><code>0</code></td>
+<td><code>32767</code></td>
+<td><code>65535</code></td>
+</tr>
+<tr>
+<td><code>MEDIUMINT</code></td>
+<td>3</td>
+<td><code>-8388608</code></td>
+<td><code>0</code></td>
+<td><code>8388607</code></td>
+<td><code>16777215</code></td>
+</tr>
+<tr>
+<td><code>INT</code></td>
+<td>4</td>
+<td><code>-2147483648</code></td>
+<td><code>0</code></td>
+<td><code>2147483647</code></td>
+<td><code>4294967295</code></td>
+</tr>
+<tr>
+<td><code>BIGINT</code></td>
+<td>8</td>
+<td><code>-263</code></td>
+<td><code>0</code></td>
+<td><code>263-1</code></td>
+<td><code>264-1</code></td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/char.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/8.0/en/char.html</a></p>
+<p>字符串类型，varchar有1-2位存长度，列长度小于255字节时，使用1字节表示，否则使用2字节表示。</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th><code>CHAR(4)</code></th>
+<th>Storage Required</th>
+<th><code>VARCHAR(4)</code></th>
+<th>Storage Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&#39;&#39;</code></td>
+<td><code>&#39;  &#39;</code></td>
+<td>4 bytes</td>
+<td><code>&#39;&#39;</code></td>
+<td>1 byte</td>
+</tr>
+<tr>
+<td><code>&#39;ab&#39;</code></td>
+<td><code>&#39;ab &#39;</code></td>
+<td>4 bytes</td>
+<td><code>&#39;ab&#39;</code></td>
+<td>3 bytes</td>
+</tr>
+<tr>
+<td><code>&#39;abcd&#39;</code></td>
+<td><code>&#39;abcd&#39;</code></td>
+<td>4 bytes</td>
+<td><code>&#39;abcd&#39;</code></td>
+<td>5 bytes</td>
+</tr>
+<tr>
+<td><code>&#39;abcdefgh&#39;</code></td>
+<td><code>&#39;abcd&#39;</code></td>
+<td>4 bytes</td>
+<td><code>&#39;abcd&#39;</code></td>
+<td>5 bytes</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html</a></p>
+<p>innodb限制</p>
+<ol>
+<li>最大列数1017</li>
+<li>innodb 加上blob text等（off-page）数据，行大小不能超过4G</li>
+<li>mysql 行大小 65535bytes字节</li>
+</ol>
+<p>备查</p>
+<p><img src="../../image/image-20200722200735949.png" alt="image-20200722200735949"></p>
+</div><div class="tags"></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2020/07/23/汇总的汇总/" class="pre">汇总的汇总</a><a href="/2020/07/15/算法导论学习笔记/" class="next">算法导论学习笔记</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#第2章-InnoDB存储引擎"><span class="toc-text">第2章 InnoDB存储引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-概述"><span class="toc-text">2.1 概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-InnoDB存储引擎的版本"><span class="toc-text">2.2 InnoDB存储引擎的版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-InnoDB体系架构"><span class="toc-text">2.3 InnoDB体系架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-1-后台线程"><span class="toc-text">2.3.1 后台线程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-2-内存"><span class="toc-text">2.3.2 内存</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-Checkpoint技术"><span class="toc-text">2.4 Checkpoint技术</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-MasterThread工作方式"><span class="toc-text">2.5 MasterThread工作方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-InnoDB关键特性"><span class="toc-text">2.6 InnoDB关键特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-1-插入缓冲"><span class="toc-text">2.6.1 插入缓冲</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-2-两次写"><span class="toc-text">2.6.2 两次写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-3-自适应哈希索引"><span class="toc-text">2.6.3 自适应哈希索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-4-异步IO"><span class="toc-text">2.6.4 异步IO</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#第3章-文件"><span class="toc-text">第3章 文件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-参数文件"><span class="toc-text">3.1 参数文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2日志文件"><span class="toc-text">3.2日志文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-错误日志"><span class="toc-text">3.2.1 错误日志</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#问题汇总"><span class="toc-text">问题汇总</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#1-三大范式？"><span class="toc-text">1. 三大范式？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-数据类型"><span class="toc-text">2. 数据类型</span></a></li></ol></li></ol></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/国际-国内行业分析统计/">国际&国内行业分析统计</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java-Lambda的实现原理/">Java-Lambda的实现原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java动态代理/">Java动态代理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/06/关于中台/">关于中台</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/05/国内外大厂发展史/">国内外大厂发展史</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何构建笔记系统/">如何构建笔记系统</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何阅读一本书/">如何阅读一本书</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/03/广告行业入门/">广告行业入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/技术栈Notes/">技术栈Notes</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/Learning-English/">Learning English</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/INBOX/">INBOX</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/KNOWLEDGE/">KNOWLEDGE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/netty/">netty</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/netty/java-nio/">java nio</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/架构学习/">架构学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/COLA/" style="font-size: 15px;">COLA</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/Java并发/" style="font-size: 15px;">Java并发</a> <a href="/tags/INBOX/" style="font-size: 15px;">INBOX</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Lambda/" style="font-size: 15px;">Lambda</a> <a href="/tags/KNOWLEDGE/" style="font-size: 15px;">KNOWLEDGE</a> <a href="/tags/动态代理/" style="font-size: 15px;">动态代理</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/PropertyPlaceholderConfigurer/" style="font-size: 15px;">PropertyPlaceholderConfigurer</a> <a href="/tags/SpringMVC/" style="font-size: 15px;">SpringMVC</a> <a href="/tags/web/" style="font-size: 15px;">web</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/nio/" style="font-size: 15px;">nio</a> <a href="/tags/netty/" style="font-size: 15px;">netty</a> <a href="/tags/通信/" style="font-size: 15px;">通信</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/swagger/" style="font-size: 15px;">swagger</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/广告行业/" style="font-size: 15px;">广告行业</a> <a href="/tags/消息中间件/" style="font-size: 15px;">消息中间件</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/Java虚拟机/" style="font-size: 15px;">Java虚拟机</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a> <a href="/tags/Java容器/" style="font-size: 15px;">Java容器</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>

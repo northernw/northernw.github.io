@@ -1,0 +1,564 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>框架 | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">框架</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">框架</h1><div class="post-meta"><a href="/2020/07/28/technology/06框架/#comments" class="comment-count"></a><p><span class="date">Jul 28, 2020</span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><h2 id="Spring-amp-SpringMVC"><a href="#Spring-amp-SpringMVC" class="headerlink" title="Spring&amp;SpringMVC"></a>Spring&amp;SpringMVC</h2><h6 id="请详细描述springmvc处理请求全流程？"><a href="#请详细描述springmvc处理请求全流程？" class="headerlink" title="请详细描述springmvc处理请求全流程？"></a>请详细描述springmvc处理请求全流程？</h6><p><img src="../../../image/5-1ZG2095404c8.png" alt="Spring MVC工作原理图" style="zoom:50%;"></p>
+<ol>
+<li><p>通用的流程：</p>
+<ol>
+<li><p>客户端提交请求到DispatcherServlet</p>
+</li>
+<li><p>DispatcherServlet寻找Handler（HandlerExecutionChain）(包括handler , common interceptors和MappedInterceptor)</p>
+</li>
+<li><p>DispatcherServlet调用controller</p>
+</li>
+<li><p>controller调用业务逻辑，返回ModelAndView</p>
+</li>
+<li><p>DispatcherServlet寻找ViewResolver，找到对应视图</p>
+</li>
+<li><p>渲染视图显示到客户端</p>
+</li>
+</ol>
+</li>
+</ol>
+<ol start="2">
+<li><p>restful的一些细节（上述2、3、4过程的细化，restful的mav一般是空的）：</p>
+<ol>
+<li>getHandler取到一个HandlerExecutionChain mappedHandler，包含URL对应的controller方法HandlerMethod，和一些interceptors</li>
+<li>HandlerMethod取到对应的handlerAdapter，数据绑定就再这个ha中做的</li>
+<li>mappedHandler执行拦截器的preHandle</li>
+<li>handlerAdapter执行controller方法，包含请求前的数据绑定（数据转换），和请求后的数据转换（转换后将数据按需要的格式写入response）</li>
+<li>mappedHandler执行拦截器的postHandle</li>
+<li>以上过程如果有抛出异常，由全局异常处理器来处理</li>
+<li>mappedHandler触发拦截器的afterCompletion</li>
+</ol>
+</li>
+</ol>
+<h6 id="ioc原理、aop原理和应用"><a href="#ioc原理、aop原理和应用" class="headerlink" title="ioc原理、aop原理和应用"></a>ioc原理、aop原理和应用</h6><ol>
+<li><p>ioc原理 控制反转（依赖注入）</p>
+<ol>
+<li>本质是，spring维护了一个实例的容器，在需要使用某个实例的地方，自动注入这个实例</li>
+<li>主要运用了反射机制，通过反射来创建约定的实例，并维护在容器中</li>
+</ol>
+</li>
+<li><p>aop原理 面向切面编程</p>
+<p><a href="https://juejin.im/post/5bf4fc84f265da611b57f906" target="_blank" rel="noopener">AOP原理</a></p>
+<ol>
+<li><p>原理是动态代理。代理模式的定义：给某一个对象提供一个代理，并由代理对象控制对原对象的引用。实现方式：</p>
+<ol>
+<li><p>首先有接口A，类a实现接口A</p>
+</li>
+<li><p>接着创建一个b InvocationHandler类，实现InvocationHandler接口，持有一个被代理对象的实例target，invoke方法中触发method</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * proxy: 代表动态代理对象，编译时候生成的</span></span><br><span class="line"><span class="comment"> * method：代表正在执行的方法</span></span><br><span class="line"><span class="comment"> * args：代表调用目标方法时传入的实参</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"代理执行"</span> +method.getName() + <span class="string">"方法"</span>);</span><br><span class="line">    Object result = method.invoke(target, args);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建代理对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A a = (A) Proxy.newProxyInstance(A.class.getClassLoader(), new Class&lt;?&gt;[]&#123;A.class&#125;, handler)</span><br></pre></td></tr></table></figure>
+<p><img src="../../../image/image-20200601110636533.png" alt="image-20200601110636533"></p>
+</li>
+</ol>
+</li>
+<li><p>比如日志、监控等公共行为可以通过AOP来实现，避免大量重复代码</p>
+</li>
+<li><p>元素</p>
+<ol>
+<li>切面：拦截器类，定义切点以及通知</li>
+<li>切点：具体拦截的某个业务点</li>
+<li>通知：切面当中的方法，声明通知方法在目标业务层的执行位置，通知类型如下：<ol>
+<li>前置通知：@Before 在目标业务方法执行之前执行</li>
+<li>后置通知：@After 在目标业务方法执行之后执行</li>
+<li>返回通知：@AfterReturning 在目标业务方法返回结果之后执行</li>
+<li>异常通知：@AfterThrowing 在目标业务方法抛出异常之后</li>
+<li>环绕通知：@Around 功能强大，可代替以上四种通知，还可以控制目标业务方法是否执行以及何时执行</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>aspectj切面扫描的细节再看下</p>
+</li>
+</ol>
+</li>
+</ol>
+<h6 id="spring-事务实现"><a href="#spring-事务实现" class="headerlink" title="spring 事务实现"></a>spring 事务实现</h6><p>Spring事务的底层依赖MySQL的事务，代码层面上利用AOP实现。</p>
+<p>常用的是<code>@Transactional</code>注解，会被解析生成一个代理服务，<strong>TransactionInterceptor</strong>对它进行拦截处理，进行事务开启、 commit或者rollback的操作。</p>
+<p>另外，spring还定义了事务传播行为，有7种类型，项目中常见的是PROPAGATION_REQUIRED。如果没有事务就新建事务，如果存在事务，就加入这个事务。</p>
+<p>执行事务的时候使用<strong>TransactionInterceptor</strong>进行拦截，然后处理</p>
+<p><a href="https://segmentfault.com/a/1190000013341344" target="_blank" rel="noopener">事务传播行为</a></p>
+<table>
+<thead>
+<tr>
+<th>事务传播行为类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PROPAGATION_REQUIRED</strong></td>
+<td>如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。这是最常见的选择。（如果父方法有事务，加入父方法的事务；父方法没有事务，则自己新建一个事务）</td>
+</tr>
+<tr>
+<td>PROPAGATION_SUPPORTS</td>
+<td>支持当前事务，如果当前没有事务，就以非事务方式执行。（如果父方法有事务，加入父方法的事务；父方法没有事务，则以非事务执行）</td>
+</tr>
+<tr>
+<td>PROPAGATION_MANDATORY</td>
+<td>使用当前的事务，如果当前没有事务，就抛出异常。（依赖父方法事务）</td>
+</tr>
+<tr>
+<td><strong>PROPAGATION_REQUIRES_NEW</strong></td>
+<td>新建事务，如果当前存在事务，把当前事务挂起。（如果父方法有事务，把父方法事务挂起，自己新建事务；父方法没有事务，则自己新建一个事务）</td>
+</tr>
+<tr>
+<td>PROPAGATION_NOT_SUPPORTED</td>
+<td>以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。（如果父方法有事务，把父方法事务挂起，以非事务执行自己的操作；父方法没有事务，则以非事务执行）（总是以非事务执行，不报错）</td>
+</tr>
+<tr>
+<td>PROPAGATION_NEVER</td>
+<td>以非事务方式执行，如果当前存在事务，则抛出异常。（总是以非事务执行，如果父方法存在事务，抛异常）</td>
+</tr>
+<tr>
+<td><strong>PROPAGATION_NESTED</strong></td>
+<td>如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与PROPAGATION_REQUIRED类似的操作。</td>
+</tr>
+</tbody>
+</table>
+<p>REQUIRED、REQUIRES_NEW、NESTED的对比</p>
+<p>REQUIRED共用一个事务。</p>
+<p>REQUIRES_NEW 有独立的子事务，子事务异常<strong>不会</strong>导致父事务回滚，父事务异常也<strong>不会</strong>导致子事务回滚，相互独立。</p>
+<p>NESTED 子事务嵌套在父事务中，父事务回滚会引起子事务回滚；父事务正常、子事务异常，子事务可以单独回滚。</p>
+<p><a href="https://juejin.im/post/59e87b166fb9a045030f32ed" target="_blank" rel="noopener">源码详解</a></p>
+<ol>
+<li>txNamespaceHandle注册的<code>InfrastructureAdvisorAutoProxyCreator</code>是一个BeanPostProcessor，主要是为了创建动态代理（wrapIfNecessary）</li>
+</ol>
+<p>这几个类是可以自动创建代理的</p>
+<p>  <img src="../../../image/image-20200617195143639.png" alt="image-20200617195143639"></p>
+<ol start="2">
+<li><p>在创建代理的时候，获取切面</p>
+<p>txNamespaceHandler注册了一个Advisor（BeanFactoryTransactionAttributeSourceAdvisor），再在这个advisor中判断是否当前bean符合这个切面（主要实现就是看有没有@Transactional注解）</p>
+</li>
+</ol>
+<p><img src="../../../image/image-20200617191910196.png" alt="image-20200617191910196"></p>
+<ol start="3">
+<li><code>TransactionInterceptor</code>是advice，增强，执行切面工作</li>
+</ol>
+<p>摘录：<a href="https://my.oschina.net/fifadxj/blog/785621" target="_blank" rel="noopener">https://my.oschina.net/fifadxj/blog/785621</a></p>
+<p>spring-jdb的事务流程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DefaultTransactionDefinition def = <span class="keyword">new</span> DefaultTransactionDefinition();</span><br><span class="line">PlatformTransactionManager txManager = <span class="keyword">new</span> DataSourceTransactionManager(dataSource);</span><br><span class="line"></span><br><span class="line">TransactionStatus status = txManager.getTransaction(def);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">//get jdbc connection...</span></span><br><span class="line">    <span class="comment">//execute sql...</span></span><br><span class="line"></span><br><span class="line">    txManager.commit(status);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    txManager.rollback(status);</span><br><span class="line">    <span class="keyword">throw</span> e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>PlatformTransactionManager的getTransaction(), rollback(), commit()是spring处理事务的核心api，分别对应事务的开始，提交和回滚。</p>
+<ul>
+<li>TransactionSynchronizationManager负责从ThreadLocal中存取jdbc connection</li>
+<li>创建事务的时候会通过dataSource.getConnection()获取一个新的jdbc connection，然后绑定到ThreadLocal</li>
+<li>在业务代码中执行sql时，通过DataSourceUtils.getConnection()从ThreadLocal中获取当前事务的jdbc connection, 然后在该jdbc connection上执行sql</li>
+<li>commit和rollback事务时，从ThreadLocal中获取当前事务的jdbc connection，然后对该jdbc connection进行commit和rollback</li>
+</ul>
+<p><img src="../../../image/143421_Bmpa_1452390.png" alt="143421_Bmpa_1452390.png (../../../image/143421_Bmpa_1452390.png)"></p>
+<p>mybatis-spring的事务流程：</p>
+<p>配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"transactionManager"</span> <span class="attr">class</span>=<span class="string">"org.springframework.jdbc.datasource.DataSourceTransactionManager"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"sqlSessionFactory"</span> <span class="attr">class</span>=<span class="string">"org.mybatis.spring.SqlSessionFactoryBean"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"transactionFactory"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.apache.ibatis.spring.transaction.SpringManagedTransactionFactory"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"sqlSession"</span> <span class="attr">class</span>=<span class="string">"org.mybatis.spring.SqlSessionTemplate"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">index</span>=<span class="string">"0"</span> <span class="attr">ref</span>=<span class="string">"sqlSessionFactory"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>mybatis-spring依赖DataSourceTransactionManager来处理事务，并没有创建自己的PlatformTransactionManager实现。</li>
+<li>mybatis通过SqlSessionFactoryBuilder创建SqlSessionFactory，而mybatis-spring通过SqlSessionFactoryBean创建SqlSessionFactory。</li>
+<li>配置使用SpringManagedTransactionFactory来创建MyBatis的Transaction实现SpringManagedTransaction</li>
+<li>配置使用SqlSessionTemplate代替通过SqlSessionFactory.openSession()获取SqlSession</li>
+</ul>
+<p>调用过程</p>
+<p><img src="../../../image/143554_iORI_1452390.png" alt="143554_iORI_1452390.png (../../../image/143554_iORI_1452390.png)"></p>
+<p>可以看到mybatis-spring处理事务的主要流程和spring jdbc处理事务并没有什么区别，都是通过DataSourceTransactionManager的getTransaction(), rollback(), commit()完成事务的生命周期管理，而且jdbc connection的创建也是通过DataSourceTransactionManager.getTransaction()完成，mybatis并没有参与其中，mybatis只是在执行sql时通过DataSourceUtils.getConnection()获得当前thread的jdbc connection，然后在其上执行sql。</p>
+<p>sqlSessionTemplate是DefaultSqlSession的一个代理类，它通过SqlSessionUtils.getSqlSession()试图从ThreadLocal获取当前事务所使用的SqlSession。如果是第一次获取时会调用SqlSessionFactory.openSession()创建一个SqlSession并绑定到ThreadLocal，同时还会通过TransactionSynchronizationManager注册一个SqlSessionSynchronization。</p>
+<p>SqlSessionSynchronization是一个事务生命周期的callback接口，mybatis-spring通过SqlSessionSynchronization在事务提交和回滚前分别调用DefaultSqlSession.commit()和DefaultSqlSession.rollback()</p>
+<p>这里的DefaultSqlSession只会进行一些自身缓存的清理工作，并不会真正提交事务给数据库，原因是这里的DefaultSqlSession使用的Transaction实现为SpringManagedTransaction，SpringManagedTransaction在提交事务前会检查当前事务是否应该由spring控制，如果是，则不会自己提交事务，而将提交事务的任务交给spring，所以DefaultSqlSession并不会自己处理事务。</p>
+<p>DefaultSqlSession执行sql时，会通过SpringManagedTransaction调用DataSourceUtils.getConnection()从ThreadLocal中获取jdbc connection并在其上执行sql。</p>
+<p><strong>mybatis-spring做的最主要的事情是：</strong></p>
+<ol>
+<li><p><strong>在SqlSession执行sql时通过用SpringManagedTransaction代替mybatis的JdbcTransaction，让SqlSession从spring的ThreadLocal中获取jdbc connection。</strong></p>
+</li>
+<li><p><strong>通过注册事务生命周期callback接口SqlSessionSynchronization，让SqlSession有机会在spring管理的事务提交或回滚时清理自己的内部缓存。</strong></p>
+</li>
+</ol>
+<h6 id="spring的循环依赖如何解决？为什么要三级缓存？"><a href="#spring的循环依赖如何解决？为什么要三级缓存？" class="headerlink" title="spring的循环依赖如何解决？为什么要三级缓存？"></a>spring的循环依赖如何解决？为什么要三级缓存？</h6><p><a href="https://juejin.im/post/5c98a7b4f265da60ee12e9b2" target="_blank" rel="noopener">https://juejin.im/post/5c98a7b4f265da60ee12e9b2</a></p>
+<p><a href="https://juejin.im/post/5e927e27f265da47c8012ed9" target="_blank" rel="noopener">https://juejin.im/post/5e927e27f265da47c8012ed9</a></p>
+<p>spring对循环依赖的处理有三种情况：</p>
+<ol>
+<li>构造器的循环依赖：这种依赖spring是处理不了的，直接抛出BeanCurrentlylnCreationException异常。</li>
+<li>单例模式下的setter循环依赖：通过“三级缓存”处理循环依赖。 </li>
+<li>非单例循环依赖：无法处理。</li>
+</ol>
+<p>如何解决的？</p>
+<p>只能解决单例的属性循环依赖的情况。本质上是通过将创建好的、或正在创建中的bean缓存起来。比如A和B循环依赖，创建A时先将A的实例放入缓存，自动注入属性B时，发现缓存中没有B，那么来创建B的实例，将B实例化放入缓存，注入属性A，发现A在缓存中，取出来赋值给A。bean B创建完成返回，赋值给A的属性B。这时候A和B的bean就都创建好了。</p>
+<p>为什么要三级？看起来一级就可以实现呀？</p>
+<p><a href="https://juejin.im/post/5ec88da26fb9a047e25d5691#h-2" target="_blank" rel="noopener">为什么要三级缓存</a>：循环依赖的关键点：<strong>提前暴露绑定A原始引用的工厂类到工厂缓存。等需要时触发后续操作处理A的早期引用，将处理结果放入二级缓存</strong></p>
+<p>只有一级singeltonObjects肯定是不行的，需要一个放半成品的地方</p>
+<p>实际上二级就够了，可以解决循环依赖的问题</p>
+<p>考虑到代理的情况，就需要objectFactories这个三级缓存了，因为代理的创建是在第三步，这时候动态代理还没产生，注入了也不是最终的实例。放入三级缓存时，重写了getObject方法，会调用BeanPostProcessor的getEarlyBeanReference，这时候取到的就会是动态代理后的。</p>
+<p>singletonFactories ： 进入实例化阶段的单例对象工厂的cache （三级缓存）</p>
+<p>earlySingletonObjects ：完成实例化但是尚未初始化的，提前暴光的单例对象的Cache （二级缓存）</p>
+<p>singletonObjects：完成初始化的单例对象的cache（一级缓存）</p>
+<h2 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a>Zookeeper</h2><h6 id="zk挂了怎么办？-todo"><a href="#zk挂了怎么办？-todo" class="headerlink" title="zk挂了怎么办？ todo"></a>zk挂了怎么办？ <strong>todo</strong></h6><ol>
+<li><p>指zk集群挂了其中一台机器？ – 集群自己可以处理</p>
+<ol>
+<li>挂的是master</li>
+<li>挂的是follower</li>
+<li>挂的是..</li>
+</ol>
+</li>
+<li><p>集群全挂了？—那就是全挂了啊 趁早加入监控和降级策略</p>
+</li>
+</ol>
+<h2 id="Dubbo-amp-Netty-amp-RPC"><a href="#Dubbo-amp-Netty-amp-RPC" class="headerlink" title="Dubbo&amp;Netty&amp;RPC"></a>Dubbo&amp;Netty&amp;RPC</h2><p><a href="https://juejin.im/post/5e215783f265da3e097e9679" target="_blank" rel="noopener">https://juejin.im/post/5e215783f265da3e097e9679</a></p>
+<h6 id="RPC"><a href="#RPC" class="headerlink" title="RPC"></a>RPC</h6><ol>
+<li><p>remote procedure call 远程过程调用，是一种进程间的通信方式，是一种技术思想，而不是规范</p>
+</li>
+<li><p>一次完整的rpc调用流程。RPC的目标是把2-8封装起来，对用户透明。</p>
+<p>(1):服务消费方(client)以本地调用方式调用服务。</p>
+<p>(2):client stub接收到调用后负责将方法、参数等组装成能够进行网络传输的消息体。</p>
+<p>(3):client stub找到服务地址，并将消息发送到服务端。</p>
+<p>(4):server stub收到消息后进行解码。</p>
+<p>(5):server stub根据解码结果调用本地的服务。</p>
+<p>(6):本地服务执行并将结果返回给server stub。</p>
+<p>(7):server stub将返回结果打包成消息并发送至消费方。</p>
+<p>(9):client stub接收到消息，并进行解码。</p>
+<p>(9):服务消费方得到最终结果。</p>
+</li>
+<li><p>决定rpc效率的两个重要因素：通信效率，序列化和反序列化效率</p>
+</li>
+<li><p>常见rpc框架：dubbo、gRPC、Thrift、HSF（high speed service framework）</p>
+<p><img src="../../../image/image-20200523155916736.png" alt="image-20200523155916736" style="zoom:30%;"></p>
+<p><img src="../../../image/image-20200523160046346.png" alt="image-20200523160046346" style="zoom:30%;"></p>
+</li>
+</ol>
+<h6 id="netty-理解netty"><a href="#netty-理解netty" class="headerlink" title="netty 理解netty"></a>netty <a href="https://juejin.im/post/5bdaf8ea6fb9a0227b02275a" target="_blank" rel="noopener">理解netty</a></h6><ol>
+<li><p>netty是一个异步事件驱动的网络应用程序框架，是基于NIO的多路复用模型实现的。</p>
+</li>
+<li><p>传统HTTP服务</p>
+<p>【HTTP服务器之所以称为HTTP服务器，是因为编码解码协议是HTTP协议，如果协议是Redis协议，那它就成了Redis服务器，如果协议是WebSocket，那它就成了WebSocket服务器，等等。 使用Netty可以定制编解码协议，实现自己的特定协议的服务器。】</p>
+<ol>
+<li>创建一个ServerSocket，监听并绑定一个端口</li>
+<li>一系列客户端来请求这个端口</li>
+<li>服务器使用Accept，获得一个来自客户端的Socket连接对象</li>
+<li>启动一个新线程处理连接<ol>
+<li>读Socket，得到字节流</li>
+<li>解码协议，得到HTTP请求对象</li>
+<li>处理HTTP请求，得到一个结果，封装成一个HTTPResponse对象</li>
+<li>编码协议，将结果序列化字节流写入Socket，发给客户端</li>
+</ol>
+</li>
+<li>循环步骤3</li>
+</ol>
+</li>
+<li><p>NIO</p>
+<ol>
+<li><p>不是Java独有的概念，NIO代表IO多路复用。</p>
+</li>
+<li><p>由操作系统提供的功能，早期select，后期linux-epoll/max-kqueue。一般就说是epoll（没人用mac当服务器）</p>
+</li>
+<li><p>Netty基于Java NIO进行了封装，提供易于操作的使用模式和接口。</p>
+</li>
+<li><p>BIO (Blocking IO)，如何理解blocking</p>
+<ol>
+<li>服务端监听时，accept是阻塞的，只有新连接来了，accept才会返回，主线程才能继续</li>
+<li>读写Socket时，read是阻塞的，只有请求消息来了（需要读完吗？），read才能返回，子线程才能继续处理</li>
+<li>读写Socket时，write是阻塞的，只有客户端把消息接收了（客户端把消息接收了是什么表现？），write才能返回，子线程才能继续</li>
+</ol>
+</li>
+<li><p>NIO利用<strong>事件机制</strong>（=事件驱动机制）实现非阻塞。【可以用一个线程把Accept，读写操作，请求处理的逻辑全干了。如果什么事都没得做，它也不会死循环，它会将线程休眠起来，直到下一个事件来了再继续干活，这样的一个线程称之为NIO线程。】</p>
+<p>伪代码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">while true &#123;</span><br><span class="line">    events = takeEvents(fds)  // 获取事件，如果没有事件，线程就休眠</span><br><span class="line">    for event in events &#123;</span><br><span class="line">        if event.isAcceptable &#123;</span><br><span class="line">            doAccept() // 新链接来了</span><br><span class="line">        &#125; elif event.isReadable &#123;</span><br><span class="line">            request = doRead() // 读消息</span><br><span class="line">            if request.isComplete() &#123;</span><br><span class="line">                doProcess()</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; elif event.isWriteable &#123;</span><br><span class="line">            doWrite()  // 写消息</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+<li><p>Reactor（基于事件驱动）线程模型</p>
+<p>【netty可以基于以下模型灵活配置，比较常见的是用第三种。】</p>
+<p>【在Netty里面，Accept连接可以使用单独的线程池去处理，读写操作又是另外的线程池来处理。】</p>
+<p>【Accept连接和读写操作也可以使用同一个线程池来进行处理。请求处理逻辑既可以使用单独的线程池进行处理，也可以跟读写线程放在一块处理。】</p>
+<p>【线程池中的每一个线程都是NIO线程。用户可以根据实际情况进行组装，构造出满足系统需求的高性能并发模型。】</p>
+<ol>
+<li><p>Reactor单线程模型。一个NIO线程+一个accept线程。reactor线程负责分发，read、decode等操作都由其他线程处理。就和上面的伪代码差不多。</p>
+<p><img src="../../../image/image-20200523181425912.png" alt="image-20200523181425912"></p>
+</li>
+<li><p>Reactor多线程模型。相比上一种，【其他线程】由线程池来托管。</p>
+<p><img src="../../../image/image-20200523181750089.png" alt="image-20200523181750089"></p>
+</li>
+<li><p>Reactor主从模型。多个acceptor的NIO线程池用于接收客户端的连接。</p>
+<p><img src="../../../image/image-20200523181851749.png" alt="image-20200523181851749"></p>
+</li>
+</ol>
+</li>
+<li><p>TCP粘包拆包</p>
+<ol>
+<li><p>现象</p>
+<ol>
+<li>假设使用netty在客户端重复写100次数据”你好，我的名字是xxx!”给服务端，用ByteBuf存放这个数据</li>
+<li>服务端接收后输出，一般存在三种情况<ol>
+<li>完整的一个字符串</li>
+<li>字符串多了</li>
+<li>字符串少了</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>原因：尽管client按照ByteBuf为单位发送数据，server按照ByteBuf读取，但操作系统底层是tcp协议，按照字节发送和接收数据，在netty应用层，重新拼装成的ByteBuf与客户端发送过来的ByteBuf可能不是对等的。</p>
+<p>因此，我们<strong>需要自定义协议来封装和解封应用层的数据包</strong>。</p>
+</li>
+<li><p>netty中定义好的拆包器</p>
+<ol>
+<li>固定长度的拆包器 FixedLengthFrameDecoder</li>
+<li>行拆包器 LineBasedFrameDecoder</li>
+<li>分隔符拆包器 DelimiterBasedFrameDecoder （行拆包器的通用版本，可自定义分隔符）</li>
+<li>长度域拆包器 LengthFieldBasedFrameDecoder （最通用，在协议中包含长度域字段）</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>零拷贝</p>
+<ol>
+<li><p>传统方式的拷贝</p>
+<p><code>File.read(bytes)</code><br><code>Socket.send(bytes)</code></p>
+<p>需要四次数据拷贝和四次上下文切换</p>
+<ol>
+<li><p>数据从磁盘读取到内核的read buffer</p>
+</li>
+<li><p>数据从内核缓冲区拷贝到用户缓冲区</p>
+</li>
+<li><p>数据从用户缓冲区拷贝到内核的socket buffer</p>
+</li>
+<li><p>数据从内核的socket buffer拷贝到网卡接口（硬件）的缓冲区</p>
+</li>
+</ol>
+</li>
+<li><p>零拷贝的概念</p>
+<ol>
+<li><p>上面的第二步和第三步是没有必要的，通过java的FileChannel.transferTo方法，可以避免上面两次多余的拷贝（需要操作系统支持）</p>
+</li>
+<li><p>调用transferTo,数据从文件由DMA引擎拷贝到内核read buffer</p>
+<p>接着DMA从内核read buffer将数据拷贝到网卡接口buffer</p>
+<p>上面的两次操作都不需要CPU参与，达到了零拷贝。</p>
+</li>
+</ol>
+</li>
+<li><p>Netty中的零拷贝</p>
+<p>体现在三个方面：</p>
+<ol>
+<li><p>bytefuffer</p>
+<p>Netty发送和接收消息主要使用bytebuffer，bytebuffer使用直接内存（DirectMemory）直接进行Socket读写。</p>
+<p>原因：如果使用传统的堆内存进行Socket读写，JVM会将堆内存buffer拷贝一份到直接内存中然后再写入socket，多了一次缓冲区的内存拷贝。DirectMemory中可以直接通过DMA发送到网卡接口</p>
+</li>
+<li><p>Composite Buffers</p>
+<p>传统的ByteBuffer，如果需要将两个ByteBuffer中的数据组合到一起，需要先创建一个size=size1+size2大小的新的数组，再将两个数组中的数据拷贝到新的数组中。</p>
+<p>使用Netty提供的组合ByteBuf，就可以避免这样的操作。CompositeByteBuf并没有真正将多个Buffer组合起来，而是保存了它们的引用，从而避免了数据的拷贝，实现了零拷贝。</p>
+</li>
+<li><p>对FileChannel.transferTo的使用</p>
+<p>Netty中使用了FileChannel的transferTo方法，该方法依赖于操作系统实现零拷贝。</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h6 id="dubbo"><a href="#dubbo" class="headerlink" title="dubbo"></a>dubbo</h6><ol>
+<li><p>简介与特性：dubbo是一款高性能、轻量级的开源Java RPC框架，提供三大核心能力：<strong>面向接口的远程方法调用</strong>、<strong>智能容错和负载均衡</strong>、<strong>服务自动注册和发现</strong>。</p>
+<ol>
+<li>【以下几点是官网上的特性介绍…】</li>
+<li>面向接口的远程方法调用：提供高性能的基于代理的远程调用能力，服务以接口为粒度，为开发者屏蔽远程调用底层细节。</li>
+<li>智能负载均衡：内置多种负载均衡策略（有哪些？），感知下游节点的健康状况，显著减少调用延迟，提高系统吞吐量。</li>
+<li>服务自动注册与发现：支持多种注册中心服务（有哪些？），服务实例上下线实时感知（具体实现是什么？）。</li>
+<li>高度可扩展能力：遵循微内核+插件的设计原则，所有核心能力如Protocol、Transport、Serialization被设计为可扩展点，平等的对待内置实现和第三方实现。（SPI设计模式？）</li>
+<li>运行期流量调度：内置条件、脚本等路由策略，通过配置不同的路由规则，实现灰度发布、同机房优先等功能。</li>
+<li>可视化的服务治理与运维：提供丰富服务治理、运维工具：随时查看服务元数据、服务健康状态以及调用统计，实时下发路由策略、调度配置参数。</li>
+</ol>
+</li>
+<li><p>dubbo架构</p>
+<p><img src="../../../image/image-20200523161523850.png" alt="image-20200523161523850" style="zoom:30%;"></p>
+<p><img src="../../../image/image-20200523161846866.png" alt="image-20200523161846866" style="zoom:50%;"></p>
+<p>以上两张图说明dubbo执行流程：</p>
+<ol>
+<li>dubbo容器启动后，provider将自己提供的服务注册到注册中心（注册中心便知道有哪些服务上线了）</li>
+<li>consumer启动后，从注册中心订阅需要的服务。</li>
+<li>注册中心以长连接的方式向consumer发送服务变更通知。</li>
+<li>consumer同步调用provider的服务（如果服务有多个节点，可通过负载均衡算法选择一个节点进行调用）</li>
+<li>consumer和provider会定期将调用信息（调用时间、调用服务信息）发送给监控中心</li>
+<li>Dubbo容器启动、服务生产者注册自己的服务、服务消费者从注册中心中订阅服务是在Dubbo应用启动时完成的；consumer调用provider是同步过程；注册中心向consumer发送服务变更通知是异步的；consumer和provider向监控中心发送信息是异步的。</li>
+</ol>
+<p>调用链整体展开：</p>
+<p><img src="../../../image/image-20200523162137463.png" alt="image-20200523162137463"></p>
+<p>下面这张图看起来有点复杂了..</p>
+<p><img src="../../../image/image-20200523162039246.png" alt="image-20200523162039246"></p>
+</li>
+<li><p>Dubbo配置的覆盖关系 (1):方法级优先、接口级次之，全局配置优先级最低。 (2):如果级别一样，则消费者优先，提供方次之。</p>
+</li>
+<li><p>dobbo高可用</p>
+<ol>
+<li>注册中心Zookeeper宕机，还可以消费Dubbo暴露的服务。</li>
+<li>Dubbo的监控中心宕机，不会影响Dubbo的正常使用，只是丢失了部分采样数据。</li>
+<li>数据库宕机后，注册中心仍然可以通过缓存提供服务列表查询，但是不能注册新的服务。</li>
+<li>注册中心集群的任意一个节点宕机，将自动切换到另外一台。</li>
+<li>注册中心全部宕机，服务提供者和消费者可以通过本地缓存通讯。</li>
+<li>服务提供者无状态，任意一台宕机后，不影响使用。 </li>
+<li>服务提供者全部宕机，服务消费者应用将无法使用，并且会无限次重连等待服务提供者恢复。</li>
+</ol>
+</li>
+<li><p>负载均衡策略</p>
+<ol>
+<li><p>【默认为随机】</p>
+</li>
+<li><p>基于<strong>权重的随机</strong>负载均衡：Random LoadBalance，比如orderService想要远程调用userService，而userService分别在三台机器上，我们可以给每台机器设置权重，比如三台机器的权重依次为100、200、50，则总权重为350，则选择第一台的概率就是100/350.</p>
+</li>
+<li><p>基于<strong>权重的轮询</strong>负载均衡：RoundRobin LoadBalance（可以理解为按照权重占比进行轮询。占比少的，当权重比较低时就不会再去权重低的机器上请求。如果某台机器性能一般，但权重占比高，就很可能卡在这里）</p>
+</li>
+<li><p>最少活跃数负载均衡：LeastActive LoadBalance，比如三台服务器上一次处理请求所花费的时间分别为100ms、1000ms、300ms，则这一次请求回去上一次处理请求时间最短的机器，所以这次一号服务器处理这次请求。</p>
+</li>
+<li><p>一致性Hash负载均衡：ConsistentHash LoadBalance</p>
+<p>原文：<a href="https://blog.csdn.net/revivedsun/java/article/details/71022871" target="_blank" rel="noopener">https://blog.csdn.net/revivedsun/java/article/details/71022871</a></p>
+<p>一致性Hash负载均衡涉及到两个主要的配置参数为hash.arguments 与hash.nodes。</p>
+<p>hash.arguments ： 当进行调用时候根据调用方法的哪几个参数生成key，并根据key来通过一致性hash算法来选择调用结点。例如调用方法invoke(String s1,String s2); 若hash.arguments为1(默认值)，则仅取invoke的参数1（s1）来生成hashCode。</p>
+<p>hash.nodes： 为结点的副本数。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">缺省只对第一个参数Hash，如果要修改，请配置</span><br><span class="line"><span class="tag">&lt;<span class="name">dubbo:parameter</span> <span class="attr">key</span>=<span class="string">"hash.arguments"</span> <span class="attr">value</span>=<span class="string">"0,1"</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">缺省用160份虚拟节点，如果要修改，请配置</span><br><span class="line"><span class="tag">&lt;<span class="name">dubbo:parameter</span> <span class="attr">key</span>=<span class="string">"hash.nodes"</span> <span class="attr">value</span>=<span class="string">"320"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>降级服务</p>
+<p>当服务器压力剧增的情况下，根据实际业务及流量，对一些服务和页面有策略地不处理或者换种简单的方式处理，从而释放服务器资源以保证核心交易正常或高效运行。</p>
+<ol>
+<li><p>mock=force:return+null:表示消费方对该服务的方法都返回null值，不发起远程调用。用来屏蔽不重要的服务不可用时对调用方的影响，可以直接在Dubbo客户端(localhost:7001)对服务消费者设置，屏蔽掉即可。</p>
+</li>
+<li><p>mock=fall:return+null:表示消费方对该服务的方法调用在失败后，再返回null，不抛出异常。用来容忍不重要服务不稳定时对调用方的影响，可以直接在Dubbo客户端(localhost:7001)对服务消费者设置，容错掉即可。</p>
+</li>
+</ol>
+</li>
+<li><p>集群容错</p>
+<ol>
+<li>Failover Cluster:失败自动切换，当出现失败，重试其他服务器。通常用于读操作，但重试会带来更长延迟。可通过retries=n来设置重试次数。</li>
+<li>Failfast Cluster:快速失败，只发起一次调用，失败立即报错。通常用于非幂等性的写操作，比如新增操作。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Forking Cluster:并行调用多个服务器，只要一个成功即返回。通常用于实时性要求较高的读操作，但需要浪费更多的服务资源。通过过fork=n设置最大并行数。</p>
+<ol start="4">
+<li>Broadcast Cluster:广播调用所有提供者，逐个调用，任意一台报错则报错，通常用于通知所有服务提供者更新缓存或日志等本地资源信息。</li>
+</ol>
+<ol start="8">
+<li><p><strong>远程调用细节</strong></p>
+<ol>
+<li>服务提供者暴露一个服务的概要过程<ol>
+<li>ServiceConfig引用对外提供服务的实现类ref，如GreetingServiceImpl</li>
+<li>通过ProxyFactory的实现类的getInvoker()方法使用ref生成一个AbstractProxyInvoker实例</li>
+<li>DubboProtocol的export方法，会启动NettyServer监听服务连接，并将服务注册到注册中心</li>
+</ol>
+</li>
+<li>服务方如何处理请求<ol>
+<li>NettyServer是一个Handler，接收到一个请求</li>
+<li>将请求派发到dubbo内部的业务线程池（默认线程模型为all，所有消息都派发给业务线程，包括请求事件、响应事件、连接事件、断开事件、心跳事件等，AllChannelHandler）</li>
+<li>调用到DubboProtocol的connected方法，触发AbstractProxyInvoker执行，有返回值的写入Channel</li>
+</ol>
+</li>
+<li>消费方启动流程<ol>
+<li>ReferenceConfig的get()触发，到init() -&gt; createProxy()，创建一个代理，处理类是DubboInvoker（共享同一台服务方机器的NettyClient），再包装上RegistryDirectory和Cluster，做路由、负载均衡和容错</li>
+</ol>
+</li>
+<li>服务消费者消费一个服务的概要过程<ol>
+<li>ReferenceConfig的init()方法调用Protocol实现类的refer()方法生成Invoker实例</li>
+<li>把Invoker转换为客户端需要的接口，如GreetingService，发生在ProxyFactory实现类的getProxy()方法中，主要是使用代理（对服务接口的调用转换为对Invoker的调用）</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>模块简单介绍</p>
+<ol>
+<li>业务线程、用户线程、io线程</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h2><h6 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h6><ol>
+<li>解耦</li>
+<li>异步</li>
+<li>削峰/限流</li>
+</ol>
+<h6 id="原理介绍-todo"><a href="#原理介绍-todo" class="headerlink" title="原理介绍 todo"></a>原理介绍 todo</h6><h6 id="如何保证RocketMQ-消息的顺序性，如何解决重复消费问题"><a href="#如何保证RocketMQ-消息的顺序性，如何解决重复消费问题" class="headerlink" title="如何保证RocketMQ 消息的顺序性，如何解决重复消费问题"></a>如何保证RocketMQ 消息的顺序性，如何解决重复消费问题</h6><p>针对kafka来说</p>
+<p>如何保证消息的顺序性：</p>
+<p>一个分区内的消息是顺序的</p>
+<p>一个主题的不同分区之间，消息不能保证有序</p>
+<p>– 对同一类消息指定相同的key，相同的key会哈希到同一个分区，这样可以保证这部分消息的有序性</p>
+<p><a href="https://www.cnblogs.com/756623607-zhang/p/10506909.html" target="_blank" rel="noopener">https://www.cnblogs.com/756623607-zhang/p/10506909.html</a></p>
+<p>如何解决重复消费：</p>
+<ol>
+<li><p>kafka自带的消费机制</p>
+<p>consumer消费后，会定期将消费过的offset偏移量提交给broker。如果consumer重启，会继续上次的offset开始消费。</p>
+</li>
+<li><p>业务上保证幂等性</p>
+<p>如果进程挂了或机器宕机，没来得及提交offset，需要业务上进行幂等。</p>
+<p>比如建立一张消息表。</p>
+<ol>
+<li><p>生产者，发送消息前判断库中是否有记录（有记录说明已发送），没有记录，先入库，状态为待消费，然后发送消息并把主键id带上。</p>
+</li>
+<li><p>消费者，接收消息，通过主键ID查询记录表，判断消息状态是否已消费。若没消费过，则处理消息，处理完后，更新消息记录的状态为已消费。</p>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="MyBatis"><a href="#MyBatis" class="headerlink" title="MyBatis"></a>MyBatis</h2><h6 id="MyBatis，Mybatis与Spring"><a href="#MyBatis，Mybatis与Spring" class="headerlink" title="MyBatis，Mybatis与Spring"></a>MyBatis，Mybatis与Spring</h6><p>MyBatis 消除了大部分 JDBC 的样板代码、手动设置参数以及检索结果。<strong>通过简洁的设计最大限度地简化开发和提升性能。</strong></p>
+<p>解除SQL与程序代码的耦合，通过提供dao层，将业务逻辑和数据访问逻辑分离开。设计更清晰，更易维护。</p>
+<p>MyBatis整体架构</p>
+<p><img src="../../../image/image-20200708153303235.png" alt="image-20200708153303235"></p>
+<p>MyBatis层级结构</p>
+<p><img src="../../../image/image-20200708153220904.png" alt="image-20200708153220904"></p>
+<p>裸用<code>sqlSession</code>是上面的红框</p>
+<p>spring用mapper/dao接口代理，本质上是一个MapperProxy，从下面的红框开始执行</p>
+<p><img src="../../../image/image-20200708201723303.png" alt="image-20200708201723303"></p>
+<p>spring事务是在哪个环节起作用？</p>
+<p><a href="https://mybatis.org/spring/zh/transactions.html" target="_blank" rel="noopener">https://mybatis.org/spring/zh/transactions.html</a></p>
+<blockquote>
+<p>一个使用 MyBatis-Spring 的其中一个主要原因是它允许 MyBatis 参与到 Spring 的事务管理中。而不是给 MyBatis 创建一个新的专用事务管理器，MyBatis-Spring 借助了 Spring 中的 DataSourceTransactionManager 来实现事务管理。</p>
+<p>一旦配置好了 Spring 的事务管理器，你就可以在 Spring 中按你平时的方式来配置事务。并且支持 @Transactional 注解和 AOP 风格的配置。在事务处理期间，一个单独的 <code>SqlSession</code> 对象将会被创建和使用。当事务完成时，这个 session 会以合适的方式提交或回滚。</p>
+<p>事务配置好了以后，MyBatis-Spring 将会透明地管理事务。</p>
+</blockquote>
+<p>所以，最外层是事务，每个事务会起一个<code>SqlSession</code>。</p>
+<p>几篇文章：</p>
+<p>入门，裸用mybatis：<a href="https://juejin.im/post/5aa5c6fb5188255587232e5a#heading-0" target="_blank" rel="noopener">https://juejin.im/post/5aa5c6fb5188255587232e5a#heading-0</a></p>
+<p>mybatis执行，包括整合spring后的流程：<a href="https://juejin.im/post/5e350d895188254dfd43def5#heading-9" target="_blank" rel="noopener">https://juejin.im/post/5e350d895188254dfd43def5#heading-9</a></p>
+<p>关于JDBC：<a href="https://juejin.im/post/5c75e6666fb9a049cd54dc88" target="_blank" rel="noopener">https://juejin.im/post/5c75e6666fb9a049cd54dc88</a></p>
+<p>Mybatis和spring整合的使用：<a href="https://juejin.im/post/5cdfed6ef265da1b6720dcaf" target="_blank" rel="noopener">https://juejin.im/post/5cdfed6ef265da1b6720dcaf</a></p>
+<p>mybatis框架说明：</p>
+<p>整体执行流程说明：</p>
+<p>sqlSession执行流程说明：</p>
+<p>关键流程（以下整个可以看成裸用MyBatis的执行流程）</p>
+<p>config文件加载：解析xml文件配置项</p>
+<p>mapper文件加载：上一个流程中的一个环节，解析完后封装成MappedStatement，存入configuration</p>
+<p>SqlSource创建流程：上一流程的一个环节，SqlSource是MappedStatement的一部分，主要存放sql和占位的参数名称</p>
+<p>– 解析环节结束</p>
+<p>SqlSession执行流程：<code>sqlSessionFactory.openSession</code>主要是建立了一个和数据库的连接connection</p>
+<p>获取BoundSql流程：<code>sqlSession.xx</code>方法执行时，需要获取BoundSql，BoundSql本质上是SqlSource和执行请求的入参的一个组合</p>
+<p>参数映射流程：根据顺序，或者根据名称（只是大略看了一眼）</p>
+<p>结果集映射流程：根据名称（只是大略看了一眼）</p>
+<p>mybatis的openSession默认开启事务，autocommit为false，隔离级别为null</p>
+<p>mybatis的JdbcTransaction</p>
+<p><img src="../../../image/image-20200710111527094.png" alt="image-20200710111527094"></p>
+<p>整合spring的几个组件</p>
+<p><code>org.mybatis.spring.SqlSessionFactoryBean</code> 注入sqlSessionFactory</p>
+<p><code>org.mybatis.spring.mapper.MapperScannerConfigurer</code>扫描指定包</p>
+<ol>
+<li>将包下class文件加入到beanDefinition中，bean类型指定为MapperFactoryBean</li>
+<li>SqlSessionFactoryBean构建sqlSessionFactory时，扫描mapper xml文件，根据namespace在MapperRegistry中注入对应mapper接口的MapperProxyFactory</li>
+<li>MapperFactoryBean-&gt;getObject中生成mapper的代理类MapperProxy（通过MapperFactoryBean中的interface，即mapper的namespace找到MapperProxyFactory，再生产出代理类）</li>
+</ol>
+<p>以下大概知道了</p>
+<p>现在差一个中间环节，mapper的beanDefinition怎么变成MapperProxy..以及MapperFactoryBean的作用</p>
+<p>还有个SqlSessionTemplate：<a href="https://juejin.im/post/5cea1f386fb9a07ea803a70e" target="_blank" rel="noopener">https://juejin.im/post/5cea1f386fb9a07ea803a70e</a></p>
+<p>还有MapperProxyFactory – 来创建MapperProxy</p>
+<p>Java动态代理：<a href="https://juejin.im/post/5c1ca8df6fb9a049b347f55c" target="_blank" rel="noopener">https://juejin.im/post/5c1ca8df6fb9a049b347f55c</a></p>
+<p>MapperFactoryBean</p>
+<p>MapperProxy</p>
+<p>MapperMethod – 到这里之后，流程就转到sqlSession.selectOne之类的了</p>
+<p>Mybatis缓存</p>
+<p><a href="https://juejin.im/post/5e81fb126fb9a03c546c22bb" target="_blank" rel="noopener">https://juejin.im/post/5e81fb126fb9a03c546c22bb</a></p>
+<p>MyBatis 系统中默认定义了两级缓存：<strong>一级缓存</strong>和<strong>二级缓存</strong> </p>
+<ul>
+<li>默认情况下，只有一级缓存开启。（SqlSession级别的缓存，也称为本地缓存） </li>
+<li>二级缓存需要手动开启和配置，它是基于 namespace 级别的缓存，缓存只作用于 cache 标签所在的映射文件中的语句。</li>
+</ul>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h6 id="Protocol的适配器类"><a href="#Protocol的适配器类" class="headerlink" title="Protocol的适配器类"></a>Protocol的适配器类</h6><p><code>jad org.apache.dubbo.rpc.Protocol$Adaptive</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">ClassLoader:</span><br><span class="line">+-sun.misc.Launcher$AppClassLoader@<span class="number">18</span>b4aac2</span><br><span class="line">  +-sun.misc.Launcher$ExtClassLoader@<span class="number">737996</span>a0</span><br><span class="line"></span><br><span class="line">Location:</span><br><span class="line">/github/learn/dubbo2/dubbo/dubbo-common/target/classes/</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Decompiled with CFR.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Could not load the following classes:</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.common.URL</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.common.extension.ExtensionLoader</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.rpc.Exporter</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.rpc.Invoker</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.rpc.Protocol</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.rpc.RpcException</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">package</span> org.apache.dubbo.rpc;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.common.URL;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.common.extension.ExtensionLoader;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.rpc.Exporter;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.rpc.Invoker;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.rpc.Protocol;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.rpc.RpcException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Protocol</span>$<span class="title">Adaptive</span></span></span><br><span class="line"><span class="class"><span class="keyword">implements</span> <span class="title">Protocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"The method public abstract void org.apache.dubbo.rpc.Protocol.destroy() of interface org.apache.dubbo.rpc.Protocol is not adaptive method!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getDefaultPort</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"The method public abstract int org.apache.dubbo.rpc.Protocol.getDefaultPort() of interface org.apache.dubbo.rpc.Protocol is not adaptive method!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List <span class="title">getServers</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">"The method public default java.util.List org.apache.dubbo.rpc.Protocol.getServers() of interface org.apache.dubbo.rpc.Protocol is not adaptive method!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 自适配方法1</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Invoker <span class="title">refer</span><span class="params">(Class class_, URL uRL)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">        String string;</span><br><span class="line">        <span class="keyword">if</span> (uRL == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"url == null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        URL uRL2 = uRL;</span><br><span class="line">        String string2 = string = uRL2.getProtocol() == <span class="keyword">null</span> ? <span class="string">"dubbo"</span> : uRL2.getProtocol();</span><br><span class="line">        <span class="keyword">if</span> (string == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="keyword">new</span> StringBuffer().append(<span class="string">"Failed to get extension (org.apache.dubbo.rpc.Protocol) name from url ("</span>).append(uRL2.toString()).append(<span class="string">") use keys([protocol])"</span>).toString());</span><br><span class="line">        &#125;</span><br><span class="line">        Protocol protocol = (Protocol)ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(string);</span><br><span class="line">        <span class="keyword">return</span> protocol.refer(class_, uRL);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 自适配方法2</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Exporter <span class="title">export</span><span class="params">(Invoker invoker)</span> <span class="keyword">throws</span> RpcException </span>&#123;</span><br><span class="line">        String string;</span><br><span class="line">        <span class="keyword">if</span> (invoker == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"org.apache.dubbo.rpc.Invoker argument == null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (invoker.getUrl() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"org.apache.dubbo.rpc.Invoker argument getUrl() == null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        URL uRL = invoker.getUrl();</span><br><span class="line">        String string2 = string = uRL.getProtocol() == <span class="keyword">null</span> ? <span class="string">"dubbo"</span> : uRL.getProtocol();</span><br><span class="line">        <span class="keyword">if</span> (string == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="keyword">new</span> StringBuffer().append(<span class="string">"Failed to get extension (org.apache.dubbo.rpc.Protocol) name from url ("</span>).append(uRL.toString()).append(<span class="string">") use keys([protocol])"</span>).toString());</span><br><span class="line">        &#125;</span><br><span class="line">        Protocol protocol = (Protocol)ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(string);</span><br><span class="line">        <span class="keyword">return</span> protocol.export(invoker);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="服务方Service的代理封装"><a href="#服务方Service的代理封装" class="headerlink" title="服务方Service的代理封装"></a>服务方Service的代理封装</h6><p><code>jad org.apache.dubbo.common.bytecode.Wrapper1</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line">ClassLoader:</span><br><span class="line">+-sun.misc.Launcher$AppClassLoader@<span class="number">18</span>b4aac2</span><br><span class="line">  +-sun.misc.Launcher$ExtClassLoader@<span class="number">737996</span>a0</span><br><span class="line"></span><br><span class="line">Location:</span><br><span class="line">/github/learn/dubbo2/dubbo/dubbo-common/target/classes/</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Decompiled with CFR.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Could not load the following classes:</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.common.bytecode.ClassGenerator$DC</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.common.bytecode.NoSuchMethodException</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.common.bytecode.NoSuchPropertyException</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.common.bytecode.Wrapper</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.demo.PoJo</span></span><br><span class="line"><span class="comment"> *  org.apache.dubbo.demo.provider.HelloServiceImpl</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">package</span> org.apache.dubbo.common.bytecode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.common.bytecode.ClassGenerator;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.common.bytecode.NoSuchMethodException;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.common.bytecode.NoSuchPropertyException;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.common.bytecode.Wrapper;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.demo.PoJo;</span><br><span class="line"><span class="keyword">import</span> org.apache.dubbo.demo.provider.HelloServiceImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Wrapper1</span></span></span><br><span class="line"><span class="class"><span class="keyword">extends</span> <span class="title">Wrapper</span></span></span><br><span class="line"><span class="class"><span class="keyword">implements</span> <span class="title">ClassGenerator</span>.<span class="title">DC</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String[] pns;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map pts;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String[] mns;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String[] dmns;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Class[] mts0;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Class[] mts1;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String[] getPropertyNames() &#123;</span><br><span class="line">        <span class="keyword">return</span> pns;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasProperty</span><span class="params">(String string)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> pts.containsKey(string);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Class <span class="title">getPropertyType</span><span class="params">(String string)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Class)pts.get(string);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String[] getMethodNames() &#123;</span><br><span class="line">        <span class="keyword">return</span> mns;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String[] getDeclaredMethodNames() &#123;</span><br><span class="line">        <span class="keyword">return</span> dmns;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPropertyValue</span><span class="params">(Object object, String string, Object object2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            HelloServiceImpl helloServiceImpl = (HelloServiceImpl)object;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable throwable) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(throwable);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchPropertyException(<span class="keyword">new</span> StringBuffer().append(<span class="string">"Not found property \""</span>).append(string).append(<span class="string">"\" field or setter method in class org.apache.dubbo.demo.provider.HelloServiceImpl."</span>).toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getPropertyValue</span><span class="params">(Object object, String string)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            HelloServiceImpl helloServiceImpl = (HelloServiceImpl)object;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable throwable) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(throwable);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchPropertyException(<span class="keyword">new</span> StringBuffer().append(<span class="string">"Not found property \""</span>).append(string).append(<span class="string">"\" field or getter method in class org.apache.dubbo.demo.provider.HelloServiceImpl."</span>).toString());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 核心在这里</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invokeMethod</span><span class="params">(Object object, String string, Class[] arrclass, Object[] arrobject)</span> <span class="keyword">throws</span> InvocationTargetException </span>&#123;</span><br><span class="line">        HelloServiceImpl helloServiceImpl;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            helloServiceImpl = (HelloServiceImpl)object;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable throwable) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(throwable);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">"testGeneric"</span>.equals(string) &amp;&amp; arrclass.length == <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> helloServiceImpl.testGeneric((PoJo)arrobject[<span class="number">0</span>]);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">"sayHello"</span>.equals(string) &amp;&amp; arrclass.length == <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> helloServiceImpl.sayHello((String)arrobject[<span class="number">0</span>]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Throwable throwable) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> InvocationTargetException(throwable);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchMethodException(<span class="keyword">new</span> StringBuffer().append(<span class="string">"Not found method \""</span>).append(string).append(<span class="string">"\" in class org.apache.dubbo.demo.provider.HelloServiceImpl."</span>).toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="ExtensionLoader和getAdaptiveExtension"><a href="#ExtensionLoader和getAdaptiveExtension" class="headerlink" title="ExtensionLoader和getAdaptiveExtension"></a>ExtensionLoader和getAdaptiveExtension</h6><ol>
+<li><p>ExtensionLoader缓存了每种组件的名称-实例映射</p>
+</li>
+<li><p>组件适配器xx$Adaptive从相应的ExtensionLoader中取需要的实例</p>
+</li>
+</ol>
+</div><div class="tags"></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2020/07/28/technology/01数据库/" class="pre">数据库</a><a href="/2020/07/23/汇总的汇总/" class="next">汇总的汇总</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring-amp-SpringMVC"><span class="toc-text">Spring&amp;SpringMVC</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#请详细描述springmvc处理请求全流程？"><span class="toc-text">请详细描述springmvc处理请求全流程？</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#ioc原理、aop原理和应用"><span class="toc-text">ioc原理、aop原理和应用</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#spring-事务实现"><span class="toc-text">spring 事务实现</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#spring的循环依赖如何解决？为什么要三级缓存？"><span class="toc-text">spring的循环依赖如何解决？为什么要三级缓存？</span></a></li></ol></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper"><span class="toc-text">Zookeeper</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#zk挂了怎么办？-todo"><span class="toc-text">zk挂了怎么办？ todo</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dubbo-amp-Netty-amp-RPC"><span class="toc-text">Dubbo&amp;Netty&amp;RPC</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#RPC"><span class="toc-text">RPC</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#netty-理解netty"><span class="toc-text">netty 理解netty</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#dubbo"><span class="toc-text">dubbo</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#消息队列"><span class="toc-text">消息队列</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#作用"><span class="toc-text">作用</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#原理介绍-todo"><span class="toc-text">原理介绍 todo</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#如何保证RocketMQ-消息的顺序性，如何解决重复消费问题"><span class="toc-text">如何保证RocketMQ 消息的顺序性，如何解决重复消费问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MyBatis"><span class="toc-text">MyBatis</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#MyBatis，Mybatis与Spring"><span class="toc-text">MyBatis，Mybatis与Spring</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#附录"><span class="toc-text">附录</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#Protocol的适配器类"><span class="toc-text">Protocol的适配器类</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#服务方Service的代理封装"><span class="toc-text">服务方Service的代理封装</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#ExtensionLoader和getAdaptiveExtension"><span class="toc-text">ExtensionLoader和getAdaptiveExtension</span></a></li></ol></li></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/国际-国内行业分析统计/">国际&国内行业分析统计</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java-Lambda的实现原理/">Java-Lambda的实现原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java动态代理/">Java动态代理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/06/关于中台/">关于中台</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/05/国内外大厂发展史/">国内外大厂发展史</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何构建笔记系统/">如何构建笔记系统</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何阅读一本书/">如何阅读一本书</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/03/广告行业入门/">广告行业入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/技术栈Notes/">技术栈Notes</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/Learning-English/">Learning English</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/INBOX/">INBOX</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/KNOWLEDGE/">KNOWLEDGE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/netty/">netty</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/netty/java-nio/">java nio</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/架构学习/">架构学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/COLA/" style="font-size: 15px;">COLA</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/Java并发/" style="font-size: 15px;">Java并发</a> <a href="/tags/INBOX/" style="font-size: 15px;">INBOX</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Lambda/" style="font-size: 15px;">Lambda</a> <a href="/tags/KNOWLEDGE/" style="font-size: 15px;">KNOWLEDGE</a> <a href="/tags/动态代理/" style="font-size: 15px;">动态代理</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/PropertyPlaceholderConfigurer/" style="font-size: 15px;">PropertyPlaceholderConfigurer</a> <a href="/tags/SpringMVC/" style="font-size: 15px;">SpringMVC</a> <a href="/tags/web/" style="font-size: 15px;">web</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/nio/" style="font-size: 15px;">nio</a> <a href="/tags/netty/" style="font-size: 15px;">netty</a> <a href="/tags/通信/" style="font-size: 15px;">通信</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/swagger/" style="font-size: 15px;">swagger</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/广告行业/" style="font-size: 15px;">广告行业</a> <a href="/tags/消息中间件/" style="font-size: 15px;">消息中间件</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/Java虚拟机/" style="font-size: 15px;">Java虚拟机</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a> <a href="/tags/Java容器/" style="font-size: 15px;">Java容器</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>

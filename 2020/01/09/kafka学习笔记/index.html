@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>kafka学习笔记 | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">kafka学习笔记</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">kafka学习笔记</h1><div class="post-meta"><a href="/2020/01/09/kafka学习笔记/#comments" class="comment-count"></a><p><span class="date">Jan 09, 2020</span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><h1 id="深入理解Kafka"><a href="#深入理解Kafka" class="headerlink" title="深入理解Kafka"></a>深入理解Kafka</h1><p>——核心设计与实践原理 朱忠华</p>
+<h2 id="第4章-主题与分区"><a href="#第4章-主题与分区" class="headerlink" title="第4章 主题与分区"></a>第4章 主题与分区</h2><p>主题作为消息的归类，可以再细分为一个或多个分区，分区可看做对消息的二次归类。</p>
+<p>分区为kafka提供了可伸缩性、水平扩展的功能，还通过副本机制提供数据冗余来提高数据可靠性。</p>
+<p>主题和分区都是逻辑上的概念。分区有一个至多个副本，每个副本对应一个日志文件，每个日志文件对应一个或多个日志分段（LogSegment），每个日志分段细分为索引文件、日志存储文件和快照文件等。</p>
+<h3 id="4-1-主题的管理"><a href="#4-1-主题的管理" class="headerlink" title="4.1 主题的管理"></a>4.1 主题的管理</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-topics.sh --zookeeper locakhost:2181/kafka --create --topic topic-create --partitions 4 --replication-factor 2</span><br></pre></td></tr></table></figure>
+<p>（启动三个broker/节点node的集群后）创建分区数为4、副本因子为2的主题，会在3个节点上共创建8个文件夹=分区数4*副本因子2</p>
+<p>副本与日志一一对应，每个副本对应一个命名形式如<code>&lt;topic&gt;-&lt;partition&gt;</code>的文件夹</p>
+<p>同一个分区的多个副本必须分布在不同的broker中，才能提供有效的数据冗余</p>
+<p><img src="../../image/image-20200109120448417.png" alt="image-20200109120448417"></p>
+<h3 id="4-2-初识KafkaAdminClient"><a href="#4-2-初识KafkaAdminClient" class="headerlink" title="4.2 初识KafkaAdminClient"></a>4.2 初识KafkaAdminClient</h3><h3 id="4-3-分区的管理"><a href="#4-3-分区的管理" class="headerlink" title="4.3 分区的管理"></a>4.3 分区的管理</h3><p>只有leader副本对外提供读写服务，follower副本只负责在内部进行消息的同步。</p>
+<h2 id="第5章-日志存储"><a href="#第5章-日志存储" class="headerlink" title="第5章 日志存储"></a>第5章 日志存储</h2><h3 id="5-1-文件目录布局"><a href="#5-1-文件目录布局" class="headerlink" title="5.1 文件目录布局"></a>5.1 文件目录布局</h3><p>物理上的形式：</p>
+<ol>
+<li><p>日志（对应于一个副本）Log是一个文件夹</p>
+</li>
+<li><p>日志段LogSegment是一个日志文件和两个索引文件，以及可能的其他文件（比如以“.txnindex”为后缀的事务索引文件）</p>
+<p><img src="../../image/image-20200109143542736.png" alt="image-20200109143542736"></p>
+<p><img src="../../image/image-20200110115632764.png" alt="image-20200110115632764"></p>
+</li>
+</ol>
+<h3 id="5-2-日志格式的演变"><a href="#5-2-日志格式的演变" class="headerlink" title="5.2 日志格式的演变"></a>5.2 日志格式的演变</h3><p>### </p>
+<p>v1比v0在RECORD中加了timestamp字段，占8B(字节)</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>v0</th>
+<th>V1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LOG_OVERHEAD日志头部</td>
+<td>12B</td>
+<td>12B</td>
+</tr>
+<tr>
+<td>RECORD_OVERHEAD_V0 消息最小长度</td>
+<td>14B</td>
+<td></td>
+</tr>
+<tr>
+<td>RECORD_OVERHEAD_V1</td>
+<td></td>
+<td>22B</td>
+</tr>
+</tbody>
+</table>
+<h3 id="5-3-日志索引"><a href="#5-3-日志索引" class="headerlink" title="5.3 日志索引"></a>5.3 日志索引</h3><h4 id="5-3-1-偏移量索引"><a href="#5-3-1-偏移量索引" class="headerlink" title="5.3.1 偏移量索引"></a>5.3.1 偏移量索引</h4><p>（1）relativeOffset：相对偏移量，相对于baseOffset（索引文件文件名）的偏移量，4个字节 </p>
+<p>（2）position：物理地址，消息在日志分段文件中对应的物理地址，4个字节</p>
+<p><img src="../../image/image-20200110114915258.png" alt="image-20200110114915258"></p>
+<p>查找时，先通过<strong>二分法</strong>在偏移量索引中找到不大于给定偏移量的最大索引项，再从对应的日志分段的物理位置开始<strong>顺序查找</strong>给定偏移量对应的消息。</p>
+<p>用跳跃表的结构，查找对应的偏移量索引文件。</p>
+<h4 id="5-3-2时间戳索引"><a href="#5-3-2时间戳索引" class="headerlink" title="5.3.2时间戳索引"></a>5.3.2时间戳索引</h4><p>每个索引项12字节</p>
+<p>（1）timestamp：当前日志分段最大的时间戳。—–没太理解？</p>
+<p>（2）relativeOffset：时间戳所对应的消息的相对偏移量。</p>
+<p><img src="../../image/image-20200110144142268.png" alt="image-20200110144142268"></p>
+<p>时间戳索引文件中包含若干时间戳索引项，每个追加的时间戳索引项中的timestamp 必须大于之前追加的索引项的 timestamp，否则不予追加。</p>
+<p>这部分没太看懂 = =</p>
+<p><img src="../../image/image-20200110144417507.png" alt="image-20200110144417507"></p>
+<h3 id="5-4-日志清理"><a href="#5-4-日志清理" class="headerlink" title="5.4 日志清理"></a>5.4 日志清理</h3><h4 id="5-4-1-日志删除"><a href="#5-4-1-日志删除" class="headerlink" title="5.4.1 日志删除"></a>5.4.1 日志删除</h4><p>有专门的日志删除任务，定期（默认为5分钟，300000ms）检测和删除不符合保留条件的日志分段文件</p>
+<p>3种保留策略：</p>
+<ol>
+<li>基于时间：默认情况下日志分段文件的保留时间为7天</li>
+<li>基于日志大小</li>
+<li>基于日志起始偏移量</li>
+</ol>
+<h4 id="5-4-2-日志压缩"><a href="#5-4-2-日志压缩" class="headerlink" title="5.4.2 日志压缩"></a>5.4.2 日志压缩</h4><p>LogCompaction对于有相同key的不同value值，只保留最后一个版本。</p>
+<p>如果应用只关心key对应的最新value值，则可以开启Kafka的日志清理功能。</p>
+<h3 id="5-5-磁盘存储"><a href="#5-5-磁盘存储" class="headerlink" title="5.5 磁盘存储"></a>5.5 磁盘存储</h3><p>顺序写盘的速度比随机写盘快，也比随机写内存快。</p>
+<p><img src="../../image/image-20200113163104430.png" alt="image-20200113163104430"></p>
+<h4 id="5-5-1-页缓存"><a href="#5-5-1-页缓存" class="headerlink" title="5.5.1 页缓存"></a>5.5.1 页缓存</h4><blockquote>
+<p>当一个进程准备读取磁盘上的文件内容时，操作系统会先查看待读取的数据所在的页（page）是否在页缓存（pagecache）中，如果存在（命中）则直接返回数据，从而避免了对物理磁盘的 I/O 操作；如果没有命中，则操作系统会向磁盘发起读取请求并将读取的数据页存入页缓存，之后再将数据返回给进程。同样，如果一个进程需要将数据写入磁盘，那么操作系统也会检测数据对应的页是否在页缓存中，如果不存在，则会先在页缓存中添加相应的页，最后将数据写入对应的页。被修改过后的页也就变成了脏页，操作系统会在合适的时间把脏页中的数据写入磁盘，以保持数据的一致性。</p>
+</blockquote>
+<p>使用页缓存的原因：</p>
+<ol>
+<li>对象的内存开销非常大，通常是实际数据的几倍或者更多，空间使用率低；</li>
+<li>Java垃圾回收会随着堆数据的增多而越来越慢。</li>
+</ol>
+<p>因此，使用文件系统并依赖于页缓存的做法优于维护一个进程内缓存或者其他结构：</p>
+<ol>
+<li>可以省去进程内的缓存消耗</li>
+<li>可以通过结构紧凑的字节码（比之对象）来节省空间</li>
+<li>即使服务器重启，页缓存还是有效的，无需重建（进程内缓存需要重建）</li>
+<li>整体上简化逻辑，将维护页缓存和文件之间的一致交由操作系统来负责，比进程内维护更加安全有效</li>
+</ol>
+<h4 id="5-5-2-磁盘I-O流程"><a href="#5-5-2-磁盘I-O流程" class="headerlink" title="5.5.2 磁盘I/O流程"></a>5.5.2 磁盘I/O流程</h4><p><img src="../../image/image-20200113165300567.png" alt="image-20200113165300567"></p>
+<p>4种IO调度策略：</p>
+<ol>
+<li>NOOP: no operation, FIFO队列+相邻IO请求合并</li>
+<li>CFQ：Completely Fair Queuing，按照IO请求的地址进行排序。先来的io请求可能会被“饿死”。</li>
+<li>DEADLINE：在CFQ基础上解决饿死情况，分别为读IO和写IO提供FIFO队列，有等待时长（读500ms，写5s）和优先级区别，FIFO(read)&gt;fifo(write)&gt;cfq</li>
+<li>ANTICIPATORY：在DEADLINE的基础上，为每个读I/O都设置了6ms的等待时间窗口。如果在6ms内OS收到了相邻位置的读I/O请求，就可以立即满足</li>
+</ol>
+<p>从文件系统层面分析，Kafka 操作的都是普通文件，并没有依赖于特定的文件系统，但是依然推荐使用EXT4或XFS。</p>
+<h4 id="5-5-3-零拷贝"><a href="#5-5-3-零拷贝" class="headerlink" title="5.5.3 零拷贝"></a>5.5.3 零拷贝</h4><blockquote>
+<p>所谓的零拷贝是指将数据直接从磁盘文件复制到网卡设备中，而不需要经由应用程序之手。</p>
+<p>零拷贝技术通过DMA（Direct Memory Access）技术将文件内容复制到内核模式下的Read Buffer 中。不过没有数据被复制到 Socket Buffer，相反只有包含数据的位置和长度的信息的文件描述符被加到Socket Buffer中。DMA引擎直接将数据从内核模式中传递到网卡设备（协议引擎）。</p>
+<p>零拷贝是针对内核模式而言的，数据在内核模式下实现了零拷贝。</p>
+</blockquote>
+<p><img src="../../image/image-20200113172305381.png" alt="image-20200113172305381"></p>
+<p><img src="../../image/image-20200113172329730.png" alt="image-20200113172329730"></p>
+<h2 id="第6章-深入服务端"><a href="#第6章-深入服务端" class="headerlink" title="第6章 深入服务端"></a>第6章 深入服务端</h2><h3 id="6-1-协议设计"><a href="#6-1-协议设计" class="headerlink" title="6.1 协议设计"></a>6.1 协议设计</h3><h1 id="Apache-Kafka"><a href="#Apache-Kafka" class="headerlink" title="Apache Kafka"></a>Apache Kafka</h1><p>官网：<a href="https://kafka.apache.org/intro" target="_blank" rel="noopener">https://kafka.apache.org/intro</a></p>
+<p>中文官网：<a href="http://kafka.apachecn.org/intro.html" target="_blank" rel="noopener">http://kafka.apachecn.org/intro.html</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Apache kafka是一个分布式流处理平台。</p>
+<p>特性：</p>
+<ol>
+<li>发布订阅流式记录，类似于消息队列或企业级消息系统。</li>
+<li>存储流式的记录，有较好容错性。</li>
+<li>在流式记录产生时就可以进行处理。</li>
+</ol>
+<p>应用：</p>
+<ol>
+<li>构造实时流数据管道（消息队列）</li>
+<li>构建实时流式应用程序，转换或响应流数据（流处理，kafka stream topic和topic—流处理不太了解）</li>
+</ol>
+<p>概念：</p>
+<ol>
+<li>kafka运行在集群（一个或多个服务器）上，可跨越多个数据中心</li>
+<li>kafka集群通过topic对消息分类</li>
+<li>每条消息包含一个key，一个value，一个timestamp</li>
+</ol>
+<p>四个核心api</p>
+<ol>
+<li><p>producer api 允许发布一串流式的数据到一个或多个主题</p>
+</li>
+<li><p>Consumer api 允许应用程序订阅一个或多个主题，并对发布给他们的流式数据进行处理</p>
+</li>
+<li><p>streams api 允许一个应用程序作为流处理器，消费一个或多个主题产生的输入流，然后生产一个输出流到一个或多个主题中去。在输入输出流中进行有效的转换。</p>
+</li>
+<li><p>connector api–不太了解</p>
+<ol>
+<li>原文：允许构建并运行可重用的生产者或者消费者，将Kafka topics连接到已存在的应用程序或者数据系统。比如，连接到一个关系型数据库，捕捉表（table）的所有变更内容。</li>
+</ol>
+</li>
+</ol>
+<h2 id="Topics和日志"><a href="#Topics和日志" class="headerlink" title="Topics和日志"></a>Topics和日志</h2><p>kafka中的topics总是多订阅者模式，一个topic可以有一个或多个消费者来订阅数据。</p>
+<p>对每个主题，kafka都会维护一个分区日志：</p>
+<p><img src="../../image/image-20200108194432350.png" alt="image-20200108194432350"></p>
+<p>每一个topic有多个分区，<strong>每个分区都是有序且顺序不可变的记录集</strong>。</p>
+<p>分区表示记录顺序的标号叫offset（偏移量），唯一标识分区中的每一条记录。</p>
+<p>记录不会因为被消费过就被集群删掉，而是通过保留期限这个参数控制的。保留期限内可随时被消费，过期后会被抛弃并释放磁盘空间。kafka的性能在数据大小方面是稳定的，所以长时间存储数据不是问题。</p>
+<p>另一反面，消费者唯一保持的元数据是offset，即消费在log中的位置，由消费者自己控制。（可以任意修改offset的值，消费已消费的、或者跳过某些消息）</p>
+<p>日志分区的作用：</p>
+<ol>
+<li>当日志大小超过单台服务器的限制，允许日志进行扩展。（可以处理无限量的数据）</li>
+<li>可以作为并行的单元集</li>
+</ol>
+<h1 id="Apache-Kafka工作原理介绍–博客"><a href="#Apache-Kafka工作原理介绍–博客" class="headerlink" title="Apache Kafka工作原理介绍–博客"></a>Apache Kafka工作原理介绍–博客</h1><p>原文地址：<a href="https://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.htmlhttps://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.htmlhttps://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html</a></p>
+<h2 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h2><p>Broker: kafka集群包含一个或多个服务器，服务器称为broker</p>
+<p>Topic: 每条发布到kafka集群的消息都有一个类别，这个类别称为topic（物理上可能分开存储，用户不必关心）</p>
+<p>Partition：物理上的概念，每个topic包含一个或多个Partition</p>
+<p>Producer：生产者，发布消息到broker</p>
+<p>Consumer：消费者，从broker读取消息</p>
+<p>Consumer Group：每个Consumer属于一个特定的组（可为每个Consumer指定group name，不指定group name则属于默认的group）</p>
+<p>kafka交互流程</p>
+<p>每个消息只会发送给群组中的一个消费者，有相同键值的消息都会被确保发给这一个消费者。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ol>
+<li>Consumer group做什么用？为什么要设计组这个概念？</li>
+</ol>
+</div><div class="tags"></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2020/04/02/Java-JUC/" class="pre">Java-JUC</a><a href="/2020/01/09/规划/" class="next">复习规划</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#深入理解Kafka"><span class="toc-text">深入理解Kafka</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#第4章-主题与分区"><span class="toc-text">第4章 主题与分区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-主题的管理"><span class="toc-text">4.1 主题的管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-初识KafkaAdminClient"><span class="toc-text">4.2 初识KafkaAdminClient</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-分区的管理"><span class="toc-text">4.3 分区的管理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第5章-日志存储"><span class="toc-text">第5章 日志存储</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-文件目录布局"><span class="toc-text">5.1 文件目录布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-日志格式的演变"><span class="toc-text">5.2 日志格式的演变</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-日志索引"><span class="toc-text">5.3 日志索引</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-1-偏移量索引"><span class="toc-text">5.3.1 偏移量索引</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-2时间戳索引"><span class="toc-text">5.3.2时间戳索引</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-日志清理"><span class="toc-text">5.4 日志清理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-4-1-日志删除"><span class="toc-text">5.4.1 日志删除</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-4-2-日志压缩"><span class="toc-text">5.4.2 日志压缩</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-磁盘存储"><span class="toc-text">5.5 磁盘存储</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-5-1-页缓存"><span class="toc-text">5.5.1 页缓存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-5-2-磁盘I-O流程"><span class="toc-text">5.5.2 磁盘I/O流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-5-3-零拷贝"><span class="toc-text">5.5.3 零拷贝</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第6章-深入服务端"><span class="toc-text">第6章 深入服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-协议设计"><span class="toc-text">6.1 协议设计</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Apache-Kafka"><span class="toc-text">Apache Kafka</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#介绍"><span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Topics和日志"><span class="toc-text">Topics和日志</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Apache-Kafka工作原理介绍–博客"><span class="toc-text">Apache Kafka工作原理介绍–博客</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#术语"><span class="toc-text">术语</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#问题"><span class="toc-text">问题</span></a></li></ol></li></ol></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/国际-国内行业分析统计/">国际&国内行业分析统计</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java-Lambda的实现原理/">Java-Lambda的实现原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java动态代理/">Java动态代理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/06/关于中台/">关于中台</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/05/国内外大厂发展史/">国内外大厂发展史</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何构建笔记系统/">如何构建笔记系统</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何阅读一本书/">如何阅读一本书</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/03/广告行业入门/">广告行业入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/技术栈Notes/">技术栈Notes</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/Learning-English/">Learning English</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/INBOX/">INBOX</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/KNOWLEDGE/">KNOWLEDGE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/netty/">netty</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/netty/java-nio/">java nio</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/架构学习/">架构学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/COLA/" style="font-size: 15px;">COLA</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/Java并发/" style="font-size: 15px;">Java并发</a> <a href="/tags/INBOX/" style="font-size: 15px;">INBOX</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Lambda/" style="font-size: 15px;">Lambda</a> <a href="/tags/KNOWLEDGE/" style="font-size: 15px;">KNOWLEDGE</a> <a href="/tags/动态代理/" style="font-size: 15px;">动态代理</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/PropertyPlaceholderConfigurer/" style="font-size: 15px;">PropertyPlaceholderConfigurer</a> <a href="/tags/SpringMVC/" style="font-size: 15px;">SpringMVC</a> <a href="/tags/web/" style="font-size: 15px;">web</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/nio/" style="font-size: 15px;">nio</a> <a href="/tags/netty/" style="font-size: 15px;">netty</a> <a href="/tags/通信/" style="font-size: 15px;">通信</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/swagger/" style="font-size: 15px;">swagger</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/广告行业/" style="font-size: 15px;">广告行业</a> <a href="/tags/消息中间件/" style="font-size: 15px;">消息中间件</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/Java虚拟机/" style="font-size: 15px;">Java虚拟机</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a> <a href="/tags/Java容器/" style="font-size: 15px;">Java容器</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>学习笔记-大数据技术体系详解 | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">学习笔记-大数据技术体系详解</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">学习笔记-大数据技术体系详解</h1><div class="post-meta"><a href="/2020/09/11/学习笔记-大数据技术体系详解/#comments" class="comment-count"></a><p><span class="date">Sep 11, 2020</span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><p>广度上认识大数据体系</p>
+<p>大数据体系逻辑图</p>
+<p>数据收集 &gt; 数据存储层 &gt; 资源管理与服务调度 &gt; 计算引擎 &gt; 数据分析</p>
+<p><img src="/github/northernw.github.io/image/image-20200911104410292.png" alt="image-20200911104410292"></p>
+<h4 id="Part2-数据收集篇"><a href="#Part2-数据收集篇" class="headerlink" title="Part2 数据收集篇"></a>Part2 数据收集篇</h4><h5 id="CH1-概述"><a href="#CH1-概述" class="headerlink" title="CH1 概述"></a>CH1 概述</h5><h6 id="1-2-企业级大数据技术框架"><a href="#1-2-企业级大数据技术框架" class="headerlink" title="1.2 企业级大数据技术框架"></a>1.2 企业级大数据技术框架</h6><p><img src="/github/northernw.github.io/image/image-20200911110252635.png" alt="image-20200911110252635"></p>
+<p>Google的大数据技术栈实现</p>
+<p><img src="/github/northernw.github.io/image/image-20200911141714284.png" alt="image-20200911141714284"></p>
+<p>开源的大数据技术栈实现</p>
+<p><img src="/github/northernw.github.io/image/image-20200911153836401.png" alt="image-20200911153836401"></p>
+<h5 id="CH4-分布式消息队列Kafka"><a href="#CH4-分布式消息队列Kafka" class="headerlink" title="CH4 分布式消息队列Kafka"></a>CH4 分布式消息队列Kafka</h5><h6 id="设计动机"><a href="#设计动机" class="headerlink" title="设计动机"></a>设计动机</h6><p>降低数据生产者与消费者之间的耦合性，使系统更易扩展</p>
+<h6 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h6><ol>
+<li>高性能：对比其他消息队列有更高的性能和吞吐率（优秀的设计实现）</li>
+<li>良好的扩展性：采用分布式设计架构，数据经分片（分区+副本）后写入多个节点，既可以突破单节点数据存储和处理的瓶颈，也可以实现容错等功能</li>
+<li>数据持久化：数据消息均会持久化到磁盘上，并通过副本策略避免数据丢失</li>
+</ol>
+<p>采用顺序写、顺序读和批量写等机制，提升磁盘操作的效率。</p>
+<h6 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h6><p>topic：kafka中的消息以主题为单位进行归类，生产者将消息发到特定的主题，消费者订阅主题并进行消费。</p>
+<p>partition：主题可细分为多个分区，一个分区只属于单个主题。分区在存储层面可以看作一个可追加的日志Log文件</p>
+<p>offset：消息在分区中的唯一标识，在消息被追加到分区日志文件的时候分配的一个特定的偏移量</p>
+<p>Consumer：生产者，发送消息的一方</p>
+<p>Producer：消费者，接收消息的一方</p>
+<p>Broker：服务代理节点，kafka服务节点or服务实例</p>
+<h6 id="基本架构"><a href="#基本架构" class="headerlink" title="基本架构"></a>基本架构</h6><p>Producer+Broker+Consumer</p>
+<p>Producer将数据写入Broker，Consumer从Broker读取数据进行处理</p>
+<p>多个Broker构成一个可靠的分布式消息存储系统，避免数据丢失</p>
+<p><img src="/github/northernw.github.io/image/image-20200911173152500.png" alt="image-20200911173152500"></p>
+<p>push-pull架构，Consumer从Broker pull数据的优势：</p>
+<ol>
+<li>Consumer可根据自己的实际负载和需求获取数据，避免push方式给Consumer带来较大压力</li>
+<li>Consumer自己维护已读数据的offset，而不是Broker维护，大大缓解Broker的压力，使它更加轻量</li>
+</ol>
+<h6 id="关键技术点"><a href="#关键技术点" class="headerlink" title="关键技术点"></a>关键技术点</h6><ol>
+<li><p>可控的可靠性级别：支持三种消息应答方式，通过request.required.acks控制</p>
+<ol>
+<li>0：无需对消息进行确认，Producer向Broker发送消息后马上返回，无需等待对方写成功。写入性能高，容错低。</li>
+<li>1：Producer向Broker发送消息，需等待leader副本写成功后才返回，对应得follower副本不一定写成功。折中。</li>
+<li>-1：…需等待leader+follower副本都写成功才返回。写入性能低，容错高。</li>
+</ol>
+</li>
+<li><p>数据多副本：一个分区都多个副本，leader+follower</p>
+</li>
+<li><p>高效的持久化机制：直接将数据持久化到磁盘上，而不是内存中。</p>
+</li>
+<li><p>数据传输优化：批处理与zero copy</p>
+<ol>
+<li><p>批处理：降低单条消息传输带来的网络开销，Producer发送数据时将多条消息组装在一起ProducerBatch，存储和发送采用统一的数据格式，Broker发送给Consumer也是批量的</p>
+</li>
+<li><p>零拷贝：四次数据拷贝变成三次，少了内核态和用户态的两次拷贝，直接由内核态read buffer到内核socket buffer</p>
+<p><img src="/github/northernw.github.io/image/image-20200911191049217.png" alt="image-20200911191049217"></p>
+</li>
+</ol>
+</li>
+<li><p>可控的消息传递语义</p>
+<ol>
+<li>at most once：至多一次，消息发送后立即返回，不关心对方时候成功接收。消息可能成功接收，也可能丢失。</li>
+<li>at least once：至少一次，消息发送后需要等待确认，如果未收到确认，则会重发消息。保证能收到消息，但可能收到多次。</li>
+<li>exactly once：会且只会收到一次同一条消息。常用技术手段：<ol>
+<li>两阶段提交协议：分布式系统中常用一致性协议</li>
+<li>在支持幂等操作（多次处理一条消息和只处理一次是等效的）的前提下，使用at least once。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h6 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h6><ol>
+<li>消息队列</li>
+<li>流式计算框架的数据源</li>
+</ol>
+<h4 id="Part3-数据存储篇"><a href="#Part3-数据存储篇" class="headerlink" title="Part3 数据存储篇"></a>Part3 数据存储篇</h4><ol>
+<li>数据序列化：将内存对象转化为字节流，决定了数据解析效率以及模式演化能力（数据格式发生变化，比如增删字段，能否保持兼容性）。</li>
+<li>文件存储格式：数据在磁盘上的组织方式，决定了数据存取效率，以及被上层分布式计算集成的容易程度。</li>
+<li>存储系统：针对不同类型的数据，可采用不同的存储系统。</li>
+</ol>
+<h5 id="CH5-数据序列化与文件存储格式"><a href="#CH5-数据序列化与文件存储格式" class="headerlink" title="CH5 数据序列化与文件存储格式"></a>CH5 数据序列化与文件存储格式</h5><h6 id="数据序列化的演化阶段"><a href="#数据序列化的演化阶段" class="headerlink" title="数据序列化的演化阶段"></a>数据序列化的演化阶段</h6><ol>
+<li>转化为字符串，以文本形式保存或传输，面临的问题：<ol>
+<li>难以表达嵌套数据</li>
+<li>无法表达二进制数据：图片视频等</li>
+<li>难以应对数据模式变化</li>
+</ol>
+</li>
+<li>语言内置的序列化机制，如Java的Serialization，Python的pickle。问题：和语言绑定在一起，难跨语言</li>
+<li>JSON和XML等。问题：性能问题，解析速度慢，同时数据冗余较大，比如JSON重复存储每个属性的名称</li>
+<li>带有schema描述的数据表示格式，如Thrift、Protocol buffers、Avro，称为“Language of Data”。具备特征：<ol>
+<li>提供IDL（Interface Description language）用以描述数据schema，容易描述任意结构化数据和非结构化数据</li>
+<li>支持跨语言读写——指可以生成目标语言的代码</li>
+<li>数据编码存储（整数可采用变长编码，字符串可采用压缩编码等），尽量避免不必要的存储浪费</li>
+<li>支持schema演化</li>
+</ol>
+</li>
+</ol>
+<p>性能对比</p>
+<p>时间从小到大：Protobuf、Thrift、Avro</p>
+<p>大小从小到大：Avro、Protobuf、Thrift compact、Thrift binary</p>
+<h6 id="文件存储格式"><a href="#文件存储格式" class="headerlink" title="文件存储格式"></a>文件存储格式</h6><p>行式存储：文本格式text file、key value二进制存储格式sequence file</p>
+<p>列式存储：ORC、Parquet、Carbon Data</p>
+<p><img src="/github/northernw.github.io/image/image-20200914182431764.png" alt="image-20200914182431764" style="zoom:50%;"></p>
+<h5 id="CH6-分布式文件系统"><a href="#CH6-分布式文件系统" class="headerlink" title="CH6 分布式文件系统"></a>CH6 分布式文件系统</h5><p><img src="/github/northernw.github.io/image/image-20200914184935619.png" alt="image-20200914184935619"></p>
+<h6 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h6><p>NameNode：集群管理者，管理文件系统元信息（文件系统目录树）和所有DataNode（DataNode向NameNode汇报心跳，若DataNode故障，则在其他存活DataNode上重构丢失的数据块）。</p>
+<p>DataNode：存储实际的数据块</p>
+<p>Client：客户端，文件的分块在客户端完成，从NameNode领取多个DataNode地址，与DataNode建立数据流水线，将数据块写入DataNode。</p>
+<p>HDFS一般不支持编辑修改。可以写入、删除、查询。</p>
+<h5 id="CH7-分布式结构化存储系统"><a href="#CH7-分布式结构化存储系统" class="headerlink" title="CH7 分布式结构化存储系统"></a>CH7 分布式结构化存储系统</h5><p>HBase构建在分布式文件系统HDFS之上，支持随机插入和删除，列式存储系统。可以理解为，具有持久化能力的分布式多维有序映射表。</p>
+<p>HBASE随机读写性能较高，但数据扫描比较慢，难以适用于OLAP场景。</p>
+<p>Cloudera提出Kudu项目，很好地兼顾吞吐率和延迟。</p>
+<h6 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h6><p>极好的扩展性：随着数据量的增加，支持自动水平扩展，满足存储要求</p>
+<p>弱化ACID需求：不少大数据应用场景中，对事物的要求比较低，可选择性支持</p>
+<p>良好的容错性：大数据存储应用倾向于选择成本较低的横向扩展方案，要求数据存储软件具有良好的故障自动处理能力</p>
+<h6 id="逻辑数据模型"><a href="#逻辑数据模型" class="headerlink" title="逻辑数据模型"></a>逻辑数据模型</h6><p><img src="/github/northernw.github.io/image/image-20200914194718851.png" alt="image-20200914194718851"></p>
+<p>rowkey：类似于主键，表内全局有序</p>
+<p>column family：schema一部分，预先定义。每行相同。同一column family的数据在屋里上存储在一个文件中。</p>
+<p>column qualifier：column family内部列标识，可动态制定，每行数据可有不同column qualifier</p>
+<p>cell：通过rowkey, column family和column qualifier可唯一定位一个cell，内部保存多个版本的数值</p>
+<p>timestamp：cell数据的版本，默认写入时间为版本号，可自定义，数据类型为long</p>
+<p>表示成多维映射表：</p>
+<p><img src="/github/northernw.github.io/image/image-20200914195141552.png" alt="image-20200914195141552"></p>
+<h6 id="物理数据模型"><a href="#物理数据模型" class="headerlink" title="物理数据模型"></a>物理数据模型</h6><p>HBASE是列簇式存储引擎</p>
+<p>以column family为单位存储数据，每个column family内部数据以key  value格式保存：</p>
+<p><code>[row key, column family, column qualifier, timestamp] =&gt; value</code></p>
+<p>rowkey升序，column family升序，版本号降序</p>
+<p><img src="/github/northernw.github.io/image/image-20200914195535793.png" alt="image-20200914195535793"></p>
+<p><img src="/github/northernw.github.io/image/image-20200914200031089.png" alt="image-20200914200031089"></p>
+<p><u>HBASE不是列式存储（列式存储以列为单位，压缩比高、读IO少）。</u></p>
+<p><u>同一列簇中的数据会单独存储，但列簇内数据是行式存储的。</u></p>
+<p><u>为了将HBASE改造成列式存储，进一步提高读写新能，出现了Kudu。</u></p>
+<p>列簇的优点：同一family的同时读取，比较快？理解为捆绑的几个列？如果这些列分散在列式里，读写性能没有列簇好？</p>
+<p>列式的优点：…？</p>
+<h6 id="基本架构-1"><a href="#基本架构-1" class="headerlink" title="基本架构"></a>基本架构</h6><p><img src="/github/northernw.github.io/image/image-20200914201337567.png" alt="image-20200914201337567"></p>
+<p>HMaster：协调RegionServer（为RegionServer分配region，均衡RegionServer的负载，发现失效RegionServer并重新分配其上的region），元信息管理（提供table表的增删改查）</p>
+<p>RegionServer：负责各个Region的存储和管理，与Client交互，处理读写请求</p>
+<p>Zookeeper：存储元信息和状态信息，担任协调角色</p>
+<p>Client：与RegionServer交互读写数据，维护缓存</p>
+<p><img src="/github/northernw.github.io/image/image-20200914201817165.png" alt="image-20200914201817165" style="zoom:50%;"></p>
+<p>BlockCache：读缓存</p>
+<p>MemStore：写缓存，未写入磁盘的数据——在内存中</p>
+<p>HFile：支持多级索引的数据存储格式，保存HBASE表中实际的数据。所有HFile均保存在HDFS中。</p>
+<p>WAL：write ahead log，预写日志，保存未持久化到HDFS的HBASE数据，以便RegionServer宕机恢复数据。</p>
+<h6 id="写流程"><a href="#写流程" class="headerlink" title="写流程"></a><strong>写流程</strong></h6><ol>
+<li>RegionServer收到请求，以追加的形式写入HDFS上的日志文件，即WAL</li>
+<li>RegionServer将数据写入MemStore，通知客户端写成功</li>
+<li>MemStore达到一定阈值后，将数据顺序刷入HDFS中，保存成HFile格式</li>
+</ol>
+<h6 id="读流程"><a href="#读流程" class="headerlink" title="读流程"></a>读流程</h6><ol>
+<li>扫描读缓存BlockCache，缓存了最近读取</li>
+<li>扫描写缓存MemStore，缓存了最近写入</li>
+<li>如果两个缓存中没有命中，读取HFile</li>
+</ol>
+<p>每个column family有一个MemStore，上面提到的物理数据格式，key value形式</p>
+<p>HFile是Google Sorted String Table（BigTable用到的存储格式）的开源实现，一种有序key value磁盘存储格式，带有多级索引，方便定位数据，多级索引类似于B+树。<strong>不太懂，先跳过。</strong></p>
+<h4 id="Part4-分布式协调与资源管理"><a href="#Part4-分布式协调与资源管理" class="headerlink" title="Part4 分布式协调与资源管理"></a>Part4 分布式协调与资源管理</h4><h5 id="CH8-分布式协调服务ZooKeeper"><a href="#CH8-分布式协调服务ZooKeeper" class="headerlink" title="CH8 分布式协调服务ZooKeeper"></a>CH8 分布式协调服务ZooKeeper</h5><h6 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h6><ol>
+<li><p>层级命名空间，命名方式类似于文件系统，以多叉树形式组织在一起。每个节点称为znode，包含以下属性：</p>
+<ol>
+<li>data：数据域</li>
+<li>type：znode类型<ol>
+<li>persistent 持久</li>
+<li>ephemeral 临时</li>
+<li>sequencial 顺序</li>
+</ol>
+</li>
+<li>version znode中数据的版本号，每次更新版本号加一</li>
+<li>children znode的子节点，临时节点不能有子节点</li>
+<li>ACL 访问控制列表，可单独设置每个znode的可访问用户列表</li>
+</ol>
+<p><u>zookeeper能保证数据访问的原子性，即znode的数据要么写成功、要么写失败</u></p>
+</li>
+<li><p>Watcher 发布订阅机制，在znode上注册watcher以监听变化</p>
+<p><u>watcher一旦触发后便会被删除，除非用户再次注册该watcher。</u></p>
+</li>
+<li><p>session 客户端与zookeeper服务端之间的通信通道，同一个session中的消息是有序的。</p>
+<p><u>Session具有容错性：如果客户端连接的ZooKeeper服务器宕机，客户端会自动连接到其他活着的服务器上。</u></p>
+</li>
+</ol>
+<h5 id="CH9-资源管理与调度系统YARN"><a href="#CH9-资源管理与调度系统YARN" class="headerlink" title="CH9 资源管理与调度系统YARN"></a>CH9 资源管理与调度系统YARN</h5><p>分离资源管理和任务调度/监控</p>
+<p>split up the functionalities of resource management and job scheduling/monitoring into separate daemons</p>
+<h6 id="基本架构-2"><a href="#基本架构-2" class="headerlink" title="基本架构"></a>基本架构</h6><p><img src="/github/northernw.github.io/image/image-20200915111241172.png" alt="image-20200915111241172" style="zoom:50%;"></p>
+<h6 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h6><p><img src="/github/northernw.github.io/image/image-20200915140218882.png" alt="image-20200915140218882" style="zoom:50%;"></p>
+<h6 id="调度系统的架构演化"><a href="#调度系统的架构演化" class="headerlink" title="调度系统的架构演化"></a>调度系统的架构演化</h6><p>Google：Omega: flexible, scalable schedulers forlarge compute clusters</p>
+<ol>
+<li>中央式调度器架构，类似于Hadoop JobTracker<ol>
+<li>资源的调度和应用程序的管理功能放在一个进程中</li>
+<li>扩展性差：集群规模受限，难以融入新的调度策略</li>
+</ol>
+</li>
+<li>双层调度器架构，类似于Mesos和YARN<ol>
+<li>保留一个简化的集中式资源调度器，分配集群中的资源给引用程序</li>
+<li>具体任务相关的调度策略下放到应用程序调度器中，应用程序将资源分配给各个任务</li>
+<li>缺点：各个应用程序无法知道整个集群的实时资源使用情况；使用悲观锁，任意时刻一个资源只会推送给一个框架/应用程序，并发粒度小</li>
+</ol>
+</li>
+<li>共享状态架构，Omega<ol>
+<li>将集中式资源调度器简化为<u>一些持久化的共享数据和针对这些数据的验证代码</u>，共享数据=整个集群的实时资源使用信息</li>
+<li>应用程序自己控制资源分组、资源使用量、用户的资源使用量</li>
+<li>多个应用程序申请同一份资源时，优先级高的应用程序获得</li>
+<li>引入多版本并发控制…——<strong>具体控制什么的多版本并发，不太懂，跳过</strong></li>
+</ol>
+</li>
+</ol>
+<h4 id="Part5-计算引擎篇"><a href="#Part5-计算引擎篇" class="headerlink" title="Part5 计算引擎篇"></a>Part5 计算引擎篇</h4><h5 id="CH10-批处理引擎MapReduce"><a href="#CH10-批处理引擎MapReduce" class="headerlink" title="CH10 批处理引擎MapReduce"></a>CH10 批处理引擎MapReduce</h5><p>组成：编程模型+运行时环境</p>
+<p>易用的编程接口</p>
+<p>节点间的通信、节点失效、数据切分</p>
+<p>产生背景</p>
+<p>扩展学习：Nutch，2002年由Doug Cutting创建，是一个开源的网络搜索引擎，目标是构建一个大型的全网搜索引擎，包括网页抓取、索引和查询等功能。随着抓取的网页数量的增加，遇到了可扩展问题：不能解决十亿网页的存储和索引问题。</p>
+<p>基于Google论文分布式文件系统GFS（2003）和分布式计算框架MapReduce（2004）完成了开源实现Hadoop。</p>
+<p>约2006年，Doug加入雅虎，组装专门团队继续发展Hadoop。</p>
+<p>2008年，Hadoop称为Apache顶级项目。</p>
+<p>设计目标</p>
+<p>编程模型</p>
+<p>基本架构</p>
+<p><strong>看的头大，不总结了</strong></p>
+<h5 id="CH11-DAG计算引擎Spark"><a href="#CH11-DAG计算引擎Spark" class="headerlink" title="CH11 DAG计算引擎Spark"></a>CH11 DAG计算引擎Spark</h5><h6 id="特点-2"><a href="#特点-2" class="headerlink" title="特点"></a>特点</h6><ol>
+<li>性能高效</li>
+<li>简单易用</li>
+<li>与Hadoop完好集成</li>
+</ol>
+<h6 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h6><p>RDD：Resilient Distributed Datasets 弹性分布式数据集，只读的、带分区的数据集合</p>
+<p>DAG：Directed Acyclic Graph</p>
+<h5 id="CH12-交互式计算引擎"><a href="#CH12-交互式计算引擎" class="headerlink" title="CH12 交互式计算引擎"></a>CH12 交互式计算引擎</h5><h5 id="CH13-流式实时计算引擎"><a href="#CH13-流式实时计算引擎" class="headerlink" title="CH13 流式实时计算引擎"></a>CH13 流式实时计算引擎</h5><h4 id="Part6-数据分析篇"><a href="#Part6-数据分析篇" class="headerlink" title="Part6 数据分析篇"></a>Part6 数据分析篇</h4><h5 id="CH14-数据分析语言HQL与SQL"><a href="#CH14-数据分析语言HQL与SQL" class="headerlink" title="CH14 数据分析语言HQL与SQL"></a>CH14 数据分析语言HQL与SQL</h5><h5 id="CH15-大数据统一编程模型"><a href="#CH15-大数据统一编程模型" class="headerlink" title="CH15 大数据统一编程模型"></a>CH15 大数据统一编程模型</h5><h5 id="CH16-大数据机器学习库"><a href="#CH16-大数据机器学习库" class="headerlink" title="CH16 大数据机器学习库"></a>CH16 大数据机器学习库</h5></div><div class="tags"></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2020/09/23/Raft学习笔记/" class="pre">Raft学习笔记</a><a href="/2020/09/11/学习笔记-Linux内核设计与实现/" class="next">学习笔记-Linux内核设计与实现</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Part2-数据收集篇"><span class="toc-text">Part2 数据收集篇</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CH1-概述"><span class="toc-text">CH1 概述</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#1-2-企业级大数据技术框架"><span class="toc-text">1.2 企业级大数据技术框架</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH4-分布式消息队列Kafka"><span class="toc-text">CH4 分布式消息队列Kafka</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#设计动机"><span class="toc-text">设计动机</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#特点"><span class="toc-text">特点</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#概念"><span class="toc-text">概念</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#基本架构"><span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#关键技术点"><span class="toc-text">关键技术点</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#应用场景"><span class="toc-text">应用场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Part3-数据存储篇"><span class="toc-text">Part3 数据存储篇</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CH5-数据序列化与文件存储格式"><span class="toc-text">CH5 数据序列化与文件存储格式</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#数据序列化的演化阶段"><span class="toc-text">数据序列化的演化阶段</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#文件存储格式"><span class="toc-text">文件存储格式</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH6-分布式文件系统"><span class="toc-text">CH6 分布式文件系统</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#角色"><span class="toc-text">角色</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH7-分布式结构化存储系统"><span class="toc-text">CH7 分布式结构化存储系统</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#特点-1"><span class="toc-text">特点</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#逻辑数据模型"><span class="toc-text">逻辑数据模型</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#物理数据模型"><span class="toc-text">物理数据模型</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#基本架构-1"><span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#写流程"><span class="toc-text">写流程</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#读流程"><span class="toc-text">读流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Part4-分布式协调与资源管理"><span class="toc-text">Part4 分布式协调与资源管理</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CH8-分布式协调服务ZooKeeper"><span class="toc-text">CH8 分布式协调服务ZooKeeper</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#数据模型"><span class="toc-text">数据模型</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH9-资源管理与调度系统YARN"><span class="toc-text">CH9 资源管理与调度系统YARN</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#基本架构-2"><span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#工作流程"><span class="toc-text">工作流程</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#调度系统的架构演化"><span class="toc-text">调度系统的架构演化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Part5-计算引擎篇"><span class="toc-text">Part5 计算引擎篇</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CH10-批处理引擎MapReduce"><span class="toc-text">CH10 批处理引擎MapReduce</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH11-DAG计算引擎Spark"><span class="toc-text">CH11 DAG计算引擎Spark</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#特点-2"><span class="toc-text">特点</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#核心概念"><span class="toc-text">核心概念</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH12-交互式计算引擎"><span class="toc-text">CH12 交互式计算引擎</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH13-流式实时计算引擎"><span class="toc-text">CH13 流式实时计算引擎</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Part6-数据分析篇"><span class="toc-text">Part6 数据分析篇</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CH14-数据分析语言HQL与SQL"><span class="toc-text">CH14 数据分析语言HQL与SQL</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH15-大数据统一编程模型"><span class="toc-text">CH15 大数据统一编程模型</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#CH16-大数据机器学习库"><span class="toc-text">CH16 大数据机器学习库</span></a></li></ol></li></ol></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/国际-国内行业分析统计/">国际&国内行业分析统计</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java-Lambda的实现原理/">Java-Lambda的实现原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java动态代理/">Java动态代理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/06/关于中台/">关于中台</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/05/国内外大厂发展史/">国内外大厂发展史</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何构建笔记系统/">如何构建笔记系统</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何阅读一本书/">如何阅读一本书</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/03/广告行业入门/">广告行业入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/技术栈Notes/">技术栈Notes</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/Learning-English/">Learning English</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/INBOX/">INBOX</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/KNOWLEDGE/">KNOWLEDGE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/netty/">netty</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/netty/java-nio/">java nio</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/架构学习/">架构学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/COLA/" style="font-size: 15px;">COLA</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/Java并发/" style="font-size: 15px;">Java并发</a> <a href="/tags/INBOX/" style="font-size: 15px;">INBOX</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Lambda/" style="font-size: 15px;">Lambda</a> <a href="/tags/KNOWLEDGE/" style="font-size: 15px;">KNOWLEDGE</a> <a href="/tags/动态代理/" style="font-size: 15px;">动态代理</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/PropertyPlaceholderConfigurer/" style="font-size: 15px;">PropertyPlaceholderConfigurer</a> <a href="/tags/SpringMVC/" style="font-size: 15px;">SpringMVC</a> <a href="/tags/web/" style="font-size: 15px;">web</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/nio/" style="font-size: 15px;">nio</a> <a href="/tags/netty/" style="font-size: 15px;">netty</a> <a href="/tags/通信/" style="font-size: 15px;">通信</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/swagger/" style="font-size: 15px;">swagger</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/广告行业/" style="font-size: 15px;">广告行业</a> <a href="/tags/消息中间件/" style="font-size: 15px;">消息中间件</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/Java虚拟机/" style="font-size: 15px;">Java虚拟机</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a> <a href="/tags/Java容器/" style="font-size: 15px;">Java容器</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>

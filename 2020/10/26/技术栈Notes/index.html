@@ -1,0 +1,584 @@
+<!DOCTYPE html><html lang="en"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="死磕！..  磕不动....那就..休息会儿再磕！"><title>技术栈Notes | northern</title><link rel="stylesheet" type="text/css" href="//fonts.neworld.org/css?family=Source+Code+Pro"><link rel="stylesheet" type="text/css" href="/css/style.css?v=2.0.1"><link rel="stylesheet" type="text/css" href="/css/highlight.css?v=2.0.1"><link rel="Shortcut Icon" href="/favicon.ico"><link rel="bookmark" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">技术栈Notes</h1><a id="logo" href="/.">northern</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div><div id="search-form"><div id="result-mask" class="hide"></div><label><input id="search-key" type="text" autocomplete="off" placeholder="Arama"></label><div id="result-wrap" class="hide"><div id="search-result"></div></div><div class="hide"><template id="search-tpl"><div class="item"><a href="/{path}" title="{title}"><div class="title">{title}</div><div class="time">{date}</div><div class="tags">{tags}</div></a></div></template></div></div></div><div id="layout" class="layout-g"><div class="layout-l"><div class="content_container"><div class="post"><h1 class="post-title">技术栈Notes</h1><div class="post-meta"><a href="/2020/10/26/技术栈Notes/#comments" class="comment-count"></a><p><span class="date">Oct 26, 2020</span><span><i id="busuanzi_container_page_pv"><i id="busuanzi_value_page_pv"></i><i>Hits</i></i></span></p></div><div class="post-content"><h1 id="第一阶段"><a href="#第一阶段" class="headerlink" title="第一阶段"></a>第一阶段</h1><h2 id="一、MyBatis"><a href="#一、MyBatis" class="headerlink" title="一、MyBatis"></a>一、MyBatis</h2><h3 id="1-Mybatis框架分析"><a href="#1-Mybatis框架分析" class="headerlink" title="1. Mybatis框架分析"></a>1. Mybatis框架分析</h3><p>（1）mybatis框架架构图</p>
+<p>（2）整体执行流程图</p>
+<p>（3）sqlSession执行流程图</p>
+<h3 id="2-MyBatis源码分析"><a href="#2-MyBatis源码分析" class="headerlink" title="2. MyBatis源码分析"></a>2. MyBatis源码分析</h3><p>（1）Config文件加载流程</p>
+<p>（2）mapper文件加载流程</p>
+<p>（3）SQLSource创建流程</p>
+<p>（4）获取BoundSql流程</p>
+<p>（5）参数映射流程</p>
+<p>（6）结果集映射流程</p>
+<h3 id="3-设计模式"><a href="#3-设计模式" class="headerlink" title="3. 设计模式"></a>3. 设计模式</h3><p>构造者模式</p>
+<p>简单工厂模式</p>
+<p>工厂方法模式</p>
+<p>抽象工厂模式</p>
+<p>单例模式</p>
+<h3 id="4-手写Mybatis"><a href="#4-手写Mybatis" class="headerlink" title="4. 手写Mybatis"></a>4. 手写Mybatis</h3><p>实现配置文件加载流程</p>
+<p>实现封装jdbc的执行流程</p>
+<h2 id="二、Spring"><a href="#二、Spring" class="headerlink" title="二、Spring"></a>二、Spring</h2><h3 id="1-核心模块介绍"><a href="#1-核心模块介绍" class="headerlink" title="1. 核心模块介绍"></a>1. 核心模块介绍</h3><p>（1）核心容器模块</p>
+<p>core模块</p>
+<p>beans模块</p>
+<p>context模块</p>
+<p>expression模块</p>
+<p>（2）AOP和设备模块</p>
+<p>（3）数据访问及集成模块</p>
+<p>（4）web模块</p>
+<p>（5）报文消息模块</p>
+<p>（6）test测试模块</p>
+<h3 id="2-核心接口讲解"><a href="#2-核心接口讲解" class="headerlink" title="2. 核心接口讲解"></a>2. 核心接口讲解</h3><p>（1）BeanFactory接口体系</p>
+<p>（2）BeanDefinition接口体系</p>
+<p>（3）ApplicationContext接口体系</p>
+<h3 id="3-源码分析"><a href="#3-源码分析" class="headerlink" title="3. 源码分析"></a>3. 源码分析</h3><p>（1）IOC源码解析</p>
+<ol>
+<li>IOC初始化流程</li>
+<li>BeanDefinition加载注册流程</li>
+<li>DI依赖注入流程</li>
+</ol>
+<p>（2）aop流程</p>
+<ol>
+<li>aop标签解析流程</li>
+<li>AspectJAwareAdvisorAutoProxyCreator类<u>的作用</u></li>
+<li>AspectJExpressionPointcut类<u>的作用</u></li>
+<li>AspectJPointcutAdvisor类的作用</li>
+<li>动态代理对象创建流程</li>
+<li>AspectJAwareAdvisorAutoProxyCreator类<u>的实现</u></li>
+<li>AspectJExpressionPointcut类<u>的实现</u></li>
+</ol>
+<p>（3）tx流程</p>
+<ol>
+<li>spring事务的实现原理</li>
+<li>PlatformTransactionManager的接口体系</li>
+<li>TransactionStatus接口</li>
+</ol>
+<h3 id="4-设计模式"><a href="#4-设计模式" class="headerlink" title="4. 设计模式"></a>4. 设计模式</h3><p>（1）创建型</p>
+<ol>
+<li>简单工厂模式</li>
+<li>工厂方法模式</li>
+<li>抽象工厂模式</li>
+<li>单例模式</li>
+<li>原型模式</li>
+</ol>
+<p>（2）结构型</p>
+<ol>
+<li>代理模式<ol>
+<li>jdk动态代理模式</li>
+<li>cglib动态代理模式</li>
+</ol>
+</li>
+<li>装饰模式</li>
+<li>组合模式</li>
+</ol>
+<p>（3）行为型</p>
+<h3 id="5-手写框架"><a href="#5-手写框架" class="headerlink" title="5. 手写框架"></a>5. 手写框架</h3><p>（1）IOC模块</p>
+<ol>
+<li>实现IOC初始化流程</li>
+<li>实现BeanDefinition的加载注册</li>
+<li>实现DI依赖注入</li>
+</ol>
+<p>（2）AOP模块</p>
+<h3 id="6-常见分析"><a href="#6-常见分析" class="headerlink" title="6. 常见分析"></a>6. 常见分析</h3><ol>
+<li>BeanFactory和FactoryBean的区别</li>
+<li>BeanFactoryPostProcessor和BeanPostProcessor的区别</li>
+<li>循环依赖和循环构造问题如何解决</li>
+</ol>
+<h2 id="三、SpringMVC"><a href="#三、SpringMVC" class="headerlink" title="三、SpringMVC"></a>三、SpringMVC</h2><h3 id="1-架构分析"><a href="#1-架构分析" class="headerlink" title="1. 架构分析"></a>1. 架构分析</h3><p>（1）11步执行流程图</p>
+<p>（2）六大组件介绍</p>
+<ol>
+<li>DispatcherServlet</li>
+<li>HandlerMapping</li>
+<li>HandlerAdapter</li>
+<li>Handler</li>
+<li>ViewResolver</li>
+<li>View</li>
+</ol>
+<h3 id="2-源码分析"><a href="#2-源码分析" class="headerlink" title="2. 源码分析"></a>2. 源码分析</h3><p>（1）DispatcherServlet初始化流程</p>
+<ol>
+<li>HandlerMapping初始化流程</li>
+<li>HandlerAdapter初始化流程</li>
+</ol>
+<p>（2）DispatcherServlet执行流程</p>
+<p>（3）HandlerMapping执行流程</p>
+<ol>
+<li>解析@Controller和@RequestMapping流程</li>
+</ol>
+<p>（4）HandlerAdapter执行流程</p>
+<ol>
+<li>参数设置流程</li>
+<li>结果映射流程</li>
+</ol>
+<h3 id="3-手写springmvc"><a href="#3-手写springmvc" class="headerlink" title="3. 手写springmvc"></a>3. 手写springmvc</h3><p>源码分析里的几个组件和流程的实现</p>
+<h2 id="四、MySQL"><a href="#四、MySQL" class="headerlink" title="四、MySQL"></a>四、MySQL</h2><h3 id="1-SQL语法顺序和解析顺序的理解"><a href="#1-SQL语法顺序和解析顺序的理解" class="headerlink" title="1. SQL语法顺序和解析顺序的理解"></a>1. SQL语法顺序和解析顺序的理解</h3><h3 id="2-MySQL架构分析和执行流程分析"><a href="#2-MySQL架构分析和执行流程分析" class="headerlink" title="2. MySQL架构分析和执行流程分析"></a>2. MySQL架构分析和执行流程分析</h3><h4 id="（1）逻辑架构图"><a href="#（1）逻辑架构图" class="headerlink" title="（1）逻辑架构图"></a>（1）逻辑架构图</h4><p>连接器</p>
+<p>服务管理</p>
+<p>连接池</p>
+<p>SQL接口</p>
+<p>解析器</p>
+<p>查询优化器</p>
+<p>查询缓存</p>
+<p>可插拔存储引擎：MyISAM、InnoDB、Memory</p>
+<h4 id="（2）执行流程图"><a href="#（2）执行流程图" class="headerlink" title="（2）执行流程图"></a>（2）执行流程图</h4><ol>
+<li>简单执行流程</li>
+<li>详细执行流程</li>
+</ol>
+<h4 id="（3）物理存储结构"><a href="#（3）物理存储结构" class="headerlink" title="（3）物理存储结构"></a>（3）物理存储结构</h4><ol>
+<li>日志文件<ol>
+<li>错误日志</li>
+<li>二进制日志</li>
+<li>通用查询日志</li>
+<li>重做redo日志</li>
+<li>回滚undo日志</li>
+<li>中继日志</li>
+</ol>
+</li>
+<li>数据文件<ol>
+<li>InnoDB数据文件</li>
+<li>MyISAM数据文件</li>
+</ol>
+</li>
+</ol>
+<h3 id="3-索引篇"><a href="#3-索引篇" class="headerlink" title="3. 索引篇"></a>3. 索引篇</h3><h4 id="（1）索引基础"><a href="#（1）索引基础" class="headerlink" title="（1）索引基础"></a>（1）索引基础</h4><ol>
+<li><p>索引介绍</p>
+<ol>
+<li>什么是索引</li>
+<li>索引优势</li>
+<li>索引劣势</li>
+</ol>
+</li>
+<li><p>索引分类</p>
+<ol>
+<li>单列索引</li>
+<li>组合索引</li>
+<li>全文索引</li>
+<li>空间索引</li>
+</ol>
+</li>
+<li><p>索引使用</p>
+<ol>
+<li>索引创建</li>
+<li>索引删除</li>
+<li>索引查看</li>
+</ol>
+</li>
+</ol>
+<h4 id="（2）索引原理"><a href="#（2）索引原理" class="headerlink" title="（2）索引原理"></a>（2）索引原理</h4><ol>
+<li>索引存储结构<ol>
+<li>B树与B+树</li>
+<li>非聚集索引（MyISAMEMStore索引）</li>
+<li>聚集索引（InnoDB）</li>
+</ol>
+</li>
+<li>多用组合索引<ol>
+<li>组合索引的优势</li>
+<li>最左前缀原则</li>
+</ol>
+</li>
+<li>索引使用场景<ol>
+<li>使用索引情况</li>
+<li>不使用索引情况</li>
+</ol>
+</li>
+<li>索引失效分析<ol>
+<li>查看执行计划<ol>
+<li>explain查看执行计划</li>
+<li>参数说明<ol>
+<li>select_type<ol>
+<li>simple</li>
+<li>primary</li>
+<li>subquery</li>
+<li>union</li>
+</ol>
+</li>
+<li>type<ol>
+<li>const</li>
+<li>eq_ref</li>
+<li>ref</li>
+<li>range</li>
+<li>index</li>
+<li>all</li>
+</ol>
+</li>
+<li>extra<ol>
+<li>using index</li>
+<li>using where</li>
+<li>using index condition<ol>
+<li>ICP的理解</li>
+<li>index filter的理解</li>
+</ol>
+</li>
+<li>using filesort</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>多个索引使用案例分析</li>
+</ol>
+</li>
+</ol>
+<h3 id="4-锁和事务篇"><a href="#4-锁和事务篇" class="headerlink" title="4. 锁和事务篇"></a>4. 锁和事务篇</h3><h4 id="（1）锁的介绍"><a href="#（1）锁的介绍" class="headerlink" title="（1）锁的介绍"></a>（1）锁的介绍</h4><ol>
+<li>表级锁</li>
+<li>行级锁<ol>
+<li>行锁</li>
+<li>MDL元数据锁</li>
+</ol>
+</li>
+</ol>
+<h4 id="（2）行锁原理分析"><a href="#（2）行锁原理分析" class="headerlink" title="（2）行锁原理分析"></a>（2）行锁原理分析</h4><ol>
+<li>简单SQL的加锁分析<ol>
+<li>RC级别下的主键索引、唯一索引、非唯一索引、无索引分析</li>
+<li>RR级别下的主键索引、唯一索引、无唯一索引、无索引分析</li>
+</ol>
+</li>
+<li>复杂SQL的加锁分析<ol>
+<li>where条件如何拆分<ol>
+<li>index key</li>
+<li>index filter</li>
+<li>table filter</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>死锁原理分析<ol>
+<li>两个session的两条SQL产生死锁分析</li>
+<li>两个session的一条SQL产生死锁分析</li>
+</ol>
+</li>
+</ol>
+<h4 id="（3）事务流程分析"><a href="#（3）事务流程分析" class="headerlink" title="（3）事务流程分析"></a>（3）事务流程分析</h4><ol>
+<li>回滚流程undo</li>
+<li>重做流程redo</li>
+</ol>
+<h4 id="（4）InnoDB架构分析"><a href="#（4）InnoDB架构分析" class="headerlink" title="（4）InnoDB架构分析"></a>（4）InnoDB架构分析</h4><ol>
+<li>架构图分析</li>
+<li>内存结构分析<ol>
+<li>Buffer Pool<ol>
+<li>data page和index page</li>
+<li>insert buffer</li>
+<li>adaptive hash index</li>
+<li>lock info</li>
+<li>data dictionary</li>
+</ol>
+</li>
+<li>Redo log buffer</li>
+<li>double write</li>
+</ol>
+</li>
+<li>磁盘文件分析<ol>
+<li>系统表空间和用户表空间文件</li>
+<li>重做日志文件和归纳文件（？）</li>
+<li>重做日志的落盘机制</li>
+</ol>
+</li>
+</ol>
+<h4 id="（5）InnoDB一致性非锁定读"><a href="#（5）InnoDB一致性非锁定读" class="headerlink" title="（5）InnoDB一致性非锁定读"></a>（5）InnoDB一致性非锁定读</h4><ol>
+<li>一致性非锁定读的机制</li>
+<li>MVCC（多版本并发控制）原理</li>
+<li>InnoDB的MVCC实现</li>
+</ol>
+<h4 id="（6）InnoDB事务分析"><a href="#（6）InnoDB事务分析" class="headerlink" title="（6）InnoDB事务分析"></a>（6）InnoDB事务分析</h4><ol>
+<li>原子性、一致性、持久性原理分析</li>
+<li>隔离性原理分析<ol>
+<li>事务并发问题理解</li>
+<li>当前读和快照读</li>
+<li>一致性非锁定读理解</li>
+<li>InnoDB的MVCC实现</li>
+</ol>
+</li>
+</ol>
+<h3 id="5-性能分析篇"><a href="#5-性能分析篇" class="headerlink" title="5. 性能分析篇"></a>5. 性能分析篇</h3><p>（1）性能分析思路</p>
+<p>（2）慢查询日志分析</p>
+<ol>
+<li>何时开启慢查询日志</li>
+<li>设置慢查询日志超时时间</li>
+<li>分析慢查询日志的工具</li>
+</ol>
+<p>（3）查询计划分析</p>
+<p>（4）profile性能分析</p>
+<h3 id="6-性能优化篇"><a href="#6-性能优化篇" class="headerlink" title="6. 性能优化篇"></a>6. 性能优化篇</h3><p>（1）服务器层面优化</p>
+<ol>
+<li>innodb_buffer_pool_size设置</li>
+<li>内存预热</li>
+<li>innodb_log_file_size设置</li>
+<li>选择SSD磁盘提高读写能力</li>
+</ol>
+<p>（2）SQL设计层面优化</p>
+<ol>
+<li>中间表的设计</li>
+<li>冗余字段的设计</li>
+<li>拆表字段</li>
+<li>拆表数据（分库分表）</li>
+</ol>
+<p>（3）SQL语句优化</p>
+<ol>
+<li>limit优化</li>
+<li>索引优化<ol>
+<li>如何创建索引并正确使用组合索引</li>
+<li>order by group by与索引设计的关联</li>
+</ol>
+</li>
+<li>其他优化项</li>
+</ol>
+<h3 id="7-主从复制和读写分离集群"><a href="#7-主从复制和读写分离集群" class="headerlink" title="7. 主从复制和读写分离集群"></a>7. 主从复制和读写分离集群</h3><p>（1）主从复制集群</p>
+<ol>
+<li>主从复制原理</li>
+<li>binlog和relay日志</li>
+<li>主从复制实践</li>
+</ol>
+<p>（2）读写分离集群</p>
+<ol>
+<li>原理分析</li>
+<li>读写分离实践</li>
+</ol>
+<h3 id="8-分库分表篇"><a href="#8-分库分表篇" class="headerlink" title="8. 分库分表篇"></a>8. 分库分表篇</h3><p>（1）分库分表策略</p>
+<ol>
+<li>数据切分方案</li>
+<li>数据切分规则</li>
+<li>收切分原则</li>
+<li>分库分表要解决的问题<ol>
+<li>分布式事务问题</li>
+<li>分布式主键ID问题</li>
+<li>跨库join问题</li>
+<li>跨库count、order by、group by问题</li>
+</ol>
+</li>
+</ol>
+<p>（2）MyCat集群</p>
+<ol>
+<li>架构介绍</li>
+<li>核心概念介绍</li>
+<li>十种常见分片规则</li>
+<li>MyCat集群搭建与分库分表应用</li>
+<li>MyCat读写分离方式设置</li>
+<li>用户购物下单实践</li>
+</ol>
+<h2 id="五、Redis"><a href="#五、Redis" class="headerlink" title="五、Redis"></a>五、Redis</h2><h3 id="1-Redis五种数据类型及使用场景分析"><a href="#1-Redis五种数据类型及使用场景分析" class="headerlink" title="1. Redis五种数据类型及使用场景分析"></a>1. Redis五种数据类型及使用场景分析</h3><h3 id="2-Redis事务"><a href="#2-Redis事务" class="headerlink" title="2. Redis事务"></a>2. Redis事务</h3><p>（1）Redis事务分析</p>
+<p>（2）事务失败的处理</p>
+<h3 id="3-持久化原理及性能分析"><a href="#3-持久化原理及性能分析" class="headerlink" title="3. 持久化原理及性能分析"></a>3. 持久化原理及性能分析</h3><p>（1）rdb方式</p>
+<ol>
+<li>快照触发时机</li>
+<li>设置快照规则</li>
+<li>快照实现原理</li>
+<li>优缺点分析</li>
+</ol>
+<p>（2）aof方式</p>
+<ol>
+<li>同步磁盘数据分析</li>
+<li>aof重写原理分析</li>
+<li>文件损坏如何恢复</li>
+</ol>
+<p>（3）如何选择rdb和aof</p>
+<h3 id="4-主从复制"><a href="#4-主从复制" class="headerlink" title="4. 主从复制"></a>4. 主从复制</h3><p>原理分析</p>
+<p>主从配置的实现原理</p>
+<ol>
+<li>全量同步</li>
+<li>增量同步</li>
+</ol>
+<h3 id="5-哨兵机制"><a href="#5-哨兵机制" class="headerlink" title="5. 哨兵机制"></a>5. 哨兵机制</h3><p>哨兵进程的作用分析</p>
+<p>故障判断原理分析</p>
+<ol>
+<li>ODOWN</li>
+<li>SDOWM</li>
+<li>法定人数理解</li>
+</ol>
+<h3 id="6-cluster集群"><a href="#6-cluster集群" class="headerlink" title="6. cluster集群"></a>6. cluster集群</h3><p>Redis集群策略</p>
+<p>架构分析</p>
+<p>容错机制</p>
+<p>redis cluster集群搭建</p>
+<p>数据迁移</p>
+<h3 id="7-与lua整合"><a href="#7-与lua整合" class="headerlink" title="7. 与lua整合"></a>7. 与lua整合</h3><p>如何编写包含redis api的lua脚本</p>
+<p>Redis整合lua脚本</p>
+<h3 id="8-Redis消息模式"><a href="#8-Redis消息模式" class="headerlink" title="8. Redis消息模式"></a>8. Redis消息模式</h3><p>队列模式</p>
+<p>发布订阅者模式</p>
+<h3 id="9-分布式锁"><a href="#9-分布式锁" class="headerlink" title="9. 分布式锁"></a>9. 分布式锁</h3><p>分布式锁的实现方式</p>
+<p>注意事项</p>
+<p>分布式锁实战与高并发测试</p>
+<h3 id="10-常见缓存问题与解决方案"><a href="#10-常见缓存问题与解决方案" class="headerlink" title="10. 常见缓存问题与解决方案"></a>10. 常见缓存问题与解决方案</h3><p>带来的问题都是：加大数据库压力</p>
+<h4 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h4><p>现象：数据库和缓存中都不存在的数据，查询这种不存在的数据的现象</p>
+<p>解决方案：</p>
+<ol>
+<li>布隆过滤器 BloomFilter（有比较小的误判的概率，会认为一个不存在的数据存在，即允许这样的请求执行）</li>
+<li>缓存数据的ID</li>
+</ol>
+<h4 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h4><p>现象：大量请求查询同一个key，而这个key正好失效了，就会导致大量请求打到数据库上</p>
+<p>解决方案：在查询数据库的逻辑前加排他锁，获取锁的线程可以查询，并将结果放入缓存（释放锁后，其他线程在获取锁前再读一次缓存，double check）</p>
+<h4 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h4><p>现象：大量的key在同一时间失效，或者缓存宕机了</p>
+<p>解决方案：</p>
+<ol>
+<li>使用缓存集群，降低服务宕机的概率</li>
+<li>本地缓存+限流&amp;降级</li>
+</ol>
+<h4 id="热点数据集中失效"><a href="#热点数据集中失效" class="headerlink" title="热点数据集中失效"></a>热点数据集中失效</h4><p>现象：一般会给key设置失效时间，热点数据请求比较多，会都打到数据库上</p>
+<p>解决方案：</p>
+<ol>
+<li>热点数据和非热点数据设置不同的失效时间</li>
+<li>采用缓存击穿的方案，查询数据库加排他锁</li>
+<li>设置为永不失效，采用定时任务对快失效的热点数据进行更新失效时间，进行续租</li>
+</ol>
+<h4 id="缓存双写一致性"><a href="#缓存双写一致性" class="headerlink" title="缓存双写一致性"></a>缓存双写一致性</h4><h2 id="六、MongoDB"><a href="#六、MongoDB" class="headerlink" title="六、MongoDB"></a><del>六、MongoDB</del></h2><h1 id="第二阶段"><a href="#第二阶段" class="headerlink" title="第二阶段"></a>第二阶段</h1><h2 id="一、Zookeeper"><a href="#一、Zookeeper" class="headerlink" title="一、Zookeeper"></a>一、Zookeeper</h2><h3 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h3><p>重要概念讲解</p>
+<p>Paxos算法</p>
+<p>ZAB协议</p>
+<p>CAP原则</p>
+<h3 id="2-源码解析"><a href="#2-源码解析" class="headerlink" title="2. 源码解析"></a>2. 源码解析</h3><p>Watcher核心机制</p>
+<p>Leader选举</p>
+<h3 id="3-应用场景"><a href="#3-应用场景" class="headerlink" title="3. 应用场景"></a>3. 应用场景</h3><p>注册中心</p>
+<p>分布式锁</p>
+<p>分布式队列</p>
+<p>负载均衡</p>
+<p>配置维护</p>
+<p>命名服务</p>
+<p>DNS服务</p>
+<p>分布式同步</p>
+<p>集群管理</p>
+<h2 id="二、网络通信"><a href="#二、网络通信" class="headerlink" title="二、网络通信"></a>二、网络通信</h2><h3 id="RPC"><a href="#RPC" class="headerlink" title="RPC"></a>RPC</h3><p>原理与本质</p>
+<ol>
+<li>RPC理论</li>
+<li>RPC基于序列化信息通信</li>
+</ol>
+<p>RPC解决什么问题</p>
+<ol>
+<li>解决SOA编程模式问题……？</li>
+</ol>
+<p>RPC实例实战</p>
+<ol>
+<li>RPC基于socket相连</li>
+<li>RPC基于动态代理调用透明化</li>
+</ol>
+<p>RPC模块化演进</p>
+<ol>
+<li>通过设计模式实现RPC模块单一职责</li>
+</ol>
+<h3 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h3><p>IO模型原理</p>
+<ol>
+<li>NIO事件驱动流性能优化</li>
+<li>BIO和OIO堵塞流问题</li>
+<li>AIO异步流使用场景</li>
+</ol>
+<p>线程模型</p>
+<ol>
+<li>NioEventLoop线程模型</li>
+</ol>
+<p>驱动模式</p>
+<ol>
+<li>ServerBootstrap启动原理</li>
+<li>Bootstrap启动原理</li>
+</ol>
+<p>Codec框架</p>
+<ol>
+<li>tcp黏包、拆包</li>
+<li>encode编码器</li>
+<li>decode解码器</li>
+</ol>
+<p>通道</p>
+<ol>
+<li>channelHandler</li>
+<li>channelInboundHandler<ol>
+<li>ChannelInitializer</li>
+<li>ByteToMessageDecoder</li>
+</ol>
+</li>
+<li>channelOutboundHandler<ol>
+<li>MessageToMessageEncoder</li>
+<li>LineEncoder</li>
+</ol>
+</li>
+</ol>
+<p>责任链模式 channelPipeline</p>
+<p>上下文 channelHandlerContext</p>
+<p>配置构建模式 channelConfig</p>
+<p>内部类 unsafe</p>
+<p>主从模型 BossGroup&amp;WorkerGroup</p>
+<p>零拷贝 zero-copy</p>
+<p>字节容器 ByteBuf原理</p>
+<p>Netty实战 websocket聊天</p>
+<h2 id="三、Dubbo"><a href="#三、Dubbo" class="headerlink" title="三、Dubbo"></a>三、Dubbo</h2><h3 id="入门"><a href="#入门" class="headerlink" title="入门"></a>入门</h3><p>Dubbo分布式服务模块划分</p>
+<h3 id="高可用"><a href="#高可用" class="headerlink" title="高可用"></a>高可用</h3><p>容错机制</p>
+<p>服务降级</p>
+<p>服务限流</p>
+<p>服务暴露延迟</p>
+<p>结果缓存应用</p>
+<p>多版本控制</p>
+<p>多注册中心</p>
+<h3 id="高级应用"><a href="#高级应用" class="headerlink" title="高级应用"></a>高级应用</h3><p>Dubbo负载均衡策略与自定义实现</p>
+<p>仅订阅与仅注册</p>
+<p>提供者的异步调用、异步执行</p>
+<p>Dubbo源码解析</p>
+<ol>
+<li>Dubbo的SPI</li>
+<li>Dubbo对spring配置文件的加载与解析</li>
+<li>provider的服务暴露</li>
+<li>Consumer的服务消费</li>
+</ol>
+<h2 id="四、Nginx"><a href="#四、Nginx" class="headerlink" title="四、Nginx"></a><del>四、Nginx</del></h2><h2 id="五、消息中间件"><a href="#五、消息中间件" class="headerlink" title="五、消息中间件"></a>五、消息中间件</h2><p>消息中间件在分布式架构中的应用场景：业务解耦/最终一致性/广播/错峰流控</p>
+<p>JMS：Java Message Service，Java消息服务。试图通过提供公共Java API，隐藏单独MQ产品供应商提供的实际接口，跨越壁垒，解决互通问题。</p>
+<p>AMQP：Advanced Message Queue Protocol，高级消息队列，2006年提出。是应用层协议的一个开放标准，基于此协议的客户端与消息中间件可传递消息，不受产品、开发语言等条件的限制。</p>
+<p>四个项目都是开源的</p>
+<table>
+<thead>
+<tr>
+<th>产品</th>
+<th>启动时间&amp;开发者 ，开源时间</th>
+<th>语言</th>
+<th>吞吐量</th>
+<th>时效性</th>
+<th>可用性</th>
+<th>消息可靠性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ActiveMQ</td>
+<td>2004LogicBlaze，2007Apache</td>
+<td>Java</td>
+<td>万级</td>
+<td>毫秒级</td>
+<td>高，基于主从架构</td>
+<td>有较低的概率丢失数据</td>
+<td>早期活跃、成熟产品，现在用的少。主要用于解耦和异步，较少在大规模吞吐的场景中使用。现在社区不活跃</td>
+</tr>
+<tr>
+<td>RabbitMQ</td>
+<td>2007RabbitMQ Technologies Ltd</td>
+<td>erlang</td>
+<td>万级</td>
+<td>微秒级</td>
+<td>高，基于主从架构</td>
+<td></td>
+<td>erlang开发，并发能力强，性能极好，延时低。社区活跃</td>
+</tr>
+<tr>
+<td>RocketMQ</td>
+<td>2012阿里开源，2016Apache</td>
+<td>Java</td>
+<td>十万级</td>
+<td>毫秒级</td>
+<td>非常高，分布式架构</td>
+<td>可以做到0丢失</td>
+<td>大规模吞入，性能好，分布式扩展方便。社区活跃一般</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>2011LinkedIn，2012Apache</td>
+<td>Scala+Java</td>
+<td>十万级</td>
+<td>毫秒级</td>
+<td>非常高</td>
+<td>可以做到0丢失</td>
+<td>超高吞吐量，极高的可用性和可靠性，分布式任意扩展。大数据领域实时计算、日志采集的事实标准</td>
+</tr>
+</tbody>
+</table>
+<p>RabbitMQ概念</p>
+<ol>
+<li>生产者和消费者</li>
+<li>队列</li>
+<li>交换器、路由键、绑定</li>
+</ol>
+<p>Kafka</p>
+<ol>
+<li>基于zookeeper实现高可用</li>
+<li>消息处理过程剖析</li>
+<li>副本机制与选举原理</li>
+<li></li>
+</ol>
+<h2 id="六、SpringBoot"><a href="#六、SpringBoot" class="headerlink" title="六、SpringBoot"></a>六、SpringBoot</h2><h2 id="七、SpringCloud"><a href="#七、SpringCloud" class="headerlink" title="七、SpringCloud"></a>七、SpringCloud</h2><h2 id="反应式Web开发框架Webflux"><a href="#反应式Web开发框架Webflux" class="headerlink" title="反应式Web开发框架Webflux"></a><del>反应式Web开发框架Webflux</del></h2><h1 id="第三阶段"><a href="#第三阶段" class="headerlink" title="第三阶段"></a>第三阶段</h1><h2 id="一、FastDFS"><a href="#一、FastDFS" class="headerlink" title="一、FastDFS"></a>一、FastDFS</h2><h2 id="二、ElasticSearch"><a href="#二、ElasticSearch" class="headerlink" title="二、ElasticSearch"></a>二、ElasticSearch</h2><h2 id="互联网电商项目"><a href="#互联网电商项目" class="headerlink" title="互联网电商项目"></a><del>互联网电商项目</del></h2></div><div class="tags"></div><div class="post-share"><div class="bdsharebuttonbox"><span style="float:left;line-height: 28px;height: 28px;font-size:16px;font-weight:blod">分享到：</span><a href="#" data-cmd="more" class="bds_more"></a><a href="#" data-cmd="mshare" title="分享到一键分享" class="bds_mshare"></a><a href="#" data-cmd="fbook" title="分享到Facebook" class="bds_fbook"></a><a href="#" data-cmd="twi" title="分享到Twitter" class="bds_twi"></a><a href="#" data-cmd="linkedin" title="分享到linkedin" class="bds_linkedin"></a><a href="#" data-cmd="youdao" title="分享到有道云笔记" class="bds_youdao"></a><a href="#" data-cmd="evernotecn" title="分享到印象笔记" class="bds_evernotecn"></a><a href="#" data-cmd="weixin" title="分享到微信" class="bds_weixin"></a><a href="#" data-cmd="qzone" title="分享到QQ空间" class="bds_qzone"></a><a href="#" data-cmd="tsina" title="分享到新浪微博" class="bds_tsina"></a></div></div><div class="post-nav"><a href="/2020/11/03/广告行业入门/" class="pre">广告行业入门</a><a href="/2020/10/22/Learning-English/" class="next">Learning English</a></div><div id="comments"></div></div></div></div><div class="layout-r"><div id="sidebar"><div class="search-pla"></div><div id="toc" class="widget"><div class="widget-title"><i class="fa fa-fei">Contents</i></div><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#第一阶段"><span class="toc-text">第一阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、MyBatis"><span class="toc-text">一、MyBatis</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Mybatis框架分析"><span class="toc-text">1. Mybatis框架分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-MyBatis源码分析"><span class="toc-text">2. MyBatis源码分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-设计模式"><span class="toc-text">3. 设计模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-手写Mybatis"><span class="toc-text">4. 手写Mybatis</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Spring"><span class="toc-text">二、Spring</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-核心模块介绍"><span class="toc-text">1. 核心模块介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-核心接口讲解"><span class="toc-text">2. 核心接口讲解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-源码分析"><span class="toc-text">3. 源码分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-设计模式"><span class="toc-text">4. 设计模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-手写框架"><span class="toc-text">5. 手写框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-常见分析"><span class="toc-text">6. 常见分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、SpringMVC"><span class="toc-text">三、SpringMVC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-架构分析"><span class="toc-text">1. 架构分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-源码分析"><span class="toc-text">2. 源码分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-手写springmvc"><span class="toc-text">3. 手写springmvc</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、MySQL"><span class="toc-text">四、MySQL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-SQL语法顺序和解析顺序的理解"><span class="toc-text">1. SQL语法顺序和解析顺序的理解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-MySQL架构分析和执行流程分析"><span class="toc-text">2. MySQL架构分析和执行流程分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）逻辑架构图"><span class="toc-text">（1）逻辑架构图</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）执行流程图"><span class="toc-text">（2）执行流程图</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）物理存储结构"><span class="toc-text">（3）物理存储结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-索引篇"><span class="toc-text">3. 索引篇</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）索引基础"><span class="toc-text">（1）索引基础</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）索引原理"><span class="toc-text">（2）索引原理</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-锁和事务篇"><span class="toc-text">4. 锁和事务篇</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）锁的介绍"><span class="toc-text">（1）锁的介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）行锁原理分析"><span class="toc-text">（2）行锁原理分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）事务流程分析"><span class="toc-text">（3）事务流程分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）InnoDB架构分析"><span class="toc-text">（4）InnoDB架构分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）InnoDB一致性非锁定读"><span class="toc-text">（5）InnoDB一致性非锁定读</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（6）InnoDB事务分析"><span class="toc-text">（6）InnoDB事务分析</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-性能分析篇"><span class="toc-text">5. 性能分析篇</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-性能优化篇"><span class="toc-text">6. 性能优化篇</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-主从复制和读写分离集群"><span class="toc-text">7. 主从复制和读写分离集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-分库分表篇"><span class="toc-text">8. 分库分表篇</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、Redis"><span class="toc-text">五、Redis</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Redis五种数据类型及使用场景分析"><span class="toc-text">1. Redis五种数据类型及使用场景分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Redis事务"><span class="toc-text">2. Redis事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-持久化原理及性能分析"><span class="toc-text">3. 持久化原理及性能分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-主从复制"><span class="toc-text">4. 主从复制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-哨兵机制"><span class="toc-text">5. 哨兵机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-cluster集群"><span class="toc-text">6. cluster集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-与lua整合"><span class="toc-text">7. 与lua整合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-Redis消息模式"><span class="toc-text">8. Redis消息模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-分布式锁"><span class="toc-text">9. 分布式锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-常见缓存问题与解决方案"><span class="toc-text">10. 常见缓存问题与解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#缓存穿透"><span class="toc-text">缓存穿透</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓存击穿"><span class="toc-text">缓存击穿</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓存雪崩"><span class="toc-text">缓存雪崩</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#热点数据集中失效"><span class="toc-text">热点数据集中失效</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓存双写一致性"><span class="toc-text">缓存双写一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、MongoDB"><span class="toc-text">六、MongoDB</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#第二阶段"><span class="toc-text">第二阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、Zookeeper"><span class="toc-text">一、Zookeeper</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-简介"><span class="toc-text">1. 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-源码解析"><span class="toc-text">2. 源码解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-应用场景"><span class="toc-text">3. 应用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、网络通信"><span class="toc-text">二、网络通信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RPC"><span class="toc-text">RPC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Netty"><span class="toc-text">Netty</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Dubbo"><span class="toc-text">三、Dubbo</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#入门"><span class="toc-text">入门</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高可用"><span class="toc-text">高可用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高级应用"><span class="toc-text">高级应用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、Nginx"><span class="toc-text">四、Nginx</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、消息中间件"><span class="toc-text">五、消息中间件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、SpringBoot"><span class="toc-text">六、SpringBoot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、SpringCloud"><span class="toc-text">七、SpringCloud</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#反应式Web开发框架Webflux"><span class="toc-text">反应式Web开发框架Webflux</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#第三阶段"><span class="toc-text">第三阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、FastDFS"><span class="toc-text">一、FastDFS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、ElasticSearch"><span class="toc-text">二、ElasticSearch</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#互联网电商项目"><span class="toc-text">互联网电商项目</span></a></li></ol></li></ol></div><div class="widget"><div class="widget-title"><i class="fa fa-xie"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/国际-国内行业分析统计/">国际&国内行业分析统计</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java-Lambda的实现原理/">Java-Lambda的实现原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/10/Java动态代理/">Java动态代理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/06/关于中台/">关于中台</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/05/国内外大厂发展史/">国内外大厂发展史</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何构建笔记系统/">如何构建笔记系统</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/04/如何阅读一本书/">如何阅读一本书</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/11/03/广告行业入门/">广告行业入门</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/技术栈Notes/">技术栈Notes</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/Learning-English/">Learning English</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-gui"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/INBOX/">INBOX</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/KNOWLEDGE/">KNOWLEDGE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/leetCode/">leetCode</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/netty/">netty</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/netty/java-nio/">java nio</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/架构学习/">架构学习</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/">源码解析</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/源码解析/设计模式/">设计模式</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/读书笔记/">读书笔记</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/问题排查/">问题排查</a><span class="category-list-count">1</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-biao"> Tags</i></div><div class="tagcloud"><a href="/tags/lambda/" style="font-size: 15px;">lambda</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/循序渐进linux/" style="font-size: 15px;">循序渐进linux</a> <a href="/tags/leetCode/" style="font-size: 15px;">leetCode</a> <a href="/tags/COLA/" style="font-size: 15px;">COLA</a> <a href="/tags/深入理解Java虚拟机/" style="font-size: 15px;">深入理解Java虚拟机</a> <a href="/tags/Java并发/" style="font-size: 15px;">Java并发</a> <a href="/tags/INBOX/" style="font-size: 15px;">INBOX</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Lambda/" style="font-size: 15px;">Lambda</a> <a href="/tags/KNOWLEDGE/" style="font-size: 15px;">KNOWLEDGE</a> <a href="/tags/动态代理/" style="font-size: 15px;">动态代理</a> <a href="/tags/OKHttp/" style="font-size: 15px;">OKHttp</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/PropertyPlaceholderConfigurer/" style="font-size: 15px;">PropertyPlaceholderConfigurer</a> <a href="/tags/SpringMVC/" style="font-size: 15px;">SpringMVC</a> <a href="/tags/web/" style="font-size: 15px;">web</a> <a href="/tags/读书笔记/" style="font-size: 15px;">读书笔记</a> <a href="/tags/nio/" style="font-size: 15px;">nio</a> <a href="/tags/netty/" style="font-size: 15px;">netty</a> <a href="/tags/通信/" style="font-size: 15px;">通信</a> <a href="/tags/springmvc/" style="font-size: 15px;">springmvc</a> <a href="/tags/springboot/" style="font-size: 15px;">springboot</a> <a href="/tags/ExceptionHandler/" style="font-size: 15px;">ExceptionHandler</a> <a href="/tags/ResponseBody/" style="font-size: 15px;">ResponseBody</a> <a href="/tags/swagger/" style="font-size: 15px;">swagger</a> <a href="/tags/剑指offer/" style="font-size: 15px;">剑指offer</a> <a href="/tags/面试/" style="font-size: 15px;">面试</a> <a href="/tags/广告行业/" style="font-size: 15px;">广告行业</a> <a href="/tags/消息中间件/" style="font-size: 15px;">消息中间件</a> <a href="/tags/Gson/" style="font-size: 15px;">Gson</a> <a href="/tags/Java虚拟机/" style="font-size: 15px;">Java虚拟机</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 15px;">ConcurrentHashMap</a> <a href="/tags/Java容器/" style="font-size: 15px;">Java容器</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-archive"> Archive</i></div><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/05/">May 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li></ul></div></div></div></div><a id="totop" href="#top"></a><div id="footer"><div class="footer-info"><p><a href="/baidusitemap.xml">Baidu Site Haritası</a> |  <a href="/atom.xml">RSS</a> |  <a href="/about/">About</a></p><p>本站总访问量：<i id="busuanzi_container_site_pv"><i id="busuanzi_value_site_pv"></i></i>次</p><p><span> Copyright &copy;<a href="/." rel="nofollow">Linjingyu.</a></span><span> Theme by<a rel="nofollow" target="_blank" href="https://github.com/chaooo/hexo-theme-BlueLake"> BlueLake.</a></span><span> Count by<a href="http://busuanzi.ibruce.info/"> busuanzi.</a></span><span> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a></span></p></div></div></div><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><script type="text/javascript" src="/js/search.json.js?v=2.0.1"></script><script type="text/javascript" src="/js/toctotop.js?v=2.0.1" async></script><script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":["mshare","weixin","tsina","qzone","linkedin","fbook","twi","print","renren","sqq","evernotecn","bdysc","tqq","tqf","bdxc","kaixin001","tieba","douban","bdhome","thx","ibaidu","meilishuo","mogujie","diandian","huaban","duitang","hx","fx","youdao","sdo","qingbiji","people","xinhua","mail","isohu","yaolan","wealink","ty","iguba","h163","copy"],"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{},"image":{"viewList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"],"viewText":"分享到：","viewSize":"16"},"selectShare":{"bdContainerClass":null,"bdSelectMiniList":["tsina","qzone","weixin","fbook","twi","linkedin","youdao","evernotecn","mshare"]}};with(document)0[(getElementsByTagName('head')[0]||head).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script></body></html>
