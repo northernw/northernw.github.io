@@ -1,9 +1,9 @@
 ---
 title: Dubbo学习笔记
 tags:
-  - null
+  - dubbo
 categories:
-  - null
+  - 学习笔记
 date: 2019-10-16 15:53:29
 ---
 
