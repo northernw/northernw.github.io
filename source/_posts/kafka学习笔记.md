@@ -11,8 +11,6 @@ date: 2020-01-08 18:31:02
 
 ——核心设计与实践原理 朱忠华
 
-
-
 ## 第4章 主题与分区
 
 主题作为消息的归类，可以再细分为一个或多个分区，分区可看做对消息的二次归类。
@@ -21,11 +19,7 @@ date: 2020-01-08 18:31:02
 
 主题和分区都是逻辑上的概念。分区有一个至多个副本，每个副本对应一个日志文件，每个日志文件对应一个或多个日志分段（LogSegment），每个日志分段细分为索引文件、日志存储文件和快照文件等。
 
-
-
 ### 4.1 主题的管理
-
-
 
 ```shell
 bin/kafka-topics.sh --zookeeper locakhost:2181/kafka --create --topic topic-create --partitions 4 --replication-factor 2
@@ -39,19 +33,11 @@ bin/kafka-topics.sh --zookeeper locakhost:2181/kafka --create --topic topic-crea
 
 ![image-20200109120448417](../../image/image-20200109120448417.png)
 
-
-
-
-
 ### 4.2 初识KafkaAdminClient
 
 ### 4.3 分区的管理
 
 只有leader副本对外提供读写服务，follower副本只负责在内部进行消息的同步。
-
-
-
-
 
 ## 第5章 日志存储
 
@@ -62,9 +48,9 @@ bin/kafka-topics.sh --zookeeper locakhost:2181/kafka --create --topic topic-crea
 1. 日志（对应于一个副本）Log是一个文件夹
 
 2. 日志段LogSegment是一个日志文件和两个索引文件，以及可能的其他文件（比如以“.txnindex”为后缀的事务索引文件）
-
+   
    ![image-20200109143542736](../../image/image-20200109143542736.png)
-
+   
    ![image-20200110115632764](../../image/image-20200110115632764.png)
 
 ### 5.2 日志格式的演变
@@ -73,15 +59,11 @@ bin/kafka-topics.sh --zookeeper locakhost:2181/kafka --create --topic topic-crea
 
 v1比v0在RECORD中加了timestamp字段，占8B(字节)
 
-|                                 | v0   | V1   |
-| ------------------------------- | ---- | ---- |
-| LOG_OVERHEAD日志头部            | 12B  | 12B  |
-| RECORD_OVERHEAD_V0 消息最小长度 | 14B  |      |
-| RECORD_OVERHEAD_V1              |      | 22B  |
-
-
-
-
+|                           | v0  | V1  |
+| ------------------------- | --- | --- |
+| LOG_OVERHEAD日志头部          | 12B | 12B |
+| RECORD_OVERHEAD_V0 消息最小长度 | 14B |     |
+| RECORD_OVERHEAD_V1        |     | 22B |
 
 ### 5.3 日志索引
 
@@ -97,8 +79,6 @@ v1比v0在RECORD中加了timestamp字段，占8B(字节)
 
 用跳跃表的结构，查找对应的偏移量索引文件。
 
-
-
 #### 5.3.2时间戳索引
 
 每个索引项12字节
@@ -111,15 +91,9 @@ v1比v0在RECORD中加了timestamp字段，占8B(字节)
 
 时间戳索引文件中包含若干时间戳索引项，每个追加的时间戳索引项中的timestamp 必须大于之前追加的索引项的 timestamp，否则不予追加。
 
-
-
 这部分没太看懂 = =
 
 ![image-20200110144417507](../../image/image-20200110144417507.png)
-
-
-
-
 
 ### 5.4 日志清理
 
@@ -138,10 +112,6 @@ v1比v0在RECORD中加了timestamp字段，占8B(字节)
 LogCompaction对于有相同key的不同value值，只保留最后一个版本。
 
 如果应用只关心key对应的最新value值，则可以开启Kafka的日志清理功能。
-
-
-
-
 
 ### 5.5 磁盘存储
 
@@ -178,35 +148,21 @@ LogCompaction对于有相同key的不同value值，只保留最后一个版本�
 
 从文件系统层面分析，Kafka 操作的都是普通文件，并没有依赖于特定的文件系统，但是依然推荐使用EXT4或XFS。
 
-
-
 #### 5.5.3 零拷贝
 
 > 所谓的零拷贝是指将数据直接从磁盘文件复制到网卡设备中，而不需要经由应用程序之手。
->
+> 
 > 零拷贝技术通过DMA（Direct Memory Access）技术将文件内容复制到内核模式下的Read Buffer 中。不过没有数据被复制到 Socket Buffer，相反只有包含数据的位置和长度的信息的文件描述符被加到Socket Buffer中。DMA引擎直接将数据从内核模式中传递到网卡设备（协议引擎）。
->
+> 
 > 零拷贝是针对内核模式而言的，数据在内核模式下实现了零拷贝。
-
-
 
 ![image-20200113172305381](../../image/image-20200113172305381.png)
 
 ![image-20200113172329730](../../image/image-20200113172329730.png)
 
-
-
 ## 第6章 深入服务端
 
 ### 6.1 协议设计
-
-
-
-
-
-
-
-
 
 # Apache Kafka
 
@@ -224,22 +180,16 @@ Apache kafka是一个分布式流处理平台。
 2. 存储流式的记录，有较好容错性。
 3. 在流式记录产生时就可以进行处理。
 
-
-
 应用：
 
 1. 构造实时流数据管道（消息队列）
 2. 构建实时流式应用程序，转换或响应流数据（流处理，kafka stream topic和topic---流处理不太了解）
-
-
 
 概念：
 
 1. kafka运行在集群（一个或多个服务器）上，可跨越多个数据中心
 2. kafka集群通过topic对消息分类
 3. 每条消息包含一个key，一个value，一个timestamp
-
-
 
 四个核心api
 
@@ -250,9 +200,8 @@ Apache kafka是一个分布式流处理平台。
 3. streams api 允许一个应用程序作为流处理器，消费一个或多个主题产生的输入流，然后生产一个输出流到一个或多个主题中去。在输入输出流中进行有效的转换。
 
 4. connector api--不太了解
+   
    1. 原文：允许构建并运行可重用的生产者或者消费者，将Kafka topics连接到已存在的应用程序或者数据系统。比如，连接到一个关系型数据库，捕捉表（table）的所有变更内容。
-
-
 
 ## Topics和日志
 
@@ -275,8 +224,6 @@ kafka中的topics总是多订阅者模式，一个topic可以有一个或多个�
 1. 当日志大小超过单台服务器的限制，允许日志进行扩展。（可以处理无限量的数据）
 2. 可以作为并行的单元集
 
-
-
 # Apache Kafka工作原理介绍--博客
 
 原文地址：https://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.htmlhttps://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html
@@ -295,15 +242,9 @@ Consumer：消费者，从broker读取消息
 
 Consumer Group：每个Consumer属于一个特定的组（可为每个Consumer指定group name，不指定group name则属于默认的group）
 
-
-
 kafka交互流程
 
 每个消息只会发送给群组中的一个消费者，有相同键值的消息都会被确保发给这一个消费者。
-
-
-
-
 
 ## 问题
 

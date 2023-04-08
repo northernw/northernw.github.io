@@ -13,8 +13,6 @@ date: 2020-06-19 16:45:34
 
 文中有很多源码，稍显凌乱。也主要是自己的一个记录，未字斟句酌。
 
-
-
 # 简介
 
 **序列化（serialize）** - 序列化是将对象转换为字节流。
@@ -26,8 +24,6 @@ date: 2020-06-19 16:45:34
 - 将对象持久化，保存在内存、文件、数据库中
 - 便于网络传输和传播
 
-
-
 # 序列化工具
 
 java序列化 - 性能比较普通
@@ -37,8 +33,6 @@ java序列化 - 性能比较普通
 [hessian](http://hessian.caucho.com/doc/hessian-overview.xtp) - 适用于对开发体验敏感，性能有要求的内外部系统。
 
 [jackson](https://github.com/FasterXML/jackson)、[gson](https://github.com/google/gson)、[fastjson](https://github.com/alibaba/fastjson) - 适用于对序列化后的数据要求有良好的可读性（转为 json 、xml 形式）。
-
-
 
 ## Java序列化
 
@@ -85,8 +79,6 @@ writeObject = Person(age=22, name=lily)
 readObject = Person(age=22, name=lily)
 ```
 
-
-
 #### 自定义用法
 
 自定义序列化和反序列化逻辑，比如控制序列化字段、进行编码加密等。
@@ -110,8 +102,6 @@ readObject = Person(age=22, name=lily)
     }
 ```
 
-
-
 #### 其他知识点
 
 1. 如果不实现Serializable接口，会抛出NotSerializableException异常。
@@ -125,7 +115,7 @@ readObject = Person(age=22, name=lily)
 5. transient关键字修饰的对象不参与序列化
 
 6. 第二种自定义方式：writeReplace和readResolve
-
+   
    1. writeObject 序列化时会调用 writeReplace 方法将当前对象替换成另一个对象并将其写入流中，此时如果有自定义的 writeObject 也不会生效了
    2. readResolve 会在 readObject 调用之后自动调用，它最主要的目的就是对反序列化的对象进行修改后返回
 
@@ -136,10 +126,8 @@ readObject = Person(age=22, name=lily)
 9. serialVersionUID相当于类的版本号，如果没有显示定义serialVersionUID，编译期会根据类信息创建一个，当修改类后可能会引起反序列化失败（比如新增了字段，导致再次自动计算的serialVersionUID不相同）
 
 10. serialVersionUID的idea快捷生成
-
+    
     ![image-20200620173518028](../../image/image-20200620173518028.png)
-
-
 
 ### 实现原理
 
@@ -150,28 +138,26 @@ readObject = Person(age=22, name=lily)
 ![Java序列化接口](../../image/1322310-20190606081015449-98486965.png)
 
 1. `Serializable`和`Externalizable` 序列化接口
-
+   
    Serializable 接口没有方法或字段，仅用于标识可序列化的语义，实际上 ObjectOutputStream#writeObject 会判断JavaBean有没有自定义的writeObject 方法，如果没有则调用默认的序列化方法。
-
+   
    Externalizable 接口该接口中定义了两个扩展的抽象方法：writeExternal 与 readExternal。
 
 2. `DataOutput`和`ObjectOutput` 
-
+   
    DataOutput 定义了对 8种Java 基本类型 byte、short、int、long、float、double、char、boolean，以及 String 的操作。
-
+   
    ObjectOutput 在 DataOutput 的基础上定义了对 Object 类型的操作。
 
 3. `ObjectOutputStream` 
-
+   
    一般使用 ObjectOutputStream#writeObject 方法把一个对象进行持久化。（ObjectInputStream#readObject 则从持久化存储中把对象读取出来。）
 
 4. `ObjectStreamClass` 和 `ObjectStreamField` 
-
+   
    ObjectStreamClass 是类的序列化描述符，包含类描述信息，字段的描述信息和 serialVersionUID。可以使用 lookup 方法找到创建在虚拟机中加载的具体类的 ObjectStreamClass。
-
+   
     ObjectStreamField 保存字段的序列化描述符，包括字段名、字段值等。
-
-
 
 #### ObjectOutputStream源码分析
 
@@ -191,8 +177,6 @@ readObject = Person(age=22, name=lily)
     /** true 则调用replaceObject() -- JavaBean中实现replaceObject() */
     private boolean enableReplace;
 ```
-
-
 
 ##### ObjectOutputStream 构造函数
 
@@ -220,8 +204,6 @@ readObject = Person(age=22, name=lily)
         bout.writeShort(STREAM_VERSION);
     }
 ```
-
-
 
 ##### 序列化入口 writeObject
 
@@ -456,8 +438,6 @@ readObject = Person(age=22, name=lily)
     }
 ```
 
-
-
 ###### 2.2 writeOrdinaryObject
 
 普通JavaBean的序列化逻辑
@@ -502,8 +482,6 @@ readObject = Person(age=22, name=lily)
         }
     }
 ```
-
-
 
 ###### 2.2.1 writeClassDesc
 
@@ -593,8 +571,6 @@ readObject = Person(age=22, name=lily)
         }
     }
 ```
-
-
 
 ###### 2.2.2 writeSerailData
 
@@ -704,8 +680,6 @@ readObject = Person(age=22, name=lily)
     }
 ```
 
-
-
 到这序列化的主体逻辑就结束了。
 
 反序列化的主要操作和序列化都是一一对应的。读出每个类标志，用对应方式去解析。
@@ -805,10 +779,6 @@ readObject = Person(age=22, name=lily)
     }
 ```
 
-
-
-
-
 #### 其他知识点
 
 ###### 字段值的读取和写入
@@ -818,8 +788,6 @@ ObjectOutputStream写值的逻辑：获取到当前对象中的原生类型字�
 同理，ObjectInputStream读值的逻辑，`unsafe.putBoolean(obj, key, Bits.getBoolean(buf, off));`
 
 实现在`ObjectStreamClass#getPrimFieldValues`和`ObjectStreamClass#setPrimFieldValues`
-
-
 
 ###### 共享句柄
 
@@ -831,8 +799,6 @@ ObjectOutputStream写值的逻辑：获取到当前对象中的原生类型字�
 
 ![image-20200621001613320](../../image/image-20200621001613320.png)
 
-
-
 #### 一个直观的例子
 
 举上面Person的例子。
@@ -842,8 +808,6 @@ write Person: person -> write Integer: age & write String: name
 write Integer: age -> write int value(11) & write Number : null
 
 write String: name
-
-
 
 Person里再加Birthday one, Birthday two属性。
 
@@ -891,8 +855,6 @@ public class Person implements Serializable {
 }
 ```
 
-
-
 以JavaBean为例，不严谨的一份序列化结果接近这样：
 
 魔数、版本号只在初始化写一次
@@ -904,10 +866,6 @@ public class Person implements Serializable {
 ![image-20200621002637015](../../image/image-20200621002637015.png)
 
 ![image-20200621003459769](../../image/image-20200621003459769.png)
-
-
-
-
 
 ## Gson
 
@@ -1009,13 +967,7 @@ gson.toJson(foo, fooType);
 gson.fromJson(json, fooType);
 ```
 
-
-
-
-
 ### 实现原理
-
-
 
 #### 核心：TypeAdapter
 
@@ -1023,11 +975,11 @@ gson.fromJson(json, fooType);
 
 ```java
 public abstract class TypeAdapter<T> {
-  
+
   public abstract void write(JsonWriter out, T value) throws IOException;
-  
+
   public abstract T read(JsonReader in) throws IOException;
-  
+
   ...
 }
 ```
@@ -1044,8 +996,6 @@ Gson为每一种类型创建一个TypeAdapter，同样的，每一个Type都对�
 Gson根据传入的Type找对应的TypeAdapter，如果是基本平台类型，利用TypeAdapter可直接读写json，如果是组合及自定义类型，则在对应的TypeAdapter里封装了对内部属性的处理，是一个迭代的过程（和上面Java自带的序列化writeOrdinaryObject&readOrdinaryObject是很类似的）。
 
 ![image-20200622204756920](../../image/image-20200622204756920.png)
-
-
 
 #### 源码分析
 
@@ -1161,10 +1111,6 @@ Gson(Excluder excluder, FieldNamingStrategy fieldNamingStrategy,
   }
 ```
 
-
-
-
-
 ##### toJson
 
 ```java
@@ -1186,8 +1132,6 @@ public class LearningGsonTest {
     }
 }
 ```
-
-
 
 ```java
   public String toJson(Object src) {
@@ -1264,8 +1208,6 @@ public class LearningGsonTest {
   }
 ```
 
-
-
 穿插一下Java类型（Type）系统的介绍。
 
 详细内容可以看这两篇文章Java中的Type类型详解](https://juejin.im/post/5adefaba518825670e5cb44d)和[Java Type类型](https://www.jianshu.com/p/39cc237ad815)，或者Google下。
@@ -1297,8 +1239,6 @@ genericComponentType可以理解为数组中每个元素的（泛型）类型
 `T[] array`，本身是GenericArrayType，`T`是TypeVariable
 
 ![image-20200624180623826](../../image/image-20200624180623826.png)
-
-
 
 ##### getAdapter
 
@@ -1407,8 +1347,6 @@ FutureTypeAdapter本质上是个委托者，内部引用了真正的adapter，�
   }
 ```
 
-
-
 ##### AdapterFactory
 
 平台基础类型的Adapter是预先定义好的，每个类型对应一个adapter，比如String类型的AdapterFactory返回的adapter永远是`TypeAdapters.STRING`
@@ -1416,8 +1354,6 @@ FutureTypeAdapter本质上是个委托者，内部引用了真正的adapter，�
 复合类型和自定义类型（反射类型）的Adapter是需要动态创建的，因为泛型不同、JavaBean的属性不同，等等
 
 接下来看3个实现，其他类型大同小异，理解的思路是一样的
-
-
 
 ###### String类型
 
@@ -1477,8 +1413,6 @@ public static final TypeAdapterFactory STRING_FACTORY = newFactory(String.class,
 ```
 
 Integer、Long、Boolean、AtomicInteger等等平台基础类型的factory的框架是类似的，或者一样的，有细微的差别（比如同时支持非包装类型和包装类型）
-
-
 
 ###### 集合类型
 
@@ -1576,8 +1510,6 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
 }
 ```
 
-
-
 TypeAdapterRuntimeTypeWrapper
 
 ```java
@@ -1614,8 +1546,6 @@ TypeAdapterRuntimeTypeWrapper
     chosen.write(out, value);
   }
 ```
-
-
 
 ###### 反射类型
 
@@ -1881,8 +1811,6 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 }
 ```
 
-
-
 #### 小结
 
 源码差不多就到这里了，还有很多Gson的细节、以及扩展性的地方，就不在这里深入讨论了。
@@ -1893,11 +1821,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 2. 创建adapter的过程中，会递归对内部属性创建adapter -- 可选，不同Type逻辑不同
 3. 委托adapter读写json
 
-
-
 源码中比较难看懂的是有很多工厂类、委托类，如果能理清大体的逻辑，就比较容易触类旁通了。
-
-
 
 to be continued...
 
@@ -1906,8 +1830,6 @@ Jackson
 FastJson 
 
 其他序列化
-
-
 
 # 性能对比
 
@@ -2006,8 +1928,6 @@ ns         %     Task name
 5762197116  096%  serialization 
 ```
 
-
-
 10次的平均：
 
 ```shell
@@ -2029,8 +1949,6 @@ ns         %     Task name
 ```
 
 可以看出来，个数越多，性能差异越明显。
-
-
 
 # Mock小工具
 
@@ -2154,16 +2072,10 @@ public class SimpleMock {
 }
 ```
 
-
-
-
-
-
-
 # 参考
 
 1. [Java序列化](https://juejin.im/post/5ce3cdc8e51d45777b1a3cdf#heading-8)
 
 2. [Java 序列化和反序列化的几篇文章](https://www.cnblogs.com/binarylei/category/1159503.html)
-3. [Gson源码解析和它的设计模式](https://juejin.im/post/5c1473d9e51d4529ee23645f)
 
+3. [Gson源码解析和它的设计模式](https://juejin.im/post/5c1473d9e51d4529ee23645f)
